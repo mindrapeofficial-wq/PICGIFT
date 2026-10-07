@@ -1,4 +1,3 @@
-// Configuración pública: sustituir SOLO con los valores públicos del nuevo proyecto PICGIFT.
-// Jamás introducir service_role, secret keys, Google OAuth client secret ni contraseñas.
-export const SUPABASE_URL = '';
-export const SUPABASE_PUBLISHABLE_KEY = '';
+// PICGIFT public Supabase Auth configuration; never place secret/service-role keys here.
+export const SUPABASE_URL = 'https://uimrvgrpenccijumyiek.supabase.co';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_OM4kWKb76VwbpJixDr8Nqw_G9zewMOU';
