@@ -1,0 +1,19 @@
+{
+  "name": "PICGIFT · Navidad 2026",
+  "short_name": "PICGIFT",
+  "description": "Estudio navideño de fotografía con IA, edición 2026",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071b18",
+  "theme_color": "#071b18",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
