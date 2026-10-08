@@ -1,3 +1,10 @@
+# PICGIFT · Halloween 2026
+
+**Campaña activa:** Halloween, en negro y naranja. Los escenarios publicados son conceptos ilustrados; la generación de Halloween sigue en preparación y los pagos permanecen apagados. La versión anterior de Navidad se conserva en [`archive/navidad-2026`](https://github.com/mindrapeofficial-wq/PICGIFT/tree/archive/navidad-2026).
+
+Consulta [CAMPAIGNS.md](./CAMPAIGNS.md) para detalles de campaña y restauración segura. Los apartados siguientes describen el desarrollo histórico de la versión Navidad.
+
+---
 # PICGIFT · App Navidad 2026
 
 Prototipo mobile-first publicado como web estática en Render. Esta versión rediseña la interfaz y conserva Supabase Auth, incluido Google OAuth. Ya incluye un flujo de generación IA protegido y desplegado en Supabase Edge Functions, pendiente de activar con una clave del proveedor y de validar mediante pruebas reales. Los pagos todavía no están implementados.
