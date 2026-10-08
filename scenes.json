@@ -1,0 +1,85 @@
+{
+  "version": "1.0",
+  "visibility": "public-metadata-only",
+  "notice": "No se publican recetas, prompts ni imágenes privadas.",
+  "scenes": [
+    {
+      "id": "rustic-sleigh",
+      "name": "Trineo rústico",
+      "description": "Madera, abetos y luces cálidas",
+      "icon": "🛷",
+      "category": "Clásicos",
+      "ages": "1–4 años",
+      "poses": [
+        "Sentado en trineo",
+        "Sentado delante",
+        "De pie al lado"
+      ],
+      "status": "preview"
+    },
+    {
+      "id": "santa-workshop",
+      "name": "Taller de Papá Noel",
+      "description": "Juguetes, regalos y fantasía artesanal",
+      "icon": "🧸",
+      "category": "Fantasía",
+      "ages": "2–8 años",
+      "poses": [
+        "Sentado trabajando",
+        "De pie"
+      ],
+      "status": "preview"
+    },
+    {
+      "id": "snow-forest",
+      "name": "Bosque nevado",
+      "description": "Un cuento de invierno entre árboles",
+      "icon": "🌲",
+      "category": "Invierno",
+      "ages": "1–10 años",
+      "poses": [
+        "Sentado",
+        "De pie"
+      ],
+      "status": "preview"
+    },
+    {
+      "id": "christmas-train",
+      "name": "Tren navideño",
+      "description": "Una aventura entre luces y vapor",
+      "icon": "🚂",
+      "category": "Clásicos",
+      "ages": "2–8 años",
+      "poses": [
+        "De pie",
+        "Sentado"
+      ],
+      "status": "preview"
+    },
+    {
+      "id": "reading-corner",
+      "name": "Rincón de lectura",
+      "description": "Historias acogedoras junto a la nieve",
+      "icon": "📚",
+      "category": "Clásicos",
+      "ages": "1–8 años",
+      "poses": [
+        "Sentado leyendo"
+      ],
+      "status": "preview"
+    },
+    {
+      "id": "christmas-kitchen",
+      "name": "Cocina navideña",
+      "description": "Galletas y repostería tradicional",
+      "icon": "🍪",
+      "category": "Fantasía",
+      "ages": "1–7 años",
+      "poses": [
+        "Sentado",
+        "De pie"
+      ],
+      "status": "preview"
+    }
+  ]
+}
