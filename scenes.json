@@ -1,8 +1,176 @@
 {
-  "version": "2.0",
-  "visibility": "public-metadata-only",
-  "notice": "Las imágenes son referencias libres de Unsplash, no los escenarios finales; las recetas JSON privadas no figuran aquí.",
+  "version": "3.0",
+  "visibility": "public scene metadata and scene-only photos",
+  "notice": "Siete fotografías de fondo facilitadas por PICGIFT, sin personas. Cuatro imágenes conceptuales de Unsplash. Los resultados con niños permanecen en Drive privado. Fotografías recibidas comprimidas; no son 4K. Las recetas JSON y datos privados no se publican.",
   "scenes": [
+    {
+      "id": "golden-christmas",
+      "name": "Navidad dorada",
+      "description": "Luces cálidas, regalos y destellos de cuento",
+      "icon": "🎄",
+      "category": "Fantasía",
+      "badge": "Fondo PICGIFT",
+      "ages": "1–10 años",
+      "poses": [
+        "Sentado sobre madera",
+        "De pie"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/golden-bokeh.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "reading-corner",
+      "name": "Rincón de cuentos de Navidad",
+      "description": "Casita de lectura entre abetos nevados, libros y faroles",
+      "icon": "📚",
+      "category": "Invierno",
+      "ages": "1–8 años",
+      "poses": [
+        "Sentado leyendo"
+      ],
+      "status": "preview",
+      "badge": "Fondo PICGIFT",
+      "image": "./assets/scenes/reading-corner.jpg",
+      "image4k": null,
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Autorización comercial pendiente de comprobar"
+      },
+      "previewOnly": true,
+      "source": "picgift",
+      "qualityNote": "Archivo comprimido"
+    },
+    {
+      "id": "santa-workshop",
+      "name": "Taller de Papá Noel",
+      "description": "Mesa de juguetes y pinturas entre cálidos faroles navideños",
+      "icon": "🧸",
+      "category": "Fantasía",
+      "ages": "2–8 años",
+      "poses": [
+        "Sentado trabajando",
+        "De pie"
+      ],
+      "status": "preview",
+      "badge": "Fondo PICGIFT",
+      "image": "./assets/scenes/santa-workshop.jpg",
+      "image4k": null,
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Autorización comercial pendiente de comprobar"
+      },
+      "previewOnly": true,
+      "source": "picgift",
+      "qualityNote": "Archivo comprimido"
+    },
+    {
+      "id": "christmas-armchair",
+      "name": "Sillón de Navidad",
+      "description": "Rincón elegante con sillón blanco y árbol rojo",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "1–8 años",
+      "poses": [
+        "Sentado en sillón",
+        "De pie junto al árbol"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/christmas-chair.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "white-door",
+      "name": "La puerta de Navidad",
+      "description": "Baúl blanco, corona y detalles rústicos",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "1–8 años",
+      "poses": [
+        "Sentado sobre el baúl",
+        "De pie junto a baúl"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/white-trunk.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "winter-window",
+      "name": "Ventana de invierno",
+      "description": "Ventana antigua entre nieve, piñas y velas",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "2–9 años",
+      "poses": [
+        "Asomado a la ventana",
+        "Sentado delante"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/winter-window.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "cozy-cabinet",
+      "name": "El rincón de los ositos",
+      "description": "Decorado verde botella con ositos, regalos y madera",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "0–6 años",
+      "poses": [
+        "Sentado en suelo",
+        "Tumbado sobre manta",
+        "De pie"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/cabinet-teddies.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
     {
       "id": "rustic-sleigh",
       "name": "Trineo rústico",
@@ -22,28 +190,6 @@
       "credit": {
         "author": "Fujiphilm",
         "url": "https://unsplash.com/photos/christmas-tree-with-red-and-gold-ornaments-and-gifts-cxvfPfbu2vE",
-        "license": "Unsplash License"
-      },
-      "previewOnly": true
-    },
-    {
-      "id": "santa-workshop",
-      "name": "Taller de Papá Noel",
-      "description": "Juguetes, regalos y fantasía artesanal",
-      "icon": "🧸",
-      "category": "Fantasía",
-      "ages": "2–8 años",
-      "poses": [
-        "Sentado trabajando",
-        "De pie"
-      ],
-      "status": "preview",
-      "badge": "Taller mágico",
-      "image": "https://images.unsplash.com/photo-1761682753495-353db742860f?auto=format&fit=crop&q=82&w=1280",
-      "image4k": "https://images.unsplash.com/photo-1761682753495-353db742860f?auto=format&fit=crop&q=90&w=3840",
-      "credit": {
-        "author": "Jason Leung",
-        "url": "https://unsplash.com/photos/toys-and-craft-supplies-on-wooden-shelves-6SfykQC7QeY",
         "license": "Unsplash License"
       },
       "previewOnly": true
@@ -88,27 +234,6 @@
       "credit": {
         "author": "Wolfgang Weiser",
         "url": "https://unsplash.com/photos/a-vintage-steam-train-travels-through-a-snowy-forest-8ugL4UBc8qM",
-        "license": "Unsplash License"
-      },
-      "previewOnly": true
-    },
-    {
-      "id": "reading-corner",
-      "name": "Rincón de lectura",
-      "description": "Historias acogedoras junto a la nieve",
-      "icon": "📚",
-      "category": "Clásicos",
-      "ages": "1–8 años",
-      "poses": [
-        "Sentado leyendo"
-      ],
-      "status": "preview",
-      "badge": "Rincón de lectura",
-      "image": "https://images.unsplash.com/photo-1701976835763-48f87eef60af?auto=format&fit=crop&q=82&w=1280",
-      "image4k": "https://images.unsplash.com/photo-1701976835763-48f87eef60af?auto=format&fit=crop&q=90&w=3840",
-      "credit": {
-        "author": "Zoe",
-        "url": "https://unsplash.com/photos/a-person-reading-a-book-under-a-christmas-tree-uMWN81jvrqE",
         "license": "Unsplash License"
       },
       "previewOnly": true
