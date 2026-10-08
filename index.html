@@ -43,12 +43,12 @@
     <header class="topbar">
       <a href="#inicio" class="mobile-logo" data-route="inicio" aria-label="PICGIFT, inicio"><img src="./assets/halloween/picgift-logo-hd.png?v=hd-20261008-v1" alt="Logotipo PICGIFT"></a>
       <div class="top-actions"><label class="language-picker"><span>Idioma</span><select data-language-selector aria-label="Idioma" data-no-translate><option value="auto" aria-label="Automatic">🌐</option><option value="es" aria-label="Español">🇪🇸</option><option value="en" aria-label="English">🇬🇧</option></select></label>
-        <span class="pill season-pill hide-mobile">✦ Colección Halloween 2026</span>
+        
         <button class="pill" id="signin" type="button">Entrar <svg><use href="#i-user"/></svg></button>
         <button class="pill" id="signup" type="button">Crear cuenta</button>
         <span id="connection-state" class="offline-pill hidden" role="status">Sin conexión</span>
         <button class="avatar hidden" id="profile-button" data-route="cuenta" aria-label="Abrir cuenta">P</button>
-        <a class="pill hidden" id="admin-topbar-link" href="./admin.html" aria-label="Abrir panel de administración de PICGIFT">Administración ⚙</a>
+        
       </div>
     </header>
     <div id="public">
@@ -83,7 +83,7 @@
       <section class="page" data-page="precios" hidden>
         <div class="top-heading"><div><span class="eyebrow">Edición Halloween 2026</span><h1>Un recuerdo para siempre</h1><p>Próximamente, paquetes de fotografías temáticas sin suscripción. Los cobros continúan desactivados.</p></div><span class="pill">✦ Pago único</span></div>
         <section class="promo-pricing-intro" id="halloween-promo-pricing" data-no-translate hidden aria-label="Promoción Halloween">
-          <div><span class="promo-intro-tag" id="promo-intro-tag">OFERTA ESPECIAL HALLOWEEN</span><h2 id="promo-intro-head">−20 % en los packs de 5 y 10 fotos</h2><p id="promo-intro-copy">Válida hasta el 31 de octubre de 2026 incluido. El pack de 1 foto mantiene su precio.</p></div>
+          <div><span class="promo-intro-tag" id="promo-intro-tag">OFERTA ESPECIAL HALLOWEEN</span><h2 id="promo-intro-head">−20 % en los packs de 5 y 10 fotos</h2></div>
           <span class="promo-end-date" id="promo-intro-date">HASTA EL 31 OCT</span>
         </section>
         <p class="pack-quality-note">La misma calidad de retrato en todos los packs. Elige cuántos recuerdos quieres crear.</p><div class="pricing-grid">
@@ -93,13 +93,13 @@
         </div>
         <p class="promo-disclosure" id="promo-disclosure" data-no-translate hidden>Promoción informativa: las compras están actualmente desactivadas. La oferta solo podría utilizarse si habilitamos los pagos antes del 1 de noviembre.</p>
         <div class="notice" id="payment-status" role="status" aria-live="polite">Las compras se abrirán cuando el estudio esté disponible. No se realizan cargos actualmente.</div>
-        <div class="panel" style="margin-top:22px"><h2>¿Cómo funciona?</h2><p class="muted" style="margin-top:12px;font-size:13px">Un crédito permite recibir una fotografía terminada. Los intentos fallidos no deben consumir el crédito. El precio mostrado es el precio total anunciado del paquete; las condiciones definitivas de compra y devolución se publicarán antes del lanzamiento. Las fotografías con menores necesitan autorización de sus representantes.</p><p class="foot-note">Web: Checkout seguro de Stripe · Android desde Google Play: Google Play Billing. No realizamos cargos actualmente.</p></div>
+        <div class="panel" style="margin-top:22px"><h2>¿Cómo funciona?</h2><p class="muted" style="margin-top:12px;font-size:13px">Un crédito permite recibir una fotografía terminada. Los intentos fallidos no deben consumir el crédito. El precio mostrado es el precio total anunciado del paquete; las condiciones definitivas de compra y devolución se publicarán antes del lanzamiento. Las fotografías con menores necesitan autorización de sus representantes.</p></div>
       </section>
       <section class="page" data-page="escenarios" hidden>
-        <div class="top-heading"><div><span class="eyebrow">PICGIFT · Colección Halloween 2026</span><h1>Tu próxima historia</h1><p>Inspírate en nuestras muestras y elige el universo de su próximo retrato. La disponibilidad de creación se indica en el estudio.</p></div><span class="pill">4 escenarios</span></div>
+        
         <div class="filterbar" id="filters"><button class="chip" aria-pressed="true" data-filter="Todos">Todos</button><button class="chip" aria-pressed="false" data-filter="Clásicos">Clásicos</button><button class="chip" aria-pressed="false" data-filter="Fantasía">Fantasía</button><button class="chip" aria-pressed="false" data-filter="Bosques">Bosques</button></div>
         <div class="scene-grid" id="collection-scenes"></div>
-        <p class="foot-note">Los decorados muestran el ambiente de la colección. La composición y los detalles de cada retrato pueden variar.</p>
+        
       </section>
     </div>
     <div id="workspace" class="hidden">
@@ -115,10 +115,7 @@
             <p>Convierte tus fotos en recuerdos mágicos y misteriosos.</p>
           </div>
         </header>
-        <div class="top-heading studio-heading">
-          <div><span class="eyebrow">PICGIFT · Estudio fotográfico</span><h1>Su aventura empieza aquí</h1><p>Elige una foto nítida, encuentra su escenario y prepara un recuerdo lleno de magia.</p></div>
-          <span class="studio-private-note">Campaña Halloween · Sin cobros</span>
-        </div>
+        
         <div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
         <div class="studio-steps" aria-label="Pasos para generar una fotografía">
           <span id="studio-step-photo"><strong>1</strong> Tu foto</span>
@@ -128,7 +125,7 @@
         <div class="create-layout studio-layout">
           <div class="panel studio-main-panel">
             <div class="section-head studio-section-title studio-photo-title"><div><span class="eyebrow">PASO 1</span><h2>Tu fotografía</h2></div></div>
-            <div class="photo-advice"><strong>La mejor foto: cuerpo completo, cabeza recta y mirada al frente.</strong>Procura que se vean el cabello, las manos y los pies. Usa luz suave, un fondo sencillo y una imagen nítida, sin filtros. Estas condiciones ayudan a conservar proporciones y rasgos naturales.</div>
+            
             <details class="photo-guide"><summary>Ver ejemplos: qué foto subir y qué evitar</summary><div class="guide-grid">
               <figure><img src="./assets/halloween/guide/cuerpo-entero.webp" alt="Ejemplo ficticio correcto: cuerpo completo, cabeza recta y mirada frontal" loading="lazy"><figcaption><strong>✓ La más recomendable</strong>Cuerpo entero, manos y pies visibles. Cabeza recta y mirando al frente.</figcaption></figure>
               <figure><img src="./assets/halloween/guide/retrato.webp" alt="Ejemplo ficticio de referencia opcional de rostro nítido y frontal" loading="lazy"><figcaption><strong>✓ Referencia del rostro</strong>La cara completa, nítida y sin accesorios que oculten los rasgos.</figcaption></figure>
@@ -244,7 +241,7 @@
       </section>
     </div>
     <section class="page" data-page="creditos" hidden><div class="top-heading"><div><span class="eyebrow">Transparencia</span><h1>Créditos y avisos</h1><p>La campaña Halloween 2026 se encuentra en preparación.</p></div></div><div class="panel"><h2>Recursos visuales PICGIFT</h2><p class="muted" style="font-size:13px;margin-top:14px">El logotipo y el icono de Halloween son recursos de marca de la campaña. Los decorados y las muestras ilustran el estilo de la colección. La campaña anterior se conserva para futuras modificaciones.</p><div id="credits-list" style="display:grid;gap:9px;margin-top:18px"></div><p class="foot-note">No se realizan cobros. Las condiciones legales y el consentimiento para fotografías de menores se revisarán antes del lanzamiento comercial.</p><button class="btn outline" data-route="inicio" style="margin-top:20px">Volver al inicio</button></div></section>
-    <footer class="page" style="padding-top:0"><div class="legal">© 2026 PICGIFT · Colección Halloween 2026 · <a href="./privacy.html">Privacidad</a> · <a href="./delete-account.html">Eliminar cuenta</a> · <button class="text-btn" data-route="creditos">Avisos y créditos</button></div></footer>
+    <footer class="page" style="padding-top:0"><div class="legal">© 2026 PICGIFT · <a href="./privacy.html">Privacidad</a> · <a href="./delete-account.html">Eliminar cuenta</a> · <button class="text-btn" data-route="creditos">Avisos y créditos</button></div></footer>
   </main>
 </div>
 <nav class="mobile-nav" aria-label="Menú de PICGIFT">
