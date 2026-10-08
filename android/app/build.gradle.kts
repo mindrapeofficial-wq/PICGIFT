@@ -9,8 +9,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.3.0-halloween-ui"
+        versionCode = 5
+        versionName = "1.4.0-official-logo"
     }
     buildFeatures { buildConfig = true }
     val uploadStore = System.getenv("PICGIFT_UPLOAD_STORE")
