@@ -32,8 +32,9 @@ document.addEventListener('click',e=>{const select=e.target.closest('[data-selec
 $('filters').addEventListener('click',e=>{const el=e.target.closest('[data-filter]');if(!el)return;filter=el.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));renderCatalog()});
 $('choose-photo').addEventListener('click',()=>$('photo').click());$('change-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));
 const dz=$('drop-zone');['dragenter','dragover'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.add('dragging')}));['dragleave','drop'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.remove('dragging')}));dz.addEventListener('drop',e=>acceptFile(e.dataTransfer.files[0]));
-$('generate').addEventListener('click',()=>{if(!selected){toast('Elige primero un escenario.');return}navigate('resultado');toast('Esta vista es una maqueta, no una fotografía generada.')});
+$('generate').addEventListener('click',()=>{if(!selected){toast('Elige un escenario para continuar.');return}if(!file){toast('Primero selecciona una fotografía.');return}if(!$('photo-ai-consent').checked){toast('Debes autorizar expresamente el procesamiento de esta fotografía.');return}window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{file,scene_id:selected.id,format:['vertical','horizontal','square'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}))});
 $('pricing-soon').addEventListener('click',()=>toast('Los pagos se activarán cuando esté listo el generador de imágenes.'));
+window.addEventListener('picgift:route',e=>navigate(e.detail.name));
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'inicio',true));
 initSnow();loadCatalog();navigate(location.hash.slice(1)||'inicio',true);
  const splash=$('splash');if(splash){let seen=false;try{seen=sessionStorage.getItem('picgift_intro_2026')==='seen';sessionStorage.setItem('picgift_intro_2026','seen')}catch(e){}
