@@ -50,7 +50,7 @@ function selectScene(id,goToCreate=true){
  selected=scene;
  $('selected-scene-image').src=scene.image;
  $('selected-scene-title').textContent=scene.name;
- $('selected-theme').textContent=scene.category||'Navidad';
+ $('selected-theme').textContent=scene.category||'Halloween';
  $('selected-ages').textContent=scene.ages||'Todas las edades';
  $('selected-status').textContent=scene.source==='picgift'?'Listo para generar':'Boceto en preparación';
  $('pose').replaceChildren(...(scene.poses||['Automática']).map(p=>new Option(p,p)));
