@@ -55,7 +55,7 @@ if("serviceWorker" in navigator&&location.protocol==="https:"){
  });
  window.addEventListener("load",async()=>{
   try{
-   const reg=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
+   const reg=await navigator.serviceWorker.register("./sw.js",{scope:"./",updateViaCache:"none"});
    if(wasControlled)reg.update().catch(()=>{});
   }catch{}
  },{once:true});
