@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="es"><head>
+<html lang="es" data-campaign="halloween"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#071b18">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="PICGIFT: recuerdos navideños con una experiencia fotográfica mágica. Colección Navidad 2026.">
-<link rel="icon" href="./logo.svg?v=christmas-2026-1" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#090609">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="PICGIFT Halloween 2026: retratos inolvidables y una experiencia fotográfica misteriosa.">
+<link rel="icon" href="./assets/halloween/app-icon-halloween.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest?v=halloween-2026">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://images.unsplash.com">
-<link rel="stylesheet" href="./styles.css?v=picgift-studio-mobile-2026-1"><title>PICGIFT · Edición Navidad 2026</title>
+<link rel="stylesheet" href="./styles.css?v=picgift-halloween-2026-1"><title>PICGIFT · Halloween 2026</title>
 </head><body>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
-  <div class="splash-inner"><img src="./logo.svg?v=christmas-2026-1" alt="PICGIFT"><div class="eyebrow">Christmas 2026</div><h2>PICGIFT</h2><p>Tus recuerdos, nuestra magia</p><span class="splash-star">✦</span></div>
+  <div class="splash-inner"><img src="./assets/halloween/app-icon-halloween.svg" alt="PICGIFT"><div class="eyebrow">Halloween 2026</div><h2>PICGIFT</h2><p>El misterio se convierte en recuerdo</p><span class="splash-star">✦</span></div>
 </div>
 <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
 <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/></symbol>
@@ -26,7 +26,7 @@
 <div id="update-banner" class="update-banner hidden" role="status"><span>Hay una nueva versión de PICGIFT.</span><button id="update-picgift" class="btn primary" type="button">Actualizar</button></div>
 <div class="app">
   <aside class="sidebar" aria-label="Menú principal">
-    <a href="#inicio" class="brand" data-route="inicio"><img src="./logo.svg?v=christmas-2026-1" alt=""><div><strong>PICGIFT</strong><span>Christmas 2026</span></div></a>
+    <a href="#inicio" class="brand" data-route="inicio"><img src="./assets/halloween/app-icon-halloween.svg" alt=""><div><strong>PICGIFT</strong><span>Halloween 2026</span></div></a>
     <span class="side-caption">Descubre la magia</span>
     <nav class="nav">
       <button class="nav-link active" data-route="inicio"><svg><use href="#i-home"/></svg> Inicio</button>
@@ -36,14 +36,14 @@
       <button class="nav-link" data-route="mis-fotos"><svg><use href="#i-photo"/></svg> Mis fotografías</button>
       <button class="nav-link" data-route="cuenta"><svg><use href="#i-user"/></svg> Mi cuenta</button>
     </nav>
-    <div class="side-bottom"><div class="sidebar-promo"><span class="eyebrow">Edición limitada de temporada</span><h3 style="margin-top:8px">La Navidad empieza aquí.</h3><p>Una colección de escenarios para convertir cada recuerdo en un pequeño cuento.</p><a class="mini-link" href="#escenarios" data-route="escenarios">Explorar colección →</a></div><p class="tiny">© PICGIFT 2026 · Marca provisional</p></div>
+    <div class="side-bottom"><div class="sidebar-promo"><span class="eyebrow">Edición limitada de temporada</span><h3 style="margin-top:8px">El misterio empieza aquí.</h3><p>Escenarios de otoño, calabazas y castillos para los retratos de otra dimensión.</p><a class="mini-link" href="#escenarios" data-route="escenarios">Explorar Halloween →</a></div><p class="tiny">© PICGIFT 2026 · Marca provisional</p></div>
   </aside>
   <div class="main">
     <header class="topbar">
-      <a href="#inicio" class="mobile-logo" data-route="inicio"><img src="./logo.svg?v=christmas-2026-1" alt="Logotipo PICGIFT"><strong>PICGIFT</strong></a>
-      <div class="top-left"><span class="dot"></span><span>EL ESTUDIO DE NAVIDAD · EDICIÓN 2026</span></div>
+      <a href="#inicio" class="mobile-logo" data-route="inicio"><img src="./assets/halloween/app-icon-halloween.svg" alt="Logotipo PICGIFT"><strong>PICGIFT</strong></a>
+      <div class="top-left"><span class="dot"></span><span>EL ESTUDIO DE HALLOWEEN · EDICIÓN 2026</span></div>
       <div class="top-actions">
-        <span class="pill christmas-pill hide-mobile">✦ Colección Navidad 2026</span>
+        <span class="pill christmas-pill hide-mobile">✦ Colección Halloween 2026</span>
         <button class="pill" id="signin" type="button">Entrar <svg><use href="#i-user"/></svg></button>
         <button class="pill" id="signup" type="button">Crear cuenta</button>
         <button class="pill hidden" id="install-picgift" type="button">Instalar PICGIFT</button>
@@ -53,37 +53,47 @@
     </header>
     <div id="public">
       <section class="page" data-page="inicio">
-        <div class="hero">
-          <img class="hero-image" alt="Fondo de Navidad dorada, con regalos y luces de Navidad del archivo PICGIFT" src="./assets/scenes/golden-bokeh.jpg">
-          <div class="hero-content"><span class="eyebrow">✦ Temporada navideña 2026</span><h1>La magia de la Navidad, <em>en una foto.</em></h1><p>Convierte tus recuerdos en una experiencia navideña única. Escenarios de cuento, luz cálida y todo el encanto de estas fechas.</p><div class="actions"><button class="btn primary" id="start" data-route="crear">Crear mi foto <svg><use href="#i-arrow"/></svg></button><button class="btn outline" data-route="escenarios">Ver escenarios</button></div><div class="trustline"><span>Fotografía cuidada</span><span>Escenarios exclusivos</span><span>Experiencia sencilla</span></div></div>
+        <div class="hero halloween-hero">
+          <img class="hero-image" alt="Escenario ilustrado de un castillo de Halloween bajo la luna naranja" src="./assets/halloween/scenes/castillo-embrujado.svg">
+          <img class="hero-halloween-logo" src="./assets/halloween/logo-halloween.svg" alt="Logotipo de la colección PICGIFT Halloween">
+          <div class="hero-content">
+            <span class="eyebrow">✦ EDICIÓN ESPECIAL HALLOWEEN 2026</span>
+            <h1>Tu lado más <em>mágico y misterioso.</em></h1>
+            <p>Un nuevo universo PICGIFT en naranja y negro: noches encantadas, calabazas luminosas y retratos con personalidad. Estamos preparando los decorados fotográficos.</p>
+            <div class="actions"><button class="btn primary" id="start" data-route="escenarios">Descubrir Halloween <svg><use href="#i-arrow"/></svg></button><button class="btn outline" data-route="mis-fotos">Mis fotografías</button></div>
+            <div class="trustline"><span>Edición Halloween</span><span>Estilo premium</span><span>Escenarios en preparación</span></div>
+          </div>
         </div>
-        <section class="section"><div class="section-head"><div><span class="eyebrow">Nuestra colección</span><h2>Escenarios que cuentan historias</h2></div><button class="text-btn" data-route="escenarios">Ver todos los escenarios ↗</button></div><div class="scene-grid" id="home-scenes"></div></section>
-        <section class="info-strip"><div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-upload"/></svg></div><strong>01 · Sube tu fotografía</strong><p>Selecciona tu imagen favorita desde cualquier dispositivo.</p></div><div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-gallery"/></svg></div><strong>02 · Elige tu historia</strong><p>Explora decorados navideños y personaliza tu estilo.</p></div><div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-spark"/></svg></div><strong>03 · Descubre la magia</strong><p>Generación con IA disponible para las cuentas autorizadas durante las pruebas privadas.</p></div></section>
-        <div class="ribbon"><div><strong>5 recuerdos mágicos por 24,90 €</strong><small>Explora nuestros packs PICGIFT Navidad 2026, sin suscripción.</small></div><button class="btn" data-route="precios">Ver packs <svg><use href="#i-arrow"/></svg></button></div>
-        <p class="foot-note">Siete fondos proceden del archivo PICGIFT y cuatro son referencias visuales de Unsplash. Los archivos PICGIFT se recibieron comprimidos; no son originales 4K. <button class="text-btn" data-route="creditos">Ver créditos y avisos</button></p>
+        <section class="section"><div class="section-head"><div><span class="eyebrow">Próxima colección</span><h2>Tres historias para una noche única</h2></div><button class="text-btn" data-route="escenarios">Explorar conceptos ↗</button></div><div class="scene-grid" id="home-scenes"></div></section>
+        <section class="info-strip">
+          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-gallery"/></svg></div><strong>01 · Descubre los escenarios</strong><p>Explora los tres primeros conceptos de Halloween.</p></div>
+          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-photo"/></svg></div><strong>02 · Prepara tu fotografía</strong><p>La foto seleccionada permanece en tu dispositivo mientras no inicies una generación.</p></div>
+          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-spark"/></svg></div><strong>03 · Muy pronto, la magia</strong><p>Publicaremos la generación cuando los fondos fotográficos y las recetas de Halloween estén validados.</p></div>
+        </section>
+        <div class="ribbon halloween-ribbon"><div><strong>La temporada más misteriosa de PICGIFT</strong><small>Los cobros siguen desactivados. Tus fotografías anteriores siguen en tu cuenta privada.</small></div><button class="btn" data-route="escenarios">Ver la colección <svg><use href="#i-arrow"/></svg></button></div>
       </section>
       <section class="page" data-page="precios" hidden>
-        <div class="top-heading"><div><span class="eyebrow">Edición Navidad 2026</span><h1>Un recuerdo para siempre</h1><p>Elige cuántas fotografías quieres crear. Sin suscripciones ni renovaciones automáticas.</p></div><span class="pill">✦ Pago único</span></div>
+        <div class="top-heading"><div><span class="eyebrow">Edición Halloween 2026</span><h1>Un recuerdo para siempre</h1><p>Próximamente, paquetes de fotografías temáticas sin suscripción. Los cobros continúan desactivados.</p></div><span class="pill">✦ Pago único</span></div>
         <div class="pricing-grid">
-          <article class="price-card"><span class="eyebrow">PICGIFT ESENCIAL</span><h3>Tu primer recuerdo</h3><div class="price-amount">7,90 <small>€</small></div><p>1 fotografía navideña digital · 1 crédito</p><div class="price-separator"></div><p>Un escenario navideño</p><p>Descarga digital cuando la generación esté activa</p><button class="btn outline wide" type="button" data-buy="esencial" disabled>Comprar 1 fotografía</button></article>
-          <article class="price-card featured"><div class="price-ribbon">MÁS ELEGIDO</div><span class="eyebrow">PICGIFT MÁGICO</span><h3>La colección perfecta</h3><div class="price-amount">24,90 <small>€</small></div><p>5 fotografías navideñas digitales · 5 créditos</p><div class="price-separator"></div><p>Combina diferentes escenarios</p><p>Ideal para álbumes y regalos familiares</p><button class="btn primary wide" type="button" data-buy="magico" disabled>Comprar pack de 5</button></article>
-          <article class="price-card"><span class="eyebrow">PICGIFT FAMILIAR</span><h3>La Navidad completa</h3><div class="price-amount">39,90 <small>€</small></div><p>10 fotografías digitales · 10 créditos</p><div class="price-separator"></div><p>Para varios decorados y composiciones</p><p>Tu colección navideña más completa</p><button class="btn outline wide" type="button" data-buy="familiar" disabled>Comprar pack de 10</button></article>
+          <article class="price-card"><span class="eyebrow">PICGIFT ESENCIAL</span><h3>Tu primer recuerdo</h3><div class="price-amount">7,90 <small>€</small></div><p>1 fotografía digital · 1 crédito</p><div class="price-separator"></div><p>Un escenario temático</p><p>Descarga digital cuando la generación esté activa</p><button class="btn outline wide" type="button" data-buy="esencial" disabled>Comprar 1 fotografía</button></article>
+          <article class="price-card featured"><div class="price-ribbon">MÁS ELEGIDO</div><span class="eyebrow">PICGIFT MÁGICO</span><h3>La colección perfecta</h3><div class="price-amount">24,90 <small>€</small></div><p>5 fotografías digitales · 5 créditos</p><div class="price-separator"></div><p>Combina diferentes escenarios</p><p>Ideal para álbumes y regalos familiares</p><button class="btn primary wide" type="button" data-buy="magico" disabled>Comprar pack de 5</button></article>
+          <article class="price-card"><span class="eyebrow">PICGIFT FAMILIAR</span><h3>La colección completa</h3><div class="price-amount">39,90 <small>€</small></div><p>10 fotografías digitales · 10 créditos</p><div class="price-separator"></div><p>Para varios decorados y composiciones</p><p>Tu colección temática más completa</p><button class="btn outline wide" type="button" data-buy="familiar" disabled>Comprar pack de 10</button></article>
         </div>
         <div class="notice" id="payment-status" role="status" aria-live="polite">Los packs están publicados como catálogo. Las compras se habilitarán cuando terminemos las pruebas de IA y configuremos el proveedor de pagos.</div>
         <div class="panel" style="margin-top:22px"><h2>¿Cómo funciona?</h2><p class="muted" style="margin-top:12px;font-size:13px">Un crédito permite recibir una fotografía terminada. Los intentos fallidos no deben consumir el crédito. El precio mostrado es el precio total anunciado del paquete; las condiciones definitivas de compra y devolución se publicarán antes del lanzamiento. Las fotografías con menores necesitan autorización de sus representantes.</p><p class="foot-note">Web: Checkout seguro de Stripe · Android desde Google Play: Google Play Billing. No realizamos cargos actualmente.</p></div>
       </section>
       <section class="page" data-page="escenarios" hidden>
-        <div class="top-heading"><div><span class="eyebrow">PICGIFT · Colección Christmas 2026</span><h1>Tu próxima historia</h1><p>Explora siete fondos de PICGIFT y cuatro conceptos adicionales todavía en preparación.</p></div><span class="pill">11 experiencias</span></div>
-        <div class="filterbar" id="filters"><button class="chip" aria-pressed="true" data-filter="Todos">Todos</button><button class="chip" aria-pressed="false" data-filter="Clásicos">Clásicos</button><button class="chip" aria-pressed="false" data-filter="Fantasía">Fantasía</button><button class="chip" aria-pressed="false" data-filter="Invierno">Invierno</button></div>
+        <div class="top-heading"><div><span class="eyebrow">PICGIFT · Colección Halloween 2026</span><h1>Tu próxima historia</h1><p>Descubre tres escenarios de inspiración para la próxima colección. La generación con IA de Halloween todavía no está disponible.</p></div><span class="pill">3 conceptos</span></div>
+        <div class="filterbar" id="filters"><button class="chip" aria-pressed="true" data-filter="Todos">Todos</button><button class="chip" aria-pressed="false" data-filter="Clásicos">Clásicos</button><button class="chip" aria-pressed="false" data-filter="Fantasía">Fantasía</button><button class="chip" aria-pressed="false" data-filter="Bosques">Bosques</button></div>
         <div class="scene-grid" id="collection-scenes"></div>
-        <p class="foot-note">Los fondos actuales son muestras comprimidas para el catálogo. Las fotografías maestras y recetas privadas se incorporarán durante el desarrollo.</p>
+        <p class="foot-note">Estos diseños son ilustraciones conceptuales. Todavía no son fondos fotográficos finales ni están habilitados para generación.</p>
       </section>
     </div>
     <div id="workspace" class="hidden">
       <section class="page" data-page="crear" hidden id="picgift-studio">
         <div class="top-heading studio-heading">
-          <div><span class="eyebrow">PICGIFT · Estudio fotográfico</span><h1>Crea tu foto de Navidad</h1><p>Sube una foto, elige un escenario y crea tu retrato con IA.</p></div>
-          <span class="studio-private-note">Prueba privada · Sin cobros</span>
+          <div><span class="eyebrow">PICGIFT · Estudio fotográfico</span><h1>Crea tu futuro retrato de Halloween</h1><p>Explora los escenarios conceptuales y prepara tu fotografía. La generación Halloween llegará cuando sus recetas estén listas.</p></div>
+          <span class="studio-private-note">Campaña Halloween · Sin cobros</span>
         </div>
         <div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
         <div class="studio-steps" aria-label="Pasos para generar una fotografía">
@@ -110,13 +120,13 @@
             </div>
             <div class="mobile-scene-selector" id="mobile-scene-selector">
               <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 2</span><h2>Elige un escenario</h2></div></div>
-              <p class="muted" style="font-size:12px;margin-bottom:11px">Toca el fondo que te guste. Solo los escenarios PICGIFT habilitados pueden generar fotografías.</p>
-              <div class="mobile-scene-grid" id="mobile-scenes" role="group" aria-label="Escenarios navideños disponibles"></div>
+              <p class="muted" style="font-size:12px;margin-bottom:11px">Toca un concepto para ver sus detalles. La generación todavía está en preparación.</p>
+              <div class="mobile-scene-grid" id="mobile-scenes" role="group" aria-label="Conceptos de Halloween"></div>
             </div>
             <details class="studio-advanced" id="studio-advanced">
               <summary>Personalizar vestuario, orientación y pose <span class="studio-chevron" aria-hidden="true">⌄</span></summary>
               <div class="studio-advanced-inner">
-                <div class="form-grid"><label class="field"><span>Vestuario</span><select id="outfit"><option>Automático para la escena</option><option>Invierno elegante</option><option>Navidad clásica</option><option>Pequeño elfo</option></select></label><label class="field"><span>Orientación</span><select id="format"><option>Vertical · Retrato</option><option>Horizontal · Escenario</option><option>Cuadrado</option></select></label></div>
+                <div class="form-grid"><label class="field"><span>Vestuario</span><select id="outfit"><option>Automático para la escena</option><option>Elegancia oscura</option><option>Halloween clásico</option><option>Personaje de fantasía</option></select></label><label class="field"><span>Orientación</span><select id="format"><option>Vertical · Retrato</option><option>Horizontal · Escenario</option><option>Cuadrado</option></select></label></div>
                 <label class="field"><span>Posición del modelo</span><select id="pose"><option>Elige primero un escenario</option></select></label>
               </div>
             </details>
@@ -126,11 +136,11 @@
               <label class="check studio-email"><input id="photo-email-delivery" type="checkbox"><span>Enviarme un enlace privado por correo cuando esté disponible (opcional).</span></label>
             </div>
             <div class="studio-actionbar" id="studio-actionbar">
-              <button class="btn primary" id="generate" type="button" disabled>Generar mi foto navideña</button>
+              <button class="btn primary" id="generate" type="button" disabled>Generación Halloween próximamente</button>
               <button class="btn primary hidden" id="studio-login" type="button">Iniciar sesión para generar</button>
               <div class="studio-readiness" id="studio-readiness" role="status">Primero añade tu fotografía.</div>
             </div>
-            <div class="notice studio-generator-status" id="generator-status" role="status" aria-live="polite">Accede con tu cuenta para probar la generación privada.</div>
+            <div class="notice studio-generator-status" id="generator-status" role="status" aria-live="polite">Los nuevos fondos de Halloween todavía no están habilitados para generar. La cuenta, la galería y los datos anteriores siguen disponibles.</div>
             <details class="studio-diagnostics">
               <summary>¿Problemas con la IA? Comprobar conexión</summary>
               <div class="studio-diagnostics-body">
@@ -142,7 +152,7 @@
           </div>
           <aside class="panel studio-scene-aside">
             <div class="section-head"><div><span class="eyebrow">PASO 2</span><h2>Escenario seleccionado</h2></div></div>
-            <div class="detail-pic" id="selected-scene-pic"><img id="selected-scene-image" alt="Escenario navideño seleccionado"><div class="overlay"><strong id="selected-scene-title">Navidad dorada</strong><p class="tiny">Referencia del escenario</p></div></div>
+            <div class="detail-pic" id="selected-scene-pic"><img id="selected-scene-image" alt="Escenario temático seleccionado"><div class="overlay"><strong id="selected-scene-title">Bosque de calabazas</strong><p class="tiny">Referencia del escenario</p></div></div>
             <div class="summary-line"><span>Temática</span><strong id="selected-theme">Navidad</strong></div>
             <div class="summary-line"><span>Edad orientativa</span><strong id="selected-ages">Según el escenario</strong></div>
             <div class="summary-line"><span>Estado</span><strong id="selected-status">Escenario elegido</strong></div>
@@ -152,13 +162,13 @@
         </div>
       </section>
       <section class="page" data-page="resultado" hidden>
-        <div class="top-heading"><div><span class="eyebrow">Motor PICGIFT · Generación privada</span><h1 id="result-page-title">Tu fotografía navideña</h1><p id="result-page-description">Aquí podrás consultar tu fotografía y descargarla cuando el trabajo finalice. Los pagos todavía no están activos.</p></div><button class="btn outline" data-route="crear">← Volver</button></div>
-        <div class="panel" id="result-empty"><h2>Tu próxima fotografía empieza aquí</h2><p class="muted" style="margin-top:10px;font-size:13px">Selecciona tu fotografía y un escenario navideño desde el estudio. Cuando termines una generación, podrás ver y descargar el resultado en este espacio.</p><button type="button" class="btn primary" data-route="crear" style="margin-top:18px">Preparar mi fotografía</button></div>
+        <div class="top-heading"><div><span class="eyebrow">Motor PICGIFT · Generación privada</span><h1 id="result-page-title">Tu fotografía PICGIFT</h1><p id="result-page-description">Aquí podrás consultar tu fotografía y descargarla cuando el trabajo finalice. Los pagos todavía no están activos.</p></div><button class="btn outline" data-route="crear">← Volver</button></div>
+        <div class="panel" id="result-empty"><h2>La colección Halloween está en preparación</h2><p class="muted" style="margin-top:10px;font-size:13px">Pronto podrás generar fotografías de Halloween. Mientras tanto, tus resultados anteriores siguen en Mis fotos.</p><button type="button" class="btn primary" data-route="crear" style="margin-top:18px">Explorar Halloween</button></div>
         <div class="result-stage hidden" id="real-result">
           <div class="result-art">
             <img id="result-sample" alt="Referencia del escenario navideño mientras se genera tu fotografía">
             <div class="result-watermark" id="result-watermark">PREPARANDO</div>
-            <div class="result-foot"><span class="eyebrow">Christmas 2026 · Foto privada</span><h2 id="result-name">Escena navideña</h2></div>
+            <div class="result-foot"><span class="eyebrow">Halloween 2026 · Foto privada</span><h2 id="result-name">Escena navideña</h2></div>
           </div>
           <div class="panel result-progress-panel">
             <span class="eyebrow" id="progress-kicker">Motor PICGIFT · Fotografía navideña</span>
@@ -200,8 +210,8 @@
         <div class="account-grid"><div class="panel"><div class="profile"><div class="avatar" id="account-avatar">P</div><div><h3>Bienvenido a PICGIFT</h3><p id="account-email">Sesión iniciada</p></div></div><div class="settings-row"><span>Temporada activa</span><strong>Navidad 2026</strong></div><div class="settings-row"><span>Créditos disponibles</span><strong id="account-credits">0 fotografías</strong></div><div class="settings-row"><span>Mis fotografías</span><strong>Pendiente del generador</strong></div><button class="btn outline" data-route="precios" style="margin-top:18px">Ver packs</button><div class="settings-row"><span>Últimos pedidos</span><strong id="account-orders">Sin compras</strong></div><button class="btn outline" id="logout" type="button" style="margin-top:25px">Cerrar sesión</button></div><div class="panel"><span class="eyebrow">Privacidad</span><h2 style="margin-top:9px">Tus imágenes importan</h2><p class="muted" style="font-size:13px;margin-top:12px">Al elegir una foto, la vista previa permanece en tu dispositivo. Solo se enviará al servidor privado al autorizar e iniciar una generación con IA. Puedes eliminar los archivos desde Mis fotografías.</p><p class="tiny" id="install-help" style="margin-top:12px">En móviles compatibles también puedes añadir PICGIFT a la pantalla de inicio. Las fotografías privadas no se almacenan para uso sin conexión.</p><button class="btn outline" data-route="creditos" style="margin-top:17px">Avisos y créditos</button></div></div>
       </section>
     </div>
-    <section class="page" data-page="creditos" hidden><div class="top-heading"><div><span class="eyebrow">Transparencia</span><h1>Créditos y avisos</h1><p>PICGIFT se encuentra en desarrollo y utiliza recursos visuales de muestra.</p></div></div><div class="panel"><h2>Fondos PICGIFT y referencias</h2><p class="muted" style="font-size:13px;margin-top:14px">El catálogo combina siete fondos del archivo PICGIFT con cuatro referencias provisionales de Unsplash. Las imágenes propias no incluyen personas. Los archivos han llegado comprimidos por WhatsApp y no están listos para descarga en 4K. El logotipo es una adaptación vectorial provisional del concepto de regalo/cámara.</p><div id="credits-list" style="display:grid;gap:9px;margin-top:18px"></div><p class="foot-note">La política de privacidad, términos comerciales y consentimiento específico para imágenes de menores deberán revisarse antes del lanzamiento público. El registro de esta etapa es un entorno de pruebas.</p><button class="btn outline" data-route="inicio" style="margin-top:20px">Volver al inicio</button></div></section>
-    <footer class="page" style="padding-top:0"><div class="legal">© 2026 PICGIFT · Marca provisional · Diseño de campaña Christmas 2026 · <button class="text-btn" data-route="creditos">Avisos y créditos</button></div></footer>
+    <section class="page" data-page="creditos" hidden><div class="top-heading"><div><span class="eyebrow">Transparencia</span><h1>Créditos y avisos</h1><p>La campaña Halloween 2026 se encuentra en preparación.</p></div></div><div class="panel"><h2>Recursos visuales PICGIFT</h2><p class="muted" style="font-size:13px;margin-top:14px">El logotipo y el icono de Halloween son recursos de marca de la campaña. Los escenarios publicados son bocetos ilustrados, no fondos fotográficos listos para generar con IA. La colección navideña está preservada por separado para su evolución futura.</p><div id="credits-list" style="display:grid;gap:9px;margin-top:18px"></div><p class="foot-note">No se realizan cobros. Las condiciones legales y el consentimiento para fotografías de menores se revisarán antes del lanzamiento comercial.</p><button class="btn outline" data-route="inicio" style="margin-top:20px">Volver al inicio</button></div></section>
+    <footer class="page" style="padding-top:0"><div class="legal">© 2026 PICGIFT · Colección Halloween 2026 · <button class="text-btn" data-route="creditos">Avisos y créditos</button></div></footer>
   </div>
 </div>
 <nav class="mobile-nav" aria-label="Navegación inferior">
@@ -213,8 +223,8 @@
 </nav>
 <div id="auth" class="modal" role="dialog" aria-modal="true" aria-label="Acceso a PICGIFT">
  <div class="dialog">
-   <button class="close" id="close" aria-label="Cerrar" type="button">×</button><img class="auth-logo" src="./logo.svg?v=christmas-2026-1" alt="PICGIFT">
-   <span class="eyebrow" style="display:block;text-align:center">Christmas 2026</span><h2 id="auth-title">Iniciar sesión</h2><p class="auth-caption">Tus recuerdos empiezan aquí.</p>
+   <button class="close" id="close" aria-label="Cerrar" type="button">×</button><img class="auth-logo" src="./assets/halloween/app-icon-halloween.svg" alt="PICGIFT">
+   <span class="eyebrow" style="display:block;text-align:center">Halloween 2026</span><h2 id="auth-title">Iniciar sesión</h2><p class="auth-caption">Tus recuerdos empiezan aquí.</p>
    <form id="auth-form">
      <label class="field"> <span>Correo electrónico</span><input type="email" id="auth-email" autocomplete="email" required placeholder="tu@correo.com"></label>
      <label class="field"><span>Contraseña</span><input type="password" id="auth-password" autocomplete="current-password" required minlength="8" placeholder="Mínimo 8 caracteres"></label>
@@ -228,5 +238,5 @@
  </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script defer src="./app.js?v=picgift-studio-mobile-2026-1"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-studio-mobile-2026-1"></script>
-<script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-studio-mobile-2026-1"></script></body></html>
+<script defer src="./app.js?v=picgift-halloween-2026-1"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-halloween-2026-1"></script>
+<script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-halloween-2026-1"></script></body></html>
