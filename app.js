@@ -14,13 +14,14 @@ function renderCatalog(){
  $('home-scenes').innerHTML=scenes.slice(0,3).map(card).join('');
  $('collection-scenes').innerHTML=scenes.filter(s=>filter==='Todos'||s.category===filter).map(card).join('')||'<div class="notice">No hay escenarios en esta categoría.</div>';
  $('credits-list').innerHTML='<p>Fotografías de muestra autorizadas y decorados de la colección PICGIFT. Las imágenes ilustran el estilo; cada retrato personalizado puede variar.</p>';
- if(!selected&&scenes.length)selectScene(scenes[0].id,false);
+ if(!selected&&scenes.length)selectScene(scenes.find(x=>x.id==='halloween-pumpkin-bench')?.id||scenes[0].id,false);
  renderMobileScenes();updateStudio();
 }
 async function loadCatalog(){try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}catch(e){scenes=staticScenes;toast('Catálogo de Halloween cargado sin conexión al servidor.')}renderCatalog()}
 function renderMobileScenes(){
  const wrap=$('mobile-scenes');if(!wrap)return;
- const available=scenes;
+ const order=['halloween-pumpkin-bench','halloween-autumn-arch','halloween-lantern-street','halloween-potions'];
+ const available=[...scenes].sort((a,b)=>(order.indexOf(a.id)===-1?99:order.indexOf(a.id))-(order.indexOf(b.id)===-1?99:order.indexOf(b.id)));
  wrap.innerHTML=available.map(s=>'<button type="button" class="mobile-scene-option'+(selected?.id===s.id?' is-selected':'')+'" data-select="'+escapeHTML(s.id)+'" aria-pressed="'+(selected?.id===s.id)+'" aria-label="Elegir '+escapeHTML(s.name)+'"><img loading="lazy" src="'+imageRef(s)+'" alt=""><span>'+escapeHTML(s.name)+'</span><span class="mobile-scene-check" aria-hidden="true">✓</span></button>').join('');
 }
 function updateStudio(){
@@ -28,15 +29,16 @@ function updateStudio(){
  const hasPhoto=!!file,hasScene=!!selected&&selected.source==='picgift',hasConsent=$('photo-ai-consent').checked;
  const signedIn=!!user,ready=signedIn&&hasPhoto&&hasScene&&hasConsent&&window.picgiftAiReady===true&&!window.picgiftGenerating;
  $('studio-account').textContent=signedIn?'Sesión activa: '+user.email:'Sin iniciar sesión';
- login.classList.toggle('hidden',signedIn);
- generate.classList.toggle('hidden',!signedIn);
- generate.disabled=!ready;
+ login.classList.add('hidden');
+ generate.classList.remove('hidden');
+ generate.disabled=!!window.picgiftGenerating;
  const needsPack=ready&&window.picgiftPilot!==true&&!(window.picgiftCreditsAvailable>0);
- generate.textContent=window.picgiftGenerating?'Preparando tu retrato…':window.picgiftAiReady?(needsPack?'Elegir un pack para crear':'Crear mi retrato'):'Estudio no disponible';
+ generate.replaceChildren(document.createTextNode(window.picgiftGenerating?'Preparando fotografía…':needsPack?'Elegir un pack':'Crear mi foto'));
+ if(!window.picgiftGenerating){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');const use=document.createElementNS('http://www.w3.org/2000/svg','use');use.setAttribute('href','#i-arrow');svg.appendChild(use);svg.setAttribute('aria-hidden','true');generate.appendChild(svg);}
  $('studio-step-photo').classList.toggle('is-done',hasPhoto);
  $('studio-step-scene').classList.toggle('is-done',hasScene);
  $('studio-step-create').classList.toggle('is-done',ready);
- let hint=!hasPhoto?'Añade tu foto principal para empezar.':!hasScene?'Este escenario todavía está en preparación.':!hasConsent?'Autoriza el tratamiento de las fotos para continuar.':!signedIn?'Inicia sesión para guardar tu retrato.':window.picgiftGenerating?'Preparando tu retrato…':!window.picgiftAiReady?'El estudio todavía no está disponible para generar.':'Todo listo. Enviaremos el encuadre y las referencias seleccionadas.';
+ let hint=!hasPhoto?'Primero selecciona tu fotografía':!hasScene?'Elige un escenario disponible':!signedIn?'Inicia sesión para guardar tu retrato':!hasConsent?'Falta aceptar la autorización de uso':window.picgiftGenerating?'Preparando tu retrato…':!window.picgiftAiReady?'Generación todavía en preparación':'Todo listo para crear';
  if(needsPack)hint='Tu foto está preparada. Elige un pack para crear y guardar tu retrato.';
  $('studio-readiness').textContent=hint;
  $('studio-chosen').textContent=selected?'Escenario: '+selected.name+(hasScene?' · Decorado seleccionado':' · En preparación'):'Elige un escenario de Halloween.';
@@ -58,7 +60,7 @@ function selectScene(id,goToCreate=true){
 }
 function navigate(name,fromHistory=false){const allowed=['inicio','escenarios','precios','crear','mis-fotos','resultado','cuenta','creditos'];if(!allowed.includes(name))name='inicio';
 if(['mis-fotos','cuenta'].includes(name)&&!user){pending=name;openAuth('login');return}
-route=name;document.querySelectorAll('[data-page]').forEach(el=>el.hidden=(el.dataset.page!==name));document.querySelectorAll('[data-route]').forEach(el=>{if(el.classList.contains('nav-link')||el.closest('.mobile-nav')){el.classList.toggle('active',el.dataset.route===name);}});
+route=name;document.body.classList.toggle('mobile-creator-active',name==='crear');document.querySelectorAll('[data-page]').forEach(el=>el.hidden=(el.dataset.page!==name));document.querySelectorAll('[data-route]').forEach(el=>{if(el.classList.contains('nav-link')||el.closest('.mobile-nav')){el.classList.toggle('active',el.dataset.route===name);}});
 if(!fromHistory && location.hash!=='#'+name)history.pushState({page:name},'','#'+name);window.scrollTo({top:0,behavior:'instant'});window.dispatchEvent(new CustomEvent('picgift:navigated',{detail:{name}}));if(name==='resultado'&&selected){$('result-name').textContent=selected.name}}
 function openAuth(mode='login'){window.picgiftAuthReturnFocus=document.activeElement;window.picgiftAuthMode=mode;$('auth-title').textContent=mode==='register'?'Crear cuenta':'Iniciar sesión';$('terms').required=mode==='register';$('terms').closest('label').classList.toggle('hidden',mode!=='register');$('auth-submit').textContent=mode==='register'?'Crear mi cuenta':'Entrar en mi cuenta';$('auth-password').autocomplete=mode==='register'?'new-password':'current-password';$('auth').classList.add('show');$('auth-msg').textContent='Puedes acceder con correo o Google.';$('auth-email').focus()}
 window.addEventListener('picgift:auth',e=>{const wasLoggedIn=!!user;user=e.detail.user||null;if(wasLoggedIn&&!user)clearPhoto();$('signin').classList.toggle('hidden',!!user);$('signup').classList.toggle('hidden',!!user);$('profile-button').classList.toggle('hidden',!user);$('workspace').classList.remove('hidden');$('account-email').textContent=user?.email||'Sesión iniciada';$('account-avatar').textContent=(user?.email||'P')[0].toUpperCase();$('profile-button').textContent=(user?.email||'P')[0].toUpperCase();updateStudio();if(user){$('auth').classList.remove('show');if(pending){const dest=pending;pending=null;navigate(dest)}else if(!['crear','mis-fotos','resultado','cuenta'].includes(route))navigate(route,true)}else if(['mis-fotos','cuenta'].includes(route))navigate('inicio');});
@@ -83,11 +85,11 @@ $('studio-advanced').open=!window.matchMedia('(max-width:960px)').matches;
 window.addEventListener('pagehide',e=>{if(!e.persisted&&localURL)URL.revokeObjectURL(localURL)});
 const dz=$('drop-zone');['dragenter','dragover'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.add('dragging')}));['dragleave','drop'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.remove('dragging')}));dz.addEventListener('drop',e=>acceptFile(e.dataTransfer.files[0]));
 $('generate').addEventListener('click',async()=>{
+ if(!file){$('photo').click();return}
+ if(!selected||selected.source!=='picgift'){toast('Elige un escenario disponible.');$('mobile-scenes').scrollIntoView({behavior:'smooth',block:'center'});return}
  if(!user){openAuth('login');return}
- if(!selected||selected.source!=='picgift'){toast('Este escenario todavía está en preparación.');return}
- if(!file){toast('Primero selecciona una fotografía.');return}
- if(!$('photo-ai-consent').checked){toast('Autoriza el procesamiento de la fotografía antes de continuar.');return}
- if(window.picgiftAiReady!==true){toast('El estudio no está disponible en este momento. Vuelve a intentarlo más tarde.');return}
+ if(!$('photo-ai-consent').checked){toast('Para continuar acepta la autorización de uso de la fotografía.');$('photo-ai-consent').scrollIntoView({behavior:'smooth',block:'center'});$('photo-ai-consent').focus();return}
+ if(window.picgiftAiReady!==true){toast('La generación de Halloween está en preparación. Tu foto no se ha enviado.');return}
  if(window.picgiftPilot!==true&&!(window.picgiftCreditsAvailable>0)){navigate('precios');return;}
  try {if(window.picgiftGenerating)return;window.picgiftGenerating=true;updateStudio();const prepared=await window.picgiftPhotoEditor.exportFile();window.picgiftGenerating=false;window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{file:prepared,references:window.picgiftPhotoEditor.references(),scene_id:selected.id,format:['vertical','horizontal','square'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}));}catch(e){window.picgiftGenerating=false;updateStudio();toast(e.message||'No se pudo preparar el encuadre.')}
 });
@@ -96,7 +98,12 @@ window.addEventListener('picgift:route',e=>navigate(e.detail.name));
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'inicio',true));
 window.addEventListener('popstate',()=>navigate(location.hash.slice(1)||'inicio',true));
 $('workspace').classList.remove('hidden');
-updateStudio();loadCatalog();navigate(location.hash.slice(1)||'inicio',true);
+updateStudio();loadCatalog();
+ const mobileEntry=window.matchMedia('(max-width:820px)').matches;
+ const requested=location.hash.slice(1)||'inicio';
+ const opening=mobileEntry&&requested==='inicio'?'crear':requested;
+ if(mobileEntry&&requested==='inicio')history.replaceState({page:'crear'},'','#crear');
+ navigate(opening,true);
  const splash=$('splash');if(splash){let seen=false;try{seen=sessionStorage.getItem('picgift_intro_2026')==='seen';sessionStorage.setItem('picgift_intro_2026','seen')}catch(e){}
    window.setTimeout(()=>splash.classList.add('dismissed'),seen||window.matchMedia('(prefers-reduced-motion:reduce)').matches?0:1050);
    window.setTimeout(()=>{if(splash.parentNode)splash.remove()},seen?200:1800);
