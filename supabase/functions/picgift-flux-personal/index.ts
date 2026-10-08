@@ -125,6 +125,15 @@ Deno.serve(async request=>{
  let body:any={};
  try{body=await request.json();if(!body||typeof body!=="object"||Array.isArray(body))throw Error("invalid")}catch{return reply({error:"invalid_request"},400)}
  const action=safe(body.action,20)||"health";
+ if(action==="list_reviews"){
+  const {data:admin}=await db.from("picgift_admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
+  if(!admin)return reply({error:"admin_forbidden"},403);
+  const {data,error}=await db.from("picgift_photo_jobs")
+   .select("id,scene_id,status,created_at,result_quality")
+   .eq("image_model",TAG).eq("status","needs_review")
+   .order("created_at",{ascending:true}).limit(40);
+  return error?reply({error:"review_list_unavailable"},503):reply({jobs:data||[],quality_review_required:true});
+ }
  if(action==="review"){
   const {data:admin}=await db.from("picgift_admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
   if(!admin)return reply({error:"admin_forbidden"},403);
@@ -138,7 +147,7 @@ Deno.serve(async request=>{
   }
   if(!["approve","reject"].includes(body.decision)||body.confirmed!==true)return reply({error:"explicit_review_required"},400);
   const approved=body.decision==="approve";
-  const {error}=await db.from("picgift_photo_jobs").update({status:approved?"completed":"needs_review",result_quality:approved?"passed":"needs_review",updated_at:new Date().toISOString()}).eq("id",id).eq("status","needs_review").eq("image_model",TAG);
+  const {error}=await db.from("picgift_photo_jobs").update({status:approved?"completed":"failed",result_quality:approved?"passed":"needs_review",failure_code:approved?null:"quality_rejected",failure_stage:approved?null:"reviewing",updated_at:new Date().toISOString()}).eq("id",id).eq("status","needs_review").eq("image_model",TAG);
   return error?reply({error:"review_failed"},503):reply({ok:true,approved});
  }
  if(!pilot)return reply({available:false,pilot:false,error:"restricted_to_testers"},403);
