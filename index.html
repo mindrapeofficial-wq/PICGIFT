@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="PICGIFT: recuerdos navideños con una experiencia fotográfica mágica. Colección Navidad 2026.">
 <link rel="icon" href="./logo.svg?v=christmas-2026-1" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://images.unsplash.com">
-<link rel="stylesheet" href="./styles.css?v=picgift-progress-2026-1"><title>PICGIFT · Edición Navidad 2026</title>
+<link rel="stylesheet" href="./styles.css?v=picgift-studio-mobile-2026-1"><title>PICGIFT · Edición Navidad 2026</title>
 </head><body>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
   <div class="splash-inner"><img src="./logo.svg?v=christmas-2026-1" alt="PICGIFT"><div class="eyebrow">Christmas 2026</div><h2>PICGIFT</h2><p>Tus recuerdos, nuestra magia</p><span class="splash-star">✦</span></div>
@@ -79,55 +79,78 @@
       </section>
     </div>
     <div id="workspace" class="hidden">
-      <section class="page" data-page="crear" hidden>
-        <div class="top-heading"><div><span class="eyebrow">Tu estudio personal</span><h1>Crea tu Navidad</h1><p>Una experiencia guiada, preparada para nuestro futuro generador de IA.</p></div><button class="btn outline" data-route="precios">Ver packs y precios</button></div>
-        <div class="steps"><span class="step-ind active"><span class="num">1</span> Tu foto</span><span class="step-ind"><span class="num">2</span> Escenario</span><span class="step-ind"><span class="num">3</span> Personaliza</span><span class="step-ind"><span class="num">4</span> Vista previa</span></div>
-        <div class="create-layout">
-          <div class="panel">
-            <div class="section-head"><div><span class="eyebrow">Paso 01</span><h2>Tu fotografía</h2></div></div>
-            <div class="upload-zone" id="drop-zone" role="group" aria-label="Cargar fotografía">
-              <div id="upload-empty"><svg><use href="#i-upload"/></svg><h3>Tu mejor foto empieza aquí</h3><p>JPG, PNG o WEBP · Máximo 15 MB · Rostro visible</p><button type="button" class="btn outline" id="choose-photo">Elegir fotografía</button></div>
-              <div class="hidden" id="upload-loaded"><img id="chosen-photo" alt="Vista previa de la fotografía que has elegido"><p style="margin-top:8px" id="file-name"></p><button class="btn quiet" type="button" id="change-photo">Cambiar foto</button><button class="btn quiet" type="button" id="remove-photo" style="margin-left:7px">Quitar foto</button></div>
-              <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Seleccionar fotografía">
+      <section class="page" data-page="crear" hidden id="picgift-studio">
+        <div class="top-heading studio-heading">
+          <div><span class="eyebrow">PICGIFT · Estudio fotográfico</span><h1>Crea tu foto de Navidad</h1><p>Sube una foto, elige un escenario y crea tu retrato con IA.</p></div>
+          <span class="studio-private-note">Prueba privada · Sin cobros</span>
+        </div>
+        <div class="studio-steps" aria-label="Pasos para generar una fotografía">
+          <span id="studio-step-photo"><strong>1</strong> Tu foto</span>
+          <span id="studio-step-scene"><strong>2</strong> Escenario</span>
+          <span id="studio-step-create"><strong>3</strong> Generar</span>
+        </div>
+        <div class="create-layout studio-layout">
+          <div class="panel studio-main-panel">
+            <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 1</span><h2>Elige tu fotografía</h2></div></div>
+            <div class="upload-zone" id="drop-zone" role="group" aria-label="Seleccionar una fotografía">
+              <div id="upload-empty">
+                <svg aria-hidden="true"><use href="#i-upload"/></svg>
+                <h3>Sube la foto que quieres transformar</h3>
+                <p>JPG, PNG o WEBP · Hasta 15 MB · Rostros visibles</p>
+                <button type="button" class="btn primary" id="choose-photo">Elegir foto del móvil</button>
+              </div>
+              <div class="hidden" id="upload-loaded">
+                <img id="chosen-photo" alt="Fotografía seleccionada para el retrato">
+                <p style="margin-top:8px" id="file-name"></p>
+                <div class="studio-photo-actions"><button class="btn outline" type="button" id="change-photo">Cambiar foto</button><button class="btn quiet" type="button" id="remove-photo">Quitar foto</button></div>
+              </div>
+              <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Subir fotografía para editar">
             </div>
-            <div class="section-head" style="margin-top:27px"><div><span class="eyebrow">Paso 03</span><h2>Ajusta los detalles</h2></div></div>
-            <div class="form-grid"><label class="field"><span>Vestuario</span><select id="outfit"><option>Automático para la escena</option><option>Invierno elegante</option><option>Navidad clásica</option><option>Pequeño elfo</option></select></label><label class="field"><span>Orientación</span><select id="format"><option>Vertical · Retrato</option><option>Horizontal · Escenario</option><option>Cuadrado</option></select></label></div>
-            <label class="field"><span>Posición del modelo</span><select id="pose"><option>Elige primero un escenario</option></select></label>
-            <div class="notice" id="selection" role="status" aria-live="polite">Selecciona un escenario para empezar.</div>
-            <label class="check"><input id="photo-ai-consent" type="checkbox">Autorizo expresamente que PICGIFT procese esta fotografía, incluida su transferencia al proveedor de IA para crear el retrato. Confirmo tener autorización para utilizar la imagen de todas las personas que aparecen.</label>
-            <label class="check"><input id="photo-email-delivery" type="checkbox">Enviarme un enlace privado a mi correo cuando termine (opcional).</label>
-            <div class="notice" id="generator-status" role="status" aria-live="polite">El motor de IA se encuentra en preparación. No se enviarán fotos a terceros hasta activarlo.</div>
-            <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-              <button class="btn outline" type="button" id="api-diagnose" disabled>Comprobar conexión con OpenAI</button>
-              <span class="tiny">Comprueba la clave y el acceso a los modelos sin generar ninguna foto.</span>
+            <div class="mobile-scene-selector" id="mobile-scene-selector">
+              <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 2</span><h2>Elige un escenario</h2></div></div>
+              <p class="muted" style="font-size:12px;margin-bottom:11px">Toca el fondo que te guste. Solo los escenarios PICGIFT habilitados pueden generar fotografías.</p>
+              <div class="mobile-scene-grid" id="mobile-scenes" role="group" aria-label="Escenarios navideños disponibles"></div>
             </div>
-            <div id="api-diagnose-result" class="notice hidden" role="status" aria-live="polite" style="margin-top:12px"></div>
-            <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:19px"><button class="btn primary" type="button" id="demo-preview">Ver demostración <svg><use href="#i-arrow"/></svg></button><button class="btn outline" type="button" id="generate" disabled>Generar con IA (pendiente)</button></div><p class="cta-note">La demostración es local: no envía fotografías, no crea archivos nuevos ni consume créditos de IA. La generación real se activará más adelante.</p>
+            <details class="studio-advanced" id="studio-advanced">
+              <summary>Personalizar vestuario, orientación y pose <span class="studio-chevron" aria-hidden="true">⌄</span></summary>
+              <div class="studio-advanced-inner">
+                <div class="form-grid"><label class="field"><span>Vestuario</span><select id="outfit"><option>Automático para la escena</option><option>Invierno elegante</option><option>Navidad clásica</option><option>Pequeño elfo</option></select></label><label class="field"><span>Orientación</span><select id="format"><option>Vertical · Retrato</option><option>Horizontal · Escenario</option><option>Cuadrado</option></select></label></div>
+                <label class="field"><span>Posición del modelo</span><select id="pose"><option>Elige primero un escenario</option></select></label>
+              </div>
+            </details>
+            <div class="studio-confirm">
+              <p class="studio-chosen" id="studio-chosen" role="status">Escenario: selecciona uno para continuar.</p>
+              <label class="check studio-consent"><input id="photo-ai-consent" type="checkbox"><span>Autorizo que PICGIFT procese esta fotografía con IA y la envíe al proveedor para crear el retrato. Confirmo que tengo autorización para utilizar la imagen de todas las personas que aparecen.</span></label>
+              <label class="check studio-email"><input id="photo-email-delivery" type="checkbox"><span>Enviarme un enlace privado por correo cuando esté disponible (opcional).</span></label>
+            </div>
+            <div class="studio-actionbar" id="studio-actionbar">
+              <button class="btn primary" id="generate" type="button" disabled>Generar mi foto navideña</button>
+              <button class="btn primary hidden" id="studio-login" type="button">Iniciar sesión para generar</button>
+              <div class="studio-readiness" id="studio-readiness" role="status">Primero añade tu fotografía.</div>
+            </div>
+            <div class="notice studio-generator-status" id="generator-status" role="status" aria-live="polite">Accede con tu cuenta para probar la generación privada.</div>
+            <details class="studio-diagnostics">
+              <summary>¿Problemas con la IA? Comprobar conexión</summary>
+              <div class="studio-diagnostics-body">
+                <button class="btn outline" type="button" id="api-diagnose" disabled>Comprobar conexión con OpenAI</button>
+                <div id="api-diagnose-result" class="notice hidden" role="status" aria-live="polite"></div>
+                <p class="tiny">Comprobación del acceso a los modelos. No genera fotografías ni verifica el saldo de facturación.</p>
+              </div>
+            </details>
           </div>
-          <aside class="panel"><div class="section-head"><div><span class="eyebrow">Paso 02</span><h2>Tu escenario</h2></div></div><div class="detail-pic" id="selected-scene-pic"><img id="selected-scene-image" alt="Escenario de inspiración"><div class="overlay"><strong id="selected-scene-title">Trineo rústico</strong><p class="tiny">Fotografía provisional de inspiración</p></div></div><div class="summary-line"><span>Temática</span><strong id="selected-theme">Navidad rústica</strong></div><div class="summary-line"><span>Edad orientativa</span><strong id="selected-ages">1–4 años</strong></div><div class="summary-line"><span>Tu selección</span><strong id="selected-status">Escenario elegido</strong></div><button type="button" class="btn outline wide" data-route="escenarios" style="margin-top:19px">Cambiar de escenario <svg><use href="#i-arrow"/></svg></button><p class="foot-note">Los JSON maestros, parámetros y reglas profesionales permanecen fuera del catálogo público.</p></aside>
+          <aside class="panel studio-scene-aside">
+            <div class="section-head"><div><span class="eyebrow">PASO 2</span><h2>Escenario seleccionado</h2></div></div>
+            <div class="detail-pic" id="selected-scene-pic"><img id="selected-scene-image" alt="Escenario navideño seleccionado"><div class="overlay"><strong id="selected-scene-title">Navidad dorada</strong><p class="tiny">Referencia del escenario</p></div></div>
+            <div class="summary-line"><span>Temática</span><strong id="selected-theme">Navidad</strong></div>
+            <div class="summary-line"><span>Edad orientativa</span><strong id="selected-ages">Según el escenario</strong></div>
+            <div class="summary-line"><span>Estado</span><strong id="selected-status">Escenario elegido</strong></div>
+            <button type="button" class="btn outline wide" data-route="escenarios" style="margin-top:19px">Elegir otro escenario</button>
+            <p class="foot-note">Las recetas profesionales del escenario permanecen privadas en nuestro servidor.</p>
+          </aside>
         </div>
       </section>
       <section class="page" data-page="resultado" hidden>
         <div class="top-heading"><div><span class="eyebrow">Motor PICGIFT · Generación privada</span><h1 id="result-page-title">Tu fotografía navideña</h1><p id="result-page-description">Aquí podrás consultar tu fotografía y descargarla cuando el trabajo finalice. Los pagos todavía no están activos.</p></div><button class="btn outline" data-route="crear">← Volver</button></div>
-        <div id="demo-result" class="panel hidden">
-          <span class="eyebrow">Demostración interactiva · Sin IA</span>
-          <h2 style="margin-top:10px">Así empieza tu creación</h2>
-          <p class="muted" style="font-size:13px;margin-top:10px">Tus dos referencias están preparadas. Esta pantalla muestra la fotografía y el decorado por separado: todavía no es una imagen fusionada ni una generación de IA.</p>
-          <div class="demo-refs">
-            <div class="demo-ref">
-              <div class="demo-ref-image"><img id="demo-client-image" class="hidden" alt="Tu fotografía, vista previa local"><div id="demo-client-empty" class="demo-empty">📷<span>El cliente añade su fotografía aquí</span></div></div>
-              <div class="demo-ref-foot"><span class="eyebrow">01 · Identidad</span><strong>Tu fotografía</strong></div>
-            </div>
-            <div class="demo-plus" aria-hidden="true">+</div>
-            <div class="demo-ref">
-              <div class="demo-ref-image"><img id="demo-scene-image" alt="Fondo elegido de la colección PICGIFT"></div>
-              <div class="demo-ref-foot"><span class="eyebrow">02 · Ambientación</span><strong id="demo-scene-name">Escenario navideño</strong></div>
-            </div>
-          </div>
-          <div class="demo-steps"><div><span>01</span> Análisis de la foto <small>No ejecutado en demo</small></div><div><span>02</span> Fórmula privada del decorado <small>Preparada en el servidor</small></div><div><span>03</span> Integración y revisión fotográfica <small>Disponible al activar IA</small></div></div>
-          <div class="notice"><strong>Importante:</strong> esta es una simulación de la interfaz. No se ha generado ninguna fotografía, no se han enviado imágenes a OpenAI y no se ha guardado la foto que has seleccionado.</div>
-          <div class="actions" style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="button" data-route="crear">Modificar mi selección</button><button class="btn outline" type="button" data-route="escenarios">Explorar otros fondos</button></div>
-        </div>
         <div class="panel" id="result-empty"><h2>Tu próxima fotografía empieza aquí</h2><p class="muted" style="margin-top:10px;font-size:13px">Selecciona una fotografía y un escenario, y abre la demostración. Las generaciones reales aparecerán en este espacio cuando activemos el motor de IA.</p><button type="button" class="btn primary" data-route="crear" style="margin-top:18px">Preparar mi fotografía</button></div>
         <div class="result-stage hidden" id="real-result">
           <div class="result-art">
@@ -167,8 +190,8 @@
         </div>
       </section>
       <section class="page" data-page="mis-fotos" hidden>
-        <div class="top-heading"><div><span class="eyebrow">Mi galería privada</span><h1>Mis recuerdos</h1><p>Aquí aparecerán tus generaciones reales cuando activemos el motor. Las demostraciones locales no se guardan.</p></div><button class="btn primary" data-route="crear">Nueva fotografía <svg><use href="#i-arrow"/></svg></button></div>
-        <div id="photo-library"><div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Tu galería privada aparecerá aquí cuando realices una generación.</p><button class="btn outline" data-route="crear">Empezar</button></div></div>
+        <div class="top-heading"><div><span class="eyebrow">Mi galería privada</span><h1>Mis recuerdos</h1><p>Aquí puedes consultar el progreso, descargar tus fotografías o eliminar tus imágenes privadas.</p></div><button class="btn primary" data-route="crear">Nueva fotografía <svg><use href="#i-arrow"/></svg></button></div>
+        <div id="photo-library"><div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Tu primera fotografía aparecerá aquí después de generarla.</p><button class="btn outline" data-route="crear">Empezar</button></div></div>
       </section>
       <section class="page" data-page="cuenta" hidden>
         <div class="top-heading"><div><span class="eyebrow">Tu espacio PICGIFT</span><h1>Mi cuenta</h1><p>Acceso seguro con Google o correo electrónico.</p></div></div>
@@ -203,5 +226,5 @@
  </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script defer src="./app.js?v=picgift-progress-2026-2"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-api-check-2026-1"></script>
+<script defer src="./app.js?v=picgift-studio-mobile-2026-1"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-studio-mobile-2026-1"></script>
 <script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-pwa-2026-2"></script></body></html>
