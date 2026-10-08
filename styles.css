@@ -140,3 +140,9 @@
  .mobile-scene-option{flex-basis:113px}
  .mobile-scene-option img{height:104px}
 }
+
+/* New-version notice for installed app users */
+.update-banner{position:fixed;z-index:85;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(95vw,420px);padding:12px 13px;background:#133d31;border:1px solid #e4c58f89;border-radius:14px;box-shadow:0 16px 50px #0009;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#f4e5c7;font-size:13px}
+.update-banner .btn{min-height:39px;padding:9px 12px;font-size:12px;flex:0 0 auto}
+.scene-unavailable{opacity:.7}
+@media(max-width:750px){.update-banner{font-size:12px;top:calc(8px + env(safe-area-inset-top))}}
