@@ -9,7 +9,10 @@ function icon(id){return '<svg><use href="#i-'+id+'"></use></svg>'}
 function toast(message){const e=$('toast');e.textContent=message;e.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('on'),4200)}
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function imageRef(s){return escapeHTML(s.image||'')}
-function card(s){return '<article class="scene-card"><div class="scene-pic"><img src="'+imageRef(s)+'" loading="lazy" alt="Imagen provisional de inspiración: '+escapeHTML(s.name)+'" onerror="this.style.opacity=.1"><span class="scene-label">'+escapeHTML(s.badge||'Navidad 2026')+'</span></div><div class="scene-body"><h3>'+escapeHTML(s.name)+'</h3><p>'+escapeHTML(s.description)+'</p><div class="scene-bottom"><span>'+(s.source==='picgift'?'Fondo PICGIFT':'Concepto provisional')+'</span><button class="round-arrow" type="button" aria-label="Elegir '+escapeHTML(s.name)+'" data-select="'+escapeHTML(s.id)+'">→</button></div></div></article>'}
+function card(s){
+ const available=s.source==='picgift';
+ return '<article class="scene-card'+(available?'':' scene-unavailable')+'"'+(available?' data-select="'+escapeHTML(s.id)+'" tabindex="0" role="button" aria-label="Seleccionar escenario '+escapeHTML(s.name)+'"':'')+'><div class="scene-pic"><img src="'+imageRef(s)+'" loading="lazy" alt="Escenario navideño: '+escapeHTML(s.name)+'" onerror="this.style.opacity=.1"><span class="scene-label">'+escapeHTML(available?'Disponible para la prueba':'Próximamente')+'</span></div><div class="scene-body"><h3>'+escapeHTML(s.name)+'</h3><p>'+escapeHTML(s.description)+'</p><div class="scene-bottom"><span>'+(available?'Listo para crear':'En preparación')+'</span>'+(available?'<button class="round-arrow" type="button" aria-label="Elegir '+escapeHTML(s.name)+'" data-select="'+escapeHTML(s.id)+'">→</button>':'')+'</div></div></article>'
+}
 function renderCatalog(){const featured=scenes.filter(s=>['golden-christmas','reading-corner','santa-workshop'].includes(s.id));$('home-scenes').innerHTML=(featured.length?featured:scenes.slice(0,3)).map(card).join('');$('collection-scenes').innerHTML=scenes.filter(s=>filter==='Todos'||s.category===filter).map(card).join('')||'<div class="notice">No hay escenarios en esta categoría.</div>';
 const credits=$('credits-list');credits.innerHTML=scenes.map(s=>{
 const own=s.source==='picgift';
@@ -70,6 +73,7 @@ function clearPhoto(){
 function init(){
 $('signin').addEventListener('click',()=>openAuth('login'));$('signup').addEventListener('click',()=>openAuth('register'));$('close').addEventListener('click',()=>$('auth').classList.remove('show'));$('auth').addEventListener('click',e=>{if(e.target===$('auth'))$('auth').classList.remove('show')});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('auth').classList.remove('show')});
 document.addEventListener('click',e=>{const select=e.target.closest('[data-select]');if(select){selectScene(select.dataset.select);return}const routeButton=e.target.closest('[data-route]');if(routeButton){e.preventDefault();navigate(routeButton.dataset.route)}});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.scene-card[data-select]')){e.preventDefault();selectScene(e.target.dataset.select)} });
 $('filters').addEventListener('click',e=>{const el=e.target.closest('[data-filter]');if(!el)return;filter=el.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));renderCatalog()});
 $('choose-photo').addEventListener('click',()=>$('photo').click());$('change-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));$('remove-photo').addEventListener('click',clearPhoto);
 $('studio-login').addEventListener('click',()=>openAuth('login'));
