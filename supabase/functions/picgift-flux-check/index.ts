@@ -81,16 +81,33 @@ Deno.serve(async (req) => {
       clearTimeout(cancel);
     }
   }
+  const verifyEndpoint = "https://api.cloudflare.com/client/v4/user/tokens/verify";
+  // Validate the auth header without printing any part of the token.
+  // This catches pasted commands, embedded line breaks and Unicode quotes.
+  const cleanToken = token.trim();
+  const tokenHeaderSafe = [...cleanToken].every(ch => ch.charCodeAt(0) >= 33 && ch.charCodeAt(0) <= 126)
+    && !cleanToken.toLowerCase().startsWith("bearer ")
+    && !cleanToken.includes('"') && !cleanToken.includes("'")
+    && !cleanToken.includes("<") && !cleanToken.includes(">");
+  let headerConstructed = false;
+  try {
+    new Headers({ Authorization: `Bearer ${cleanToken}` });
+    headerConstructed = true;
+  } catch { /* Header rejected before any outbound request */ }
   const checks = await Promise.all([
     check("control", "https://example.com"),
-    check("token", "https://api.cloudflare.com/client/v4/user/tokens/verify", true),
+    check("cloudflare_public", verifyEndpoint), // 401/403 is expected; any HTTP response proves reachability
+    check("token", verifyEndpoint, true),
     check("models", `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/models/search?search=flux-2-klein-4b&per_page=20`, true),
   ]);
   const byName: Record<string, any> = Object.fromEntries(checks.map(c => [c.name, c]));
-  const base = byName.control, a = byName.token, m = byName.models;
+  const base = byName.control, publicCf = byName.cloudflare_public, a = byName.token, m = byName.models;
   const verified = a?.status === "ok" && a.active === true && m?.status === "ok" && m.listed === true;
   let status = verified ? "connected" : "cloudflare_unavailable";
-  if (base.status !== "ok" && (a.status === "network_error" || m.status === "network_error")) status = "server_network_error";
+  if (!tokenHeaderSafe || !headerConstructed) status = "cloudflare_token_format";
+  else if (base.status !== "ok" && (a.status === "network_error" || m.status === "network_error")) status = "server_network_error";
+  else if (publicCf.status === "network_error" && a.status === "network_error") status = "cloudflare_host_unreachable";
+  else if (publicCf.status !== "network_error" && a.status === "network_error") status = "cloudflare_auth_header_error";
   else if (a.status === "timeout" || m.status === "timeout") status = "connection_timeout";
   else if (a.status === "network_error" || m.status === "network_error") status = "cloudflare_network_error";
   else if (a.status !== "ok" || a.active !== true) status = "token_invalid";
@@ -99,7 +116,8 @@ Deno.serve(async (req) => {
   else if (!m.listed) status = "model_not_listed";
   return respond({
     configured:true,verified,status,model:"FLUX.2 Klein 4B",
-    control_check:base.status,token_check:a.status,model_check:m.status,
+    control_check:base.status,public_cloudflare_check:publicCf.status,token_check:a.status,model_check:m.status,
+    token_header_safe:tokenHeaderSafe && headerConstructed,
     token_http:a.http_status??null,model_http:m.http_status??null,
     network_diagnostics:checks.map(c=>({name:c.name,status:c.status,category:c.error_category??null,
       type:c.error_type??null,elapsed_ms:c.elapsed_ms})),
