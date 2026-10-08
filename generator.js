@@ -59,8 +59,9 @@ async function health(){
   const {data:{session}}=await client.auth.getSession();
   if(!session){fluxMode=false;controlAi(false);status('Inicia sesión para comprobar la disponibilidad del estudio.');return}
   const beta=await client.functions.invoke('picgift-flux-personal',{body:{action:'health'}});
-  fluxMode=beta.error===null&&beta.data?.available===true&&beta.data?.free_beta===true;
-  const data=fluxMode?beta.data:await invoke({action:'health'});
+  const fluxChecked=beta.error===null&&beta.data?.free_beta===true;
+  fluxMode=fluxChecked&&beta.data?.available===true;
+  const data=fluxChecked?beta.data:await invoke({action:'health'});
   window.picgiftPilot=data.pilot===true;window.picgiftReferencesReady=data.references_supported===true;
   controlAi(data.available===true);
   status(data.available
