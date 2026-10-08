@@ -17,7 +17,7 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  const publicHome=html.split('<section class="page" data-page="inicio"')[1]?.split('<section class="page" data-page="precios"')[0]||'';
  for(const unwanted of ['COLECCIÓN DE TEMPORADA · HALLOWEEN 2026','EL ÁLBUM DE HALLOWEEN','Para familias','Tu galería privada','Magia de temporada','Demostración ilustrativa con un personaje ficticio','Los cobros siguen desactivados. Tus fotografías anteriores'])assert.ok(!publicHome.includes(unwanted),'obsolete homepage text: '+unwanted);
  assert.ok(!html.includes('Tu estudio de recuerdos'),'obsolete sidebar caption removed');
- assert.ok(html.includes('src="./assets/halloween/picgift-logo-oficial.svg?v=aprobado-20261008"'),'approved full PICGIFT logo linked across web');
+ assert.ok(html.includes('src="./assets/halloween/picgift-logo-hd.png?v=hd-20261008-v1"'),'current official HD PICGIFT logo linked in the site');
  const svg=read('assets/halloween/picgift-logo-oficial.svg');
  assert.ok(svg.startsWith('<svg'),'logo file is valid SVG');
  assert.ok(svg.includes('data:image/avif;base64,'),'logo embeds authorized Halloween artwork');
