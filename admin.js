@@ -63,21 +63,22 @@ function render(){
    const details=document.createElement('div');details.className='account-details';
    const method=document.createElement('span');method.textContent='Inicio de sesión: '+(methods.length?methods.map(p=>providerNames[p]||p).join(', '):'Método no disponible');
    const last=document.createElement('span');last.textContent='Último acceso: '+displayDate(user.last_sign_in_at)+' · Registro: '+displayDate(user.created_at);
-   const password=document.createElement('span');password.textContent=methods.includes('email')?'Contraseña: protegida, no visible para administradores':'Contraseña: no disponible en el panel';
+   const password=document.createElement('span');password.textContent='Contraseña de PICGIFT: protegida; no se puede visualizar ni saber si está configurada';
    details.append(method,last,password);
-   const reset=document.createElement('button');reset.type='button';reset.className='button';reset.textContent='Enviar recuperación de contraseña';
-   const canReset=Boolean(user.confirmed&&user.email&&methods.includes('email'));
+   const reset=document.createElement('button');reset.type='button';reset.className='button';const actionLabel=methods.includes('email')?'Enviar recuperación de contraseña':'Crear o restablecer contraseña';
+   reset.textContent=actionLabel;
+   const canReset=Boolean(user.confirmed&&user.email);
    reset.disabled=!canReset;
-   if(!canReset)reset.title=methods.includes('google')&&!methods.includes('email')?'Esta cuenta utiliza Google. No tiene contraseña de PICGIFT que recuperar.':'Solo disponible para usuarios con correo confirmado y acceso por contraseña.';
+   reset.title=canReset?'Se enviará al correo verificado un enlace para configurar una contraseña de PICGIFT, incluso si la cuenta usa Google.':'Para solicitar el enlace es necesario un correo electrónico confirmado.';
    reset.addEventListener('click',async()=>{
-     if(!canReset||!window.confirm('¿Enviar un correo de recuperación de contraseña a '+user.email+'?'))return;
+     if(!canReset||!window.confirm('¿Enviar un enlace para crear o restablecer la contraseña de PICGIFT a '+user.email+'? El usuario seguirá pudiendo acceder con Google.'))return;
      reset.disabled=true;reset.textContent='Solicitando envío…';
      try{
        const {error}=await client.auth.resetPasswordForEmail(user.email,{redirectTo:location.origin+'/'});
        if(error)throw error;
-       msg('Recuperación solicitada para '+user.email+'. La entrega depende de la configuración de correo de Supabase.');
+       msg('Enlace solicitado para '+user.email+'. Si Supabase permite el envío, el usuario recibirá un correo para crear o cambiar su contraseña de PICGIFT.');
      }catch(e){msg('No se pudo solicitar la recuperación: '+(e.message||'Error desconocido'),true)}
-     finally{reset.disabled=false;reset.textContent='Enviar recuperación de contraseña'}
+     finally{reset.disabled=false;reset.textContent=actionLabel}
    });
    access.append(details,reset);
    card.append(info,label,limit,save,access);container.append(card);
