@@ -4,7 +4,7 @@ const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSe
 const $=id=>document.getElementById(id);
 let available=false,initialized=false;
 const PRODUCT_IDS=new Set(["esencial","magico","familiar"]);
-const isNative=()=>typeof window.PicgiftAndroid==="object"&&typeof window.PicgiftAndroid.purchase==="function";
+const isNative=()=>typeof window.PicgiftNative==="object"&&typeof window.PicgiftNative.postMessage==="function";
 function status(text){$("payment-status").textContent=text}
 function buttons(can){document.querySelectorAll("[data-buy]").forEach(btn=>{btn.disabled=!can;btn.textContent=btn.dataset.buy==="esencial"?"Comprar 1 fotografía":btn.dataset.buy==="magico"?"Comprar pack de 5":"Comprar pack de 10";});}
 async function call(body){
@@ -21,7 +21,7 @@ async function refresh(){
   $("account-credits").textContent=credits+" "+(credits===1?"fotografía":"fotografías");
   const {data:orders}=await client.from("picgift_orders").select("id,status,created_at,product_id").order("created_at",{ascending:false}).limit(10);
   $("account-orders").textContent=(orders||[]).filter(x=>x.status==="paid").length+" pagos confirmados";
-  const enable=available&&(!isNative()||typeof window.PicgiftAndroid.purchase==="function");
+  const enable=available;
   buttons(enable);
   status(enable?"Ya puedes elegir un pack. Los créditos se añaden únicamente cuando el proveedor confirma el cobro.":isNative()?"La compra en Android se habilitará tras la publicación en Google Play y la validación de la integración.":"Los packs están publicados, pero no se admiten pagos hasta terminar las pruebas de generación y activar Stripe.");
  }catch(err){buttons(false);status("No se pudo comprobar el estado de los pagos. La compra no está disponible por seguridad.")}
@@ -33,7 +33,7 @@ async function pay(productId){
  if(!user){status("Primero inicia sesión o crea una cuenta PICGIFT.");return}
  const btn=document.querySelector('[data-buy="'+productId+'"]');btn.disabled=true;
  try{
-  if(isNative()){window.PicgiftAndroid.purchase(productId);status("Solicitando el pago a Google Play…");return}
+  if(isNative()){window.PicgiftNative.postMessage(JSON.stringify({action:"purchase",product_id:productId,user_id:user.id}));status("Solicitando el pago a Google Play…");return}
   const data=await call({action:"checkout",product_id:productId});
   const url=new URL(data.url);
   if(url.protocol!=="https:"||url.hostname!=="checkout.stripe.com")throw Error("URL de pago no verificada.");
