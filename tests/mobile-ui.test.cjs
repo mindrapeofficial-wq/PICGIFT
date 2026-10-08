@@ -14,7 +14,9 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  for(const id of needed)assert.ok(ids.includes(id),'missing control: '+id);
  assert.ok(html.includes('mobile-app.css?v='),'mobile CSS linked');
  assert.ok(html.includes('class="mobile-app-hero"'),'branded hero present');
- assert.ok(html.includes('class="web-hero-lockup"'),'transparent logo appears on desktop web homepage');
+ const publicHome=html.split('<section class="page" data-page="inicio"')[1]?.split('<section class="page" data-page="precios"')[0]||'';
+ for(const unwanted of ['COLECCIÓN DE TEMPORADA · HALLOWEEN 2026','EL ÁLBUM DE HALLOWEEN','Para familias','Tu galería privada','Magia de temporada','Demostración ilustrativa con un personaje ficticio','Los cobros siguen desactivados. Tus fotografías anteriores'])assert.ok(!publicHome.includes(unwanted),'obsolete homepage text: '+unwanted);
+ assert.ok(!html.includes('Tu estudio de recuerdos'),'obsolete sidebar caption removed');
  assert.ok(html.includes('src="./assets/halloween/picgift-logo-oficial.svg?v=aprobado-20261008"'),'approved full PICGIFT logo linked across web');
  const svg=read('assets/halloween/picgift-logo-oficial.svg');
  assert.ok(svg.startsWith('<svg'),'logo file is valid SVG');
@@ -55,7 +57,7 @@ test('PWA starts in Create and caches its mobile app assets',()=>{
  const sw=read('sw.js');
  assert.ok(sw.includes('"/mobile-app.css"'));
  assert.ok(/const VERSION="picgift-[^"]+"/.test(sw),'PWA cache has explicit version');
- assert.ok(sw.includes('picgift-approved-full-logo-20261008-v16'),'full logo cache is refreshed');
+ assert.ok(sw.includes('picgift-halloween-home-clean-20261008-v13'),'homepage cleanup is cached for installed devices');
  const scenes=JSON.parse(read('scenes.json')).scenes;
  assert.ok(scenes.length>=3);
  assert.ok(scenes.some(x=>x.id==='halloween-pumpkin-bench'));
