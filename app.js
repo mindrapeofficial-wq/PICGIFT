@@ -2,28 +2,29 @@
 const $=id=>document.getElementById(id);
 let scenes=[],selected=null,user=null,route='inicio',pending=null,file=null,localURL=null,filter='Todos';
 const staticScenes=[
-{id:'rustic-sleigh',name:'Trineo rústico',description:'Una Navidad de madera y luces cálidas',image:'https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&q=82&w=1280',ages:'1–4 años',category:'Clásicos',badge:'Colección especial',poses:['Sentado en trineo','Sentado delante','De pie al lado'],credit:{author:'Fujiphilm',url:'https://unsplash.com/photos/christmas-tree-with-red-and-gold-ornaments-and-gifts-cxvfPfbu2vE'}},
-{id:'snow-forest',name:'Bosque nevado',description:'Paisajes blancos de cuento',image:'https://images.unsplash.com/photo-1767813364465-5d45663021ab?auto=format&fit=crop&q=82&w=1280',ages:'1–10 años',category:'Invierno',badge:'Más mágico',poses:['Sentado','De pie'],credit:{author:'Tolga Ahmetler',url:'https://unsplash.com/photos/snow-covered-evergreen-trees-in-a-forest-dl3EytOQgxU'}}
+{id:'halloween-pumpkin-forest',name:'Bosque de calabazas',description:'Un sendero encantado bajo la luna naranja',image:'./assets/halloween/scenes/bosque-calabazas.svg',ages:'Todas las edades',category:'Bosques',badge:'Próximamente',poses:['Automática'],source:'concept',credit:{author:'PICGIFT'}},
+{id:'halloween-haunted-castle',name:'Castillo embrujado',description:'Luces de otoño y torres misteriosas',image:'./assets/halloween/scenes/castillo-embrujado.svg',ages:'Todas las edades',category:'Fantasía',badge:'Próximamente',poses:['Automática'],source:'concept',credit:{author:'PICGIFT'}},
+{id:'halloween-portrait-hall',name:'Salón de retratos',description:'Un rincón gótico elegante',image:'./assets/halloween/scenes/salon-embrujado.svg',ages:'Todas las edades',category:'Clásicos',badge:'Próximamente',poses:['Automática'],source:'concept',credit:{author:'PICGIFT'}}
 ];
 function icon(id){return '<svg><use href="#i-'+id+'"></use></svg>'}
 function toast(message){const e=$('toast');e.textContent=message;e.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('on'),4200)}
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function imageRef(s){return escapeHTML(s.image||'')}
 function card(s){
- const available=s.source==='picgift';
- return '<article class="scene-card'+(available?'':' scene-unavailable')+'"'+(available?' data-select="'+escapeHTML(s.id)+'" tabindex="0" role="button" aria-label="Seleccionar escenario '+escapeHTML(s.name)+'"':'')+'><div class="scene-pic"><img src="'+imageRef(s)+'" loading="lazy" alt="Escenario navideño: '+escapeHTML(s.name)+'" onerror="this.style.opacity=.1"><span class="scene-label">'+escapeHTML(available?'Disponible para la prueba':'Próximamente')+'</span></div><div class="scene-body"><h3>'+escapeHTML(s.name)+'</h3><p>'+escapeHTML(s.description)+'</p><div class="scene-bottom"><span>'+(available?'Listo para crear':'En preparación')+'</span>'+(available?'<button class="round-arrow" type="button" aria-label="Elegir '+escapeHTML(s.name)+'" data-select="'+escapeHTML(s.id)+'">→</button>':'')+'</div></div></article>'
+ const available=s.source==='picgift',previewable=available||s.source==='concept';
+ return '<article class="scene-card'+(available?'':' scene-unavailable')+'"'+(previewable?' data-select="'+escapeHTML(s.id)+'" tabindex="0" role="button" aria-label="Ver escenario '+escapeHTML(s.name)+'"':'')+'><div class="scene-pic"><img src="'+imageRef(s)+'" loading="lazy" alt="Boceto ilustrado de '+escapeHTML(s.name)+'" onerror="this.style.opacity=.1"><span class="scene-label">'+escapeHTML(available?'Disponible para la prueba':'Próximamente')+'</span></div><div class="scene-body"><h3>'+escapeHTML(s.name)+'</h3><p>'+escapeHTML(s.description)+'</p><div class="scene-bottom"><span>'+(available?'Listo para crear':'Boceto · Sin generación IA')+'</span>'+(previewable?'<button class="round-arrow" type="button" aria-label="Ver '+escapeHTML(s.name)+'" data-select="'+escapeHTML(s.id)+'">→</button>':'')+'</div></div></article>'
 }
-function renderCatalog(){const featured=scenes.filter(s=>['golden-christmas','reading-corner','santa-workshop'].includes(s.id));$('home-scenes').innerHTML=(featured.length?featured:scenes.slice(0,3)).map(card).join('');$('collection-scenes').innerHTML=scenes.filter(s=>filter==='Todos'||s.category===filter).map(card).join('')||'<div class="notice">No hay escenarios en esta categoría.</div>';
-const credits=$('credits-list');credits.innerHTML=scenes.map(s=>{
-const own=s.source==='picgift';
-return '<div style="font-size:12px;color:#c5d3c5">'+escapeHTML(s.name)+': '+(own?'Fotografía del archivo PICGIFT (uso comercial por confirmar)':'<a style="color:#e8c994;text-decoration:underline" href="'+escapeHTML(s.credit?.url||'#')+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(s.credit?.author||'Autor')+' · Unsplash</a>')+'</div>';
-}).join('')+'<div style="font-size:12px;color:#c5d3c5">Los retratos con niños no se han importado a esta web. Los fondos de PICGIFT son archivos de muestra comprimidos, no originales 4K.</div>';
-if(!selected&&scenes.length)selectScene(scenes.find(x=>x.source==='picgift')?.id||scenes[0].id,false);
-renderMobileScenes();updateStudio();}
-async function loadCatalog(){try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}catch(e){scenes=staticScenes;toast('Catálogo provisional cargado sin conexión al servidor.')}renderCatalog()}
+function renderCatalog(){
+ $('home-scenes').innerHTML=scenes.slice(0,3).map(card).join('');
+ $('collection-scenes').innerHTML=scenes.filter(s=>filter==='Todos'||s.category===filter).map(card).join('')||'<div class="notice">No hay escenarios en esta categoría.</div>';
+ $('credits-list').innerHTML='<p>Los tres escenarios de Halloween son conceptos visuales creados para la campaña. No son decorados de referencia fotográfica y todavía no permiten generación con IA.</p>';
+ if(!selected&&scenes.length)selectScene(scenes[0].id,false);
+ renderMobileScenes();updateStudio();
+}
+async function loadCatalog(){try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}catch(e){scenes=staticScenes;toast('Catálogo de Halloween cargado sin conexión al servidor.')}renderCatalog()}
 function renderMobileScenes(){
  const wrap=$('mobile-scenes');if(!wrap)return;
- const available=scenes.filter(s=>s.source==='picgift');
+ const available=scenes;
  wrap.innerHTML=available.map(s=>'<button type="button" class="mobile-scene-option'+(selected?.id===s.id?' is-selected':'')+'" data-select="'+escapeHTML(s.id)+'" aria-pressed="'+(selected?.id===s.id)+'" aria-label="Elegir '+escapeHTML(s.name)+'"><img loading="lazy" src="'+imageRef(s)+'" alt=""><span>'+escapeHTML(s.name)+'</span><span class="mobile-scene-check" aria-hidden="true">✓</span></button>').join('');
 }
 function updateStudio(){
@@ -37,11 +38,11 @@ function updateStudio(){
  $('studio-step-photo').classList.toggle('is-done',hasPhoto);
  $('studio-step-scene').classList.toggle('is-done',hasScene);
  $('studio-step-create').classList.toggle('is-done',ready);
- let hint= !hasPhoto?'1. Elige una foto':!hasScene?'2. Elige un escenario PICGIFT':!signedIn?'Inicia sesión para generar':!hasConsent?'Marca la autorización de uso de la fotografía':!window.picgiftAiReady?'Comprobando disponibilidad de IA…':'Todo listo. Puedes generar tu fotografía.';
+ let hint='La generación con escenarios de Halloween aún está en preparación. No se enviarán fotografías a la IA.';
  $('studio-readiness').textContent=hint;
- $('studio-chosen').textContent=hasScene?'✓ Escenario elegido: '+selected.name:'Elige uno de los escenarios disponibles.';
+ $('studio-chosen').textContent=selected?'Escenario: '+selected.name+' · En preparación':'Explora los nuevos escenarios de Halloween.';
  const playable=window.picgiftAiReady===true;
- if(signedIn&&hasPhoto&&hasScene&&hasConsent&&!playable)$('studio-readiness').textContent='IA no disponible para esta cuenta. Revisa el aviso inferior.';
+ if(signedIn&&hasPhoto&&hasScene&&hasConsent&&!playable)$('studio-readiness').textContent='Los escenarios de Halloween todavía no están habilitados para generar.';
 }
 window.picgiftStudioUpdate=updateStudio;
 function selectScene(id,goToCreate=true){
@@ -51,7 +52,7 @@ function selectScene(id,goToCreate=true){
  $('selected-scene-title').textContent=scene.name;
  $('selected-theme').textContent=scene.category||'Navidad';
  $('selected-ages').textContent=scene.ages||'Todas las edades';
- $('selected-status').textContent=scene.source==='picgift'?'Listo para generar':'Solo referencia';
+ $('selected-status').textContent=scene.source==='picgift'?'Listo para generar':'Boceto en preparación';
  $('pose').replaceChildren(...(scene.poses||['Automática']).map(p=>new Option(p,p)));
  renderMobileScenes();updateStudio();
  if(goToCreate&&route!=='crear')navigate('crear');
@@ -84,7 +85,7 @@ window.addEventListener('pagehide',()=>{if(localURL)URL.revokeObjectURL(localURL
 const dz=$('drop-zone');['dragenter','dragover'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.add('dragging')}));['dragleave','drop'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.remove('dragging')}));dz.addEventListener('drop',e=>acceptFile(e.dataTransfer.files[0]));
 $('generate').addEventListener('click',()=>{
  if(!user){openAuth('login');return}
- if(!selected||selected.source!=='picgift'){toast('Elige uno de los escenarios PICGIFT disponibles.');return}
+ if(!selected||selected.source!=='picgift'){toast('Próximamente: generación con los nuevos escenarios de Halloween.');return}
  if(!file){toast('Primero selecciona una fotografía.');return}
  if(!$('photo-ai-consent').checked){toast('Autoriza el procesamiento de la fotografía antes de continuar.');return}
  if(window.picgiftAiReady!==true){toast('La IA no está disponible. Comprueba tu acceso.');return}
