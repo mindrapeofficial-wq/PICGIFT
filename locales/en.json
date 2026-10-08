@@ -527,5 +527,19 @@
   "Elegir un pack para crear": "Choose a pack to create",
   "Tu foto está preparada. Elige un pack para crear y guardar tu retrato.": "Your photo is prepared. Choose a pack to create and save your portrait.",
   "El estudio aún no admite referencias adicionales. No se enviarán hasta que puedan utilizarse.": "Extra references are not yet supported. They will not be sent until they can be used.",
-  "Accede con tu correo y contraseña.": "Sign in with your email and password."
+  "Accede con tu correo y contraseña.": "Sign in with your email and password.",
+  "Verificar conexión gratuita": "Check free AI connection",
+  "Esta comprobación no envía fotografías.": "This check does not send photos.",
+  "Comprobando Cloudflare…": "Checking Cloudflare…",
+  "Inicia sesión para verificar la conexión.": "Sign in to check the connection.",
+  "No se ha podido consultar el servidor.": "Could not reach the server.",
+  "Cloudflare conectado. La generación gratuita todavía no está activada.": "Cloudflare connected. Free image generation is not enabled yet.",
+  "Faltan los secretos de Cloudflare en Supabase.": "Cloudflare secrets are missing from Supabase.",
+  "El Account ID de Cloudflare no es válido.": "The Cloudflare Account ID is invalid.",
+  "El token no tiene acceso a Workers AI o la cuenta no coincide.": "The token cannot access Workers AI or belongs to another account.",
+  "Cloudflare no responde correctamente.": "Cloudflare did not respond successfully.",
+  "Cloudflare responde, pero no confirma FLUX.2 Klein 4B.": "Cloudflare responded, but could not confirm FLUX.2 Klein 4B.",
+  "Cloudflare ha rechazado la comprobación.": "Cloudflare rejected the check.",
+  "Se agotó el tiempo al conectar con Cloudflare.": "Connection to Cloudflare timed out.",
+  "Todavía no se ha verificado la conexión gratuita.": "The free AI connection has not been verified yet."
 }
