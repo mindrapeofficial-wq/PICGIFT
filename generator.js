@@ -142,6 +142,8 @@ function plainCard(job,href,download){
  return '<article class="panel" style="display:flex;flex-direction:column;gap:10px;min-width:0">'
  + (href?'<img src="'+escape(href)+'" loading="lazy" alt="Tu fotografía PICGIFT" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:13px">':'<div class="detail-pic" style="height:140px;display:grid;place-items:center;color:#d9c18d">✧ '+escape(statuses[job.status]||job.status)+'</div>')
  +'<span class="eyebrow">'+escape(date)+'</span><h3>'+escape(name)+'</h3><p class="muted" style="font-size:12px">'+escape(statuses[job.status]||job.status)+'</p>'
+ +(job.status==='failed'?'<p class="muted" style="font-size:12px">'+escape(errorDescriptions[job.failure_code]||'La generación terminó con un error y no produjo una fotografía.')+'</p>':phasePercent[job.status]&&job.status!=='completed'?'<p class="muted" style="font-size:12px">Etapa orientativa: '+phasePercent[job.status]+'%</p>':'')
+ +'<button class="btn outline" type="button" data-view-job="'+escape(job.id)+'">Ver estado y detalles</button>'
  +(href?'<a class="btn primary" target="_blank" rel="noopener noreferrer" href="'+escape(download||href)+'">Descargar mi foto</a>':'')
  +'<button class="btn quiet" type="button" data-delete-job="'+escape(job.id)+'">Eliminar fotografía y datos</button></article>';
 }
@@ -221,7 +223,20 @@ function init(){
   }finally{btn.disabled=false;btn.textContent='Comprobar estado'}
  });
  window.addEventListener('picgift:auth',async e=>{if(e.detail.user){await health();const jobs=await refreshGallery();if(!activeId){const inProgress=jobs.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{stopPolling();activeId=null;currentJob=null;lastJobs=[];controlAi(false);status('Inicia sesión para acceder a la generación privada.');}});
- $('photo-library').addEventListener('click',e=>{const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;if(id)removePhoto(id)});
+ $('photo-library').addEventListener('click',async e=>{
+  const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;
+  if(id){await removePhoto(id);return}
+  const open=e.target.closest('[data-view-job]')?.dataset.viewJob;
+  if(!open)return;
+  activeId=open;
+  $('demo-result').classList.add('hidden');
+  const job=lastJobs.find(j=>j.id===open);
+  if(!job)return;
+  $('result-name').textContent=labels[job.scene_id]||'Navidad PICGIFT';
+  window.dispatchEvent(new CustomEvent('picgift:route',{detail:{name:'resultado'}}));
+  await refreshGallery();
+  if(['queued','analyzing','generating','reviewing'].includes(job.status))startPolling();
+ });
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeId)refreshGallery()});
  client.auth.getUser().then(async ({data})=>{if(data?.user){await health();const jobs=await refreshGallery();const pending=jobs.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(pending){activeId=pending.id;startPolling()}}}).catch(()=>{});
 }
