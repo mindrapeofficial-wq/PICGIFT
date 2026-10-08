@@ -18,7 +18,7 @@ const sceneImages={
 const phasePercent={queued:10,analyzing:25,generating:70,reviewing:90,needs_review:95,completed:100};
 const errorDescriptions={
  openai_invalid_key:'La clave de OpenAI no es válida o no está autorizada.',
- openai_billing:'La cuenta de API de OpenAI parece necesitar saldo o configuración de facturación.',
+ openai_billing:'OpenAI ha rechazado el análisis por falta de créditos o por un límite de gasto/uso de la API. Comprueba el saldo y los límites en la plataforma de OpenAI antes de volver a generar.',
  openai_model_access:'El modelo de imágenes no está habilitado para esta cuenta de OpenAI.',
  openai_verification:'OpenAI solicita verificar la organización para utilizar imágenes.',
  openai_access:'La cuenta de OpenAI no tiene permiso para realizar esta solicitud.',
@@ -119,12 +119,13 @@ function renderProgress(job){
  if(failed)track.removeAttribute('aria-valuenow');
  else track.setAttribute('aria-valuenow',String(progress??10));
  track.setAttribute('aria-valuetext',phaseNames[state]||state);
- $('progress-phase').textContent=phaseNames[state]||'Preparando tu fotografía';
+ $('progress-phase').textContent=failed&&job.failure_code==='openai_billing'?'Sin saldo o límite de API':phaseNames[state]||'Preparando tu fotografía';
  const terminal=['failed','completed','needs_review'].includes(state);
- const title=failed?'No se pudo completar tu fotografía':state==='completed'?'¡Tu fotografía está lista!':state==='needs_review'?'El resultado necesita revisión':'Estamos creando tu Navidad';
+ const billingProblem=failed&&job.failure_code==='openai_billing';
+ const title=billingProblem?'Revisa el saldo de la API de OpenAI':failed?'No se pudo completar tu fotografía':state==='completed'?'¡Tu fotografía está lista!':state==='needs_review'?'El resultado necesita revisión':'Estamos creando tu Navidad';
  $('progress-headline').textContent=title;
  $('progress-kicker').textContent=failed?'Generación interrumpida':state==='completed'?'Resultado privado terminado':state==='needs_review'?'Control de calidad':'Fotografía navideña · Proceso protegido';
- $('progress-description').textContent=failed?'La generación ha terminado con un error. No necesitas seguir esperando. Puedes preparar otra fotografía cuando se resuelva la incidencia.':state==='completed'?'Tu fotografía ha superado la revisión automática y puedes descargarla de forma privada.':state==='needs_review'?'El sistema no ha aprobado automáticamente esta imagen. No está disponible para descargar hasta revisarla.':'Puedes salir de esta pantalla y volver a Mis fotos. Comprobaremos el progreso automáticamente.';
+ $('progress-description').textContent=billingProblem?'El servidor ha recibido de OpenAI un rechazo por facturación o cuota antes de generar la imagen. No repitas la prueba hasta revisar los créditos y límites de tu cuenta API.':failed?'La generación ha terminado con un error. No necesitas seguir esperando. Puedes preparar otra fotografía cuando se resuelva la incidencia.':state==='completed'?'Tu fotografía ha superado la revisión automática y puedes descargarla de forma privada.':state==='needs_review'?'El sistema no ha aprobado automáticamente esta imagen. No está disponible para descargar hasta revisarla.':'Puedes salir de esta pantalla y volver a Mis fotos. Comprobaremos el progreso automáticamente.';
  $('result-page-description').textContent=failed?'El procesamiento falló y no se ha generado una fotografía descargable.':state==='completed'?'Tu fotografía se ha completado y está lista para descargar.':state==='needs_review'?'El resultado no ha superado la revisión automática.':'Estamos procesando tu fotografía. Puedes ver las etapas y el tiempo transcurrido.';
  $('progress-note').textContent=terminal?failed?'La generación no llegó a completarse.':state==='completed'?'Todas las etapas completadas.':'La revisión automática no ha aprobado la imagen.':'El porcentaje indica la etapa alcanzada, no un avance exacto de OpenAI.';
  $('progress-elapsed').textContent='Tiempo transcurrido: '+elapsedText(job);
@@ -132,7 +133,8 @@ function renderProgress(job){
  if(!terminal)$('progress-warning').textContent='Está tardando más de lo habitual. Seguimos comprobando el servidor automáticamente. Puedes volver a Mis fotos sin perder el trabajo.';
  const step=({queued:0,analyzing:1,generating:2,reviewing:3,needs_review:3,completed:4,failed:0})[state]??0;
  document.querySelectorAll('.ai-progress-stages span').forEach((el,i)=>{el.classList.toggle('is-active',!terminal&&i===step);el.classList.toggle('is-done',state==='completed'||!failed&&i<step)});
- $('retry-job').classList.toggle('hidden',!failed);
+ $('retry-job').classList.toggle('hidden',!failed||billingProblem);
+ $('openai-billing-help').classList.toggle('hidden',!billingProblem);
  $('refresh-job').disabled=false;
  $('refresh-job').textContent=terminal?'Volver a comprobar':'Comprobar estado';
  const reason=failed?(errorDescriptions[job.failure_code]||'No se pudo completar esta fotografía. Revisa el estado de tu cuenta de OpenAI si el problema se repite.'):'';
