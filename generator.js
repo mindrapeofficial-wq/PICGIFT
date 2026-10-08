@@ -34,7 +34,13 @@ const errorDescriptions={
  stale_timeout:'La solicitud no finalizó a tiempo.',
  unexpected_error:'El servidor no pudo completar el proceso.'
 };
-function controlAi(available){aiReady=!!available;$('generate').disabled=!aiReady||working;$('generate').textContent=aiReady?'Generar con IA':'Generar con IA (pendiente)';$('api-diagnose').disabled=!aiReady;}
+function controlAi(available){
+ aiReady=!!available;window.picgiftAiReady=aiReady;
+ $('generate').textContent=working?'Generando…':'Generar mi foto navideña';
+ $('generate').disabled=working||!aiReady;
+ $('api-diagnose').disabled=!aiReady;
+ window.picgiftStudioUpdate?.();
+}
 const escape=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const status=s=>{$('generator-status').textContent=s};
 async function invoke(body){
@@ -43,7 +49,7 @@ async function invoke(body){
  return data;
 }
 async function health(){
- try{const {data:{session}}=await client.auth.getSession();if(!session){controlAi(false);status('Inicia sesión para acceder al generador de IA. La demostración funciona sin registrar tu foto.');return;}
+ try{const {data:{session}}=await client.auth.getSession();if(!session){controlAi(false);status('Inicia sesión para generar tu fotografía navideña. Puedes elegir el fondo y la foto antes de entrar.');return;}
  const data=await invoke({action:'health'});
  controlAi(data.available===true);
  status(data.available
@@ -81,7 +87,7 @@ async function preparedFile(file){
 function finishButton(){working=false;controlAi(aiReady)}
 async function create(ev){
  if(working)return;
- if(!aiReady){status('La IA está pendiente de activación. Mientras tanto puedes abrir la demostración local.');return;}const {file,scene_id,format,pose,outfit,consent,email_requested}=ev.detail||{};
+ if(!aiReady){status('La IA todavía no está disponible para esta cuenta. Comprueba tu inicio de sesión o la conexión con OpenAI.');return;}const {file,scene_id,format,pose,outfit,consent,email_requested}=ev.detail||{};
  if(!file||consent!==true){status('Selecciona una foto y autoriza su tratamiento antes de generar.');return}
  if(!Object.prototype.hasOwnProperty.call(labels,scene_id)){status('Este escenario es solo una referencia provisional y todavía no admite generación IA. Elige uno de los fondos PICGIFT.');return}
  working=true;$('generate').disabled=true;$('generate').textContent='Preparando solicitud…';
@@ -102,7 +108,7 @@ async function create(ev){
   const accepted=await invoke({action:'start',scene_id,source_path:path,format,pose:String(pose).slice(0,90),outfit:String(outfit).slice(0,90),consent:true,email_requested:email_requested===true});
   if(!accepted?.id)throw Error('No se pudo iniciar la generación.');
   activeId=accepted.id;path=null;
-  $('demo-result').classList.add('hidden');$('result-empty').classList.add('hidden');$('real-result').classList.remove('hidden');
+  $('result-empty').classList.add('hidden');$('real-result').classList.remove('hidden');
   $('result-page-title').textContent='Tu fotografía navideña';
   $('result-page-description').textContent='El trabajo se está procesando. Podrás descargar tu foto cuando termine y supere el control de calidad.';
   status('Solicitud aceptada. Analizando la fotografía…');
@@ -185,12 +191,10 @@ async function refreshGallery(){
  const withLinks=await Promise.all(lastJobs.map(async j=>({job:j,href:j.status==='completed'?await signed(j.result_path):null,download:j.status==='completed'?await signed(j.result_path,true):null})));
  $('photo-library').innerHTML=withLinks.length?'<div class="scene-grid">'+withLinks.map(o=>plainCard(o.job,o.href,o.download)).join('')+'</div>':'<div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Cuando generes tu primera imagen, aparecerá aquí de forma privada.</p><button class="btn outline" data-route="crear">Crear una foto</button></div>';
  const job=lastJobs.find(j=>j.id===activeId)||lastJobs[0];
- if(job&&!(!$('demo-result').classList.contains('hidden')&&!activeId)){
-  if($('demo-result').classList.contains('hidden')){
-    $('result-empty').classList.add('hidden');
-    $('real-result').classList.remove('hidden');
-  }
-  if($('demo-result').classList.contains('hidden'))renderProgress(job);
+ if(job){
+  $('result-empty').classList.add('hidden');
+  $('real-result').classList.remove('hidden');
+  renderProgress(job);
   if(job.status==='completed'){
     const result=withLinks.find(x=>x.job.id===job.id);
     if(result?.href){
@@ -257,7 +261,6 @@ function init(){
   const open=e.target.closest('[data-view-job]')?.dataset.viewJob;
   if(!open)return;
   activeId=open;
-  $('demo-result').classList.add('hidden');
   const job=lastJobs.find(j=>j.id===open);
   if(!job)return;
   $('result-name').textContent=labels[job.scene_id]||'Navidad PICGIFT';
