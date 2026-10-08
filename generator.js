@@ -4,7 +4,7 @@ const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSe
 const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
 const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
-let working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
+let fluxMode=false,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
 const sceneImages={
  'halloween-potions':'./assets/halloween/backdrops/potions.jpg',
  'halloween-autumn-arch':'./assets/halloween/backdrops/autumn-arch.jpg',
@@ -49,24 +49,27 @@ function controlAi(available){
 const escape=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const status=s=>{$('generator-status').textContent=s};
 async function invoke(body){
- const {data,error}=await client.functions.invoke('picgift-generate',{body});
+ const functionName=fluxMode&&['start','health'].includes(body.action)?'picgift-flux-personal':'picgift-generate';
+ const {data,error}=await client.functions.invoke(functionName,{body});
  if(error){let message='El estudio no está disponible.';try{const j=await error.context.json();message=j.error||message}catch{}throw Error(message)}
  return data;
 }
 async function health(){
- try{const {data:{session}}=await client.auth.getSession();if(!session){controlAi(false);status('Inicia sesión para comprobar la disponibilidad del estudio. Puedes elegir tu foto y ajustar el encuadre antes.');return;}
- const data=await invoke({action:'health'});
- window.picgiftPilot=data.pilot===true;controlAi(data.available===true);window.picgiftReferencesReady=data.references_supported===true;
- if(!data.available&&data.campaign==='halloween'){
-  status('Estamos preparando la apertura de esta colección. No se enviará ninguna fotografía.');
- }else{
+ try{
+  const {data:{session}}=await client.auth.getSession();
+  if(!session){fluxMode=false;controlAi(false);status('Inicia sesión para comprobar la disponibilidad del estudio.');return}
+  const beta=await client.functions.invoke('picgift-flux-personal',{body:{action:'health'}});
+  fluxMode=beta.error===null&&beta.data?.available===true&&beta.data?.free_beta===true;
+  const data=fluxMode?beta.data:await invoke({action:'health'});
+  window.picgiftPilot=data.pilot===true;window.picgiftReferencesReady=data.references_supported===true;
+  controlAi(data.available===true);
   status(data.available
-   ?(data.pilot?'Tu cuenta tiene acceso a la prueba del estudio, sin compras.':'El estudio está disponible para tu cuenta.')
-   :'El estudio no está disponible para esta cuenta. No se enviará ninguna fotografía.');
- }
- if(!data.email_available){$('photo-email-delivery').disabled=true;$('photo-email-delivery').checked=false;$('photo-email-delivery').parentElement.title='El correo de entrega se activará cuando se configure el proveedor de email.'}
- else {$('photo-email-delivery').disabled=false;$('photo-email-delivery').parentElement.title='Te enviamos un enlace privado válido durante 24 horas'}
- }catch(e){controlAi(false);status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde. '+e.message)}
+   ?(fluxMode?'FLUX gratuito en pruebas: tu retrato pasará revisión antes de estar disponible para descargar.':'Tu cuenta tiene acceso al estudio.')
+   :'El estudio de retratos personales está pendiente de activación. La prueba técnica de FLUX no edita fotografías personales.');
+  const email=$('photo-email-delivery');email.disabled=fluxMode||!data.email_available;
+  if(email.disabled)email.checked=false;
+  email.parentElement.title=email.disabled?'Entrega por correo no disponible en esta beta.':'Enlace privado por correo.';
+ }catch(e){fluxMode=false;controlAi(false);status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde.')}
 }
 async function preparedFile(file){
  if(file.size<=3.5*1024*1024)return file;
@@ -78,6 +81,29 @@ async function preparedFile(file){
   if(blob)return new File([blob],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
  }catch(e){console.warn('PICGIFT resize fallback')}
  return file;
+}
+async function smallFluxImage(blob,name){
+ if(!blob||!['image/jpeg','image/png','image/webp'].includes(blob.type)||blob.size>15*1024*1024)throw Error('Imagen de referencia no válida.');
+ const bitmap=await createImageBitmap(blob);
+ try{
+  const ratio=Math.min(1,480/Math.max(bitmap.width,bitmap.height));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(64,Math.round(bitmap.width*ratio));
+  canvas.height=Math.max(64,Math.round(bitmap.height*ratio));
+  if(Math.max(canvas.width,canvas.height)>480)throw Error('Tamaño de referencia no válido.');
+  canvas.getContext('2d',{alpha:false}).drawImage(bitmap,0,0,canvas.width,canvas.height);
+  const compressed=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.86));
+  if(!compressed||compressed.size<1000||compressed.size>550000)throw Error('No se pudo preparar la referencia.');
+  return new File([compressed],name,{type:'image/jpeg'});
+ }finally{bitmap.close()}
+}
+async function sceneFluxImage(sceneId){
+ const url=sceneImages[sceneId];
+ if(!url||!url.startsWith('./assets/'))throw Error('Este decorado no está preparado para FLUX.');
+ const response=await fetch(url,{cache:'force-cache'});
+ if(!response.ok)throw Error('No se pudo cargar el fondo autorizado.');
+ const blob=await response.blob();
+ return smallFluxImage(blob,'flux-scene.jpg');
 }
 function finishButton(){working=false;controlAi(aiReady)}
 async function create(ev){
@@ -101,19 +127,36 @@ async function create(ev){
   if(uploaded.error)throw Error('No se pudo subir el archivo de forma privada. '+uploaded.error.message);
   uploadedPaths.push(path);
   const reference_paths={};
-  for(const kind of ['face','body']){
+  if(fluxMode){
+   const folder=path.slice(0,path.lastIndexOf('/'));
+   const inputs=[['flux_subject',await smallFluxImage(prepared,'flux-subject.jpg')],['flux_scene',await sceneFluxImage(scene_id)]];
+   for(const kind of ['face','body']){
+    if(references[kind]){
+     if(inputs.length>=4)throw Error('Demasiadas referencias.');
+     inputs.push(['flux_'+kind,await smallFluxImage(references[kind],'flux-'+kind+'.jpg')]);
+    }
+   }
+   for(const [key,small] of inputs){
+    const privatePath=folder+'/'+key.replace('_','-')+'.jpg';
+    const upload=await client.storage.from('picgift-uploads').upload(privatePath,small,{contentType:'image/jpeg',cacheControl:'0',upsert:false});
+    if(upload.error)throw Error('No se pudo guardar la imagen de referencia en privado. '+upload.error.message);
+    reference_paths[key]=privatePath;uploadedPaths.push(privatePath);
+   }
+  }else{
+   for(const kind of ['face','body']){
     const reference=references[kind];if(!reference)continue;
     if(!['image/jpeg','image/png','image/webp'].includes(reference.type)||reference.size>15*1024*1024)throw Error('La referencia supera el tamaño o tipo permitido.');
-    if(ready.references_supported!==true)throw Error('El estudio aún no admite referencias adicionales. No se enviarán hasta que puedan utilizarse.');
+    if(ready.references_supported!==true)throw Error('El estudio aún no admite referencias adicionales.');
     const extra=await preparedFile(reference),extension=extra.type==='image/png'?'png':extra.type==='image/webp'?'webp':'jpg';
     const extraPath=path.slice(0,path.lastIndexOf('/'))+'/reference-'+kind+'.'+extension;
     const upload=await client.storage.from('picgift-uploads').upload(extraPath,extra,{contentType:extra.type,cacheControl:'0',upsert:false});
-    if(upload.error)throw Error('No se pudo subir la referencia de '+(kind==='face'?'rostro':'cuerpo')+'.');
+    if(upload.error)throw Error('No se pudo subir la referencia.');
     uploadedPaths.push(extraPath);reference_paths[kind]=extraPath;
+   }
   }
   status('Las fotos están protegidas. Enviando solicitud al estudio…');
   requestSubmitted=true;
-  const accepted=await invoke({action:'start',request_language:window.picgiftI18n.language,scene_id,source_path:path,reference_paths,format,pose:String(pose).slice(0,90),outfit:String(outfit).slice(0,90),consent:true,email_requested:email_requested===true});
+  const accepted=await invoke({action:'start',request_language:window.picgiftI18n.language,scene_id,source_path:path,reference_paths,format,pose:String(pose).slice(0,90),outfit:String(outfit).slice(0,90),consent:true,guardian_consent:consent===true,email_requested:email_requested===true});
   if(!accepted?.id)throw Error('No se pudo iniciar la generación.');
   activeId=accepted.id;path=null;acceptedByServer=true;
   $('result-empty').classList.add('hidden');$('real-result').classList.remove('hidden');
@@ -263,7 +306,7 @@ function init(){
      if(error){let message='No se pudo realizar la prueba.';try{message=(await error.context.json())?.error||message}catch{}throw new Error(message)}
      if(data?.ok!==true||typeof data.image!=='string'||!data.image.startsWith('data:image/'))throw new Error('Respuesta de imagen no válida.');
      img.src=data.image;img.classList.remove('hidden');
-     target.textContent='Imagen técnica creada correctamente. La edición de retratos personales todavía no está activada.';
+     target.textContent='Prueba técnica de FLUX correcta. Para retratos personales utiliza «Crear mi retrato» cuando la beta esté habilitada.';
    }catch(e){target.textContent='Falló la prueba: '+(e.message||'No se pudo completar.');sampleButton.disabled=false;}
  });
  const fluxButton=$('flux-verify');
