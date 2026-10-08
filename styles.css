@@ -311,6 +311,7 @@ html[data-campaign="halloween"] .studio-session button{color:#ffbb78}
 .halloween-promo-banner[hidden],.promo-pricing-intro[hidden],.promo-discount-badge[hidden],.promo-previous[hidden],.promo-savings[hidden],.promo-disclosure[hidden]{display:none!important}
 /* Full-width promotional artwork replaces the text-only Halloween home banner. */
 html[data-campaign="halloween"] .halloween-promo-banner{
+ position:relative;isolation:isolate;
  display:block;overflow:hidden;width:100%;
  margin:20px 0 8px;padding:0;border:0;border-radius:22px;
  background:#170a0a;box-shadow:0 12px 44px rgba(141,43,0,.19);
@@ -326,6 +327,20 @@ html[data-campaign="halloween"] .halloween-promo-banner{
  outline:3px solid #ffb66a;outline-offset:-4px;
 }
 .promo-intro-tag{font-size:10px;letter-spacing:.16em;font-weight:800;color:#ffb66a}
+/* Direct studio action layered over the promotional image, without covering its copy. */
+html[data-campaign="halloween"] .halloween-promo-banner .promo-studio-button{
+ position:absolute;right:clamp(12px,2vw,26px);bottom:clamp(12px,2vw,26px);z-index:2;
+ min-height:48px;padding:11px 18px;border-radius:12px;
+ color:#2a1107;background:#ffb16a;
+ box-shadow:0 6px 20px rgba(0,0,0,.55);
+ white-space:nowrap;
+}
+@media(max-width:700px){
+ html[data-campaign="halloween"] .halloween-promo-banner .promo-studio-button{
+  right:9px;bottom:9px;min-height:40px;padding:8px 11px;font-size:11px;gap:5px;border-radius:9px;
+ }
+ .halloween-promo-banner .promo-studio-button svg{width:13px;height:13px}
+}
 html[data-campaign="halloween"] .promo-pricing-intro{
  display:flex;align-items:center;justify-content:space-between;gap:20px;
  border:1px solid #ff9e508a;border-radius:18px;background:linear-gradient(115deg,#36140b,#1b0c0a);
