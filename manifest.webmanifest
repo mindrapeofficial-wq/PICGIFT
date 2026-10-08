@@ -1,13 +1,13 @@
 {
-  "name": "PICGIFT",
+  "name": "PICGIFT · Halloween 2026",
   "short_name": "PICGIFT",
-  "lang": "en",
-  "description": "Seasonal storybook portraits for family memories",
-  "start_url": "/#inicio",
+  "lang": "es",
+  "description": "Convierte tus fotos en recuerdos mágicos de Halloween.",
+  "start_url": "/#crear",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#161110",
-  "theme_color": "#161110",
+  "background_color": "#090506",
+  "theme_color": "#090506",
   "icons": [
     {
       "src": "/assets/halloween/icon-192.png",
@@ -30,26 +30,26 @@
   "orientation": "any",
   "shortcuts": [
     {
-      "name": "Halloween",
-      "short_name": "Halloween",
-      "url": "/#escenarios",
+      "name": "Crear fotografía",
+      "short_name": "Crear",
+      "url": "/#crear",
       "icons": [
         {
-          "src": "/assets/halloween/app-icon-halloween.svg",
-          "sizes": "any",
-          "type": "image/svg+xml"
+          "src": "/assets/halloween/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
     {
-      "name": "PICGIFT gallery",
-      "short_name": "Gallery",
+      "name": "Mis fotos",
+      "short_name": "Mis fotos",
       "url": "/#mis-fotos",
       "icons": [
         {
-          "src": "/assets/halloween/app-icon-halloween.svg",
-          "sizes": "any",
-          "type": "image/svg+xml"
+          "src": "/assets/halloween/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }
