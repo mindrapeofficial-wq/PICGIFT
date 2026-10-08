@@ -541,5 +541,8 @@
   "Cloudflare responde, pero no confirma FLUX.2 Klein 4B.": "Cloudflare responded, but could not confirm FLUX.2 Klein 4B.",
   "Cloudflare ha rechazado la comprobación.": "Cloudflare rejected the check.",
   "Se agotó el tiempo al conectar con Cloudflare.": "Connection to Cloudflare timed out.",
-  "Todavía no se ha verificado la conexión gratuita.": "The free AI connection has not been verified yet."
+  "Todavía no se ha verificado la conexión gratuita.": "The free AI connection has not been verified yet.",
+  "Cloudflare no ha respondido dentro del tiempo de espera.": "Cloudflare did not respond before the timeout.",
+  "El servidor no ha podido establecer la conexión de red con Cloudflare.": "The server could not establish a network connection to Cloudflare.",
+  "Cloudflare no ha validado el token. Revisa sus permisos y vigencia.": "Cloudflare could not validate the token. Check its permissions and expiry."
 }
