@@ -383,3 +383,9 @@ html[data-campaign="halloween"] .mobile-logo img{
 
 /* Topbar: compact actions aligned to the right; no redundant strapline or install button. */
 .topbar .top-actions{margin-left:auto;justify-content:flex-end}
+
+/* Icon-only brand, square and optically centered */
+.brand{justify-content:center;min-height:74px}
+.brand img{display:block;width:76px;height:76px;object-fit:contain}
+.mobile-logo{justify-content:center}
+.mobile-logo img{display:block;width:50px!important;height:50px!important;object-fit:contain}
