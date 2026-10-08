@@ -152,3 +152,152 @@
 .studio-session span{font-size:12px;color:#e8d6b4;overflow-wrap:anywhere;min-width:0}
 .studio-session button{border:0;background:transparent;color:#ebd09c;text-decoration:underline;text-underline-offset:3px;font-size:11px;font-weight:750;padding:5px;cursor:pointer}
 @media(max-width:750px){.studio-session{margin-bottom:13px;padding:9px 10px}.studio-session span{font-size:11px}}
+
+
+/* ==== PICGIFT SEASON 2026: HALLOWEEN ====
+   Christmas source is preserved in archive/navidad-2026.
+   Add overrides here rather than destroying the original Christmas stylesheet.
+*/
+html[data-campaign="halloween"] {
+ --bg:#090609;--panel:#180d0b;--panel2:#27140e;--green:#592407;
+ --cream:#fff1df;--muted:#ceb7a8;--gold:#ff8725;--goldlight:#ffc16e;
+ --red:#f07528;--line:rgba(255,135,51,.25);
+ --shadow:0 22px 70px rgba(0,0,0,.61);
+ color-scheme:dark;
+ background:#090609;
+}
+html[data-campaign="halloween"] body{
+ background:radial-gradient(ellipse at 84% 5%,rgba(187,66,11,.24) 0%,transparent 40%),
+ radial-gradient(ellipse at 2% 83%,rgba(143,42,7,.2),transparent 38%),#090609;
+ color:var(--cream);
+}
+html[data-campaign="halloween"] .sidebar{
+ background:rgba(14,8,9,.94);border-right-color:#f9792838;
+}
+html[data-campaign="halloween"] .topbar,
+html[data-campaign="halloween"] .mobile-nav{
+ background:rgba(16,8,10,.93);border-color:#f9832839;
+}
+html[data-campaign="halloween"] .brand img,
+html[data-campaign="halloween"] .mobile-logo img{filter:drop-shadow(0 1px 8px #ff710f99)}
+html[data-campaign="halloween"] .brand strong,
+html[data-campaign="halloween"] .mobile-logo strong{color:#ffbf77}
+html[data-campaign="halloween"] .side-caption{color:#ba724c}
+html[data-campaign="halloween"] .nav-link{color:#e4c2a7}
+html[data-campaign="halloween"] .nav-link.active,
+html[data-campaign="halloween"] .nav-link:hover{
+ background:linear-gradient(115deg,#8b300e66,#ff8f2f28);color:#ffd8a0;border-color:#ff9b3a47
+}
+html[data-campaign="halloween"] .eyebrow,
+html[data-campaign="halloween"] .text-btn,
+html[data-campaign="halloween"] .tiny a{color:#ffbb72}
+html[data-campaign="halloween"] .dot,
+html[data-campaign="halloween"] .top-left .dot{background:#ff7b12;box-shadow:0 0 17px #fd690a}
+html[data-campaign="halloween"] .panel,
+html[data-campaign="halloween"] .price-card,
+html[data-campaign="halloween"] .scene-card,
+html[data-campaign="halloween"] .info-block,
+html[data-campaign="halloween"] .dialog{
+ background:linear-gradient(147deg,#2a1510,#140b0b 66%,#1b100e);
+ border-color:#d76f3d48;color:#ffebd7;
+}
+html[data-campaign="halloween"] .btn.primary,
+html[data-campaign="halloween"] .chip[aria-pressed=true],
+html[data-campaign="halloween"] .ribbon .btn{
+ background:linear-gradient(115deg,#ffc06f,#ff821c 46%,#d54b0b);
+ color:#1b0c07;border-color:#ffa54e;
+ box-shadow:0 8px 24px #df52183c;
+}
+html[data-campaign="halloween"] .btn.outline,
+html[data-campaign="halloween"] .pill,
+html[data-campaign="halloween"] .btn.quiet{
+ border-color:#ed8a464f;background:rgba(255,128,38,.09);color:#ffdfbd;
+}
+html[data-campaign="halloween"] .btn:disabled{opacity:.58;box-shadow:none}
+html[data-campaign="halloween"] .pill.christmas-pill{background:#ec65192a}
+html[data-campaign="halloween"] .avatar{background:#fa912b;border-color:#ffd59e;color:#190906}
+html[data-campaign="halloween"] .notice{
+ color:#ffe1af;background:#e977161a;border-color:#e9834257;
+}
+html[data-campaign="halloween"] .field input,
+html[data-campaign="halloween"] .field select{
+ background:#140c0c;color:#fff1df;border-color:#dc774b5c;
+}
+html[data-campaign="halloween"] .field input:focus,
+html[data-campaign="halloween"] .field select:focus{border-color:#ffa543}
+html[data-campaign="halloween"] .upload-zone{
+ border-color:#e3764590;
+ background:radial-gradient(circle at 50% 0,#70300f,#22100c 63%,#0d090a);
+}
+html[data-campaign="halloween"] .upload-zone.dragging{background:#4e2516;border-color:#ffc477}
+html[data-campaign="halloween"] .step-ind.active .num,
+html[data-campaign="halloween"] .studio-steps>span.is-done strong{
+ background:#ff9c3c;color:#190805;
+}
+html[data-campaign="halloween"] .studio-steps>span.is-done{
+ background:#68300d88;border-color:#e77a2c9c;
+}
+html[data-campaign="halloween"] .studio-session,
+html[data-campaign="halloween"] .studio-chosen,
+html[data-campaign="halloween"] .studio-advanced{
+ background:#2d160f;border-color:#e0813e66;
+}
+html[data-campaign="halloween"] .mobile-scene-option{
+ background:#23110f;color:#ffead6;border-color:#c45b3169;
+}
+html[data-campaign="halloween"] .mobile-scene-option.is-selected{
+ background:#5e270f;border-color:#ffa756;box-shadow:0 0 0 2px #ff9a3e30;
+}
+html[data-campaign="halloween"] .mobile-scene-check{background:#ffaf52;color:#180806}
+html[data-campaign="halloween"] .studio-actionbar{background:#170b0af7;border-color:#f587365e}
+html[data-campaign="halloween"] .mobile-nav button.active{color:#ffa740}
+html[data-campaign="halloween"] .price-card.featured{border-color:#f88c458b}
+html[data-campaign="halloween"] .price-ribbon{background:#e67121}
+html[data-campaign="halloween"] .ribbon{background:linear-gradient(120deg,#60260d,#28110f)}
+html[data-campaign="halloween"] .scene-unavailable{opacity:1}
+html[data-campaign="halloween"] .scene-label{
+ background:#190c0ac9;color:#ffd5a2;border-color:#ff80294a
+}
+html[data-campaign="halloween"] .update-banner{background:#35170e;border-color:#fa8b3b}
+html[data-campaign="halloween"] .splash{background:#080609}
+html[data-campaign="halloween"] .snow{display:none!important}
+html[data-campaign="halloween"] .result-art{background:#1f0d09}
+html[data-campaign="halloween"] .ai-progress{background:#31190eaa}
+html[data-campaign="halloween"] .ai-progress-fill{background:linear-gradient(90deg,#f36c14,#ffb457)}
+html[data-campaign="halloween"] .ai-progress-track{background:#160a09;border-color:#cb652746}
+html[data-campaign="halloween"] .result-progress-panel{color:#f6dfc9}
+html[data-campaign="halloween"] .halloween-hero{
+ min-height:535px;
+ border:1px solid #fb8b3e66;
+ background:#170a0a;
+}
+html[data-campaign="halloween"] .halloween-hero .hero-image{
+ filter:saturate(.85);object-position:center 40%;
+}
+html[data-campaign="halloween"] .halloween-hero:before{
+ background:linear-gradient(90deg,rgba(9,6,9,.97),rgba(16,7,9,.92) 37%,rgba(25,8,11,.57) 80%,rgba(9,6,9,.3)),
+ linear-gradient(0deg,#080608d9,transparent 75%);
+}
+html[data-campaign="halloween"] .hero-halloween-logo{
+ position:absolute;z-index:-1;right:2%;top:4%;height:95%;width:39%;
+ object-fit:contain;opacity:.86;filter:drop-shadow(0 8px 25px #ff721a5c);
+ pointer-events:none;
+}
+html[data-campaign="halloween"] .halloween-hero .hero-content{max-width:610px;position:relative;z-index:2}
+html[data-campaign="halloween"] .halloween-hero h1 em{color:#ffad50}
+html[data-campaign="halloween"] .hero .trustline span{color:#ffcc97}
+html[data-campaign="halloween"] .halloween-ribbon{border-color:#ed7c3966}
+html[data-campaign="halloween"] .mobile-logo img{object-fit:cover;border-radius:9px}
+@media(max-width:960px){
+ html[data-campaign="halloween"] .hero-halloween-logo{width:49%;opacity:.62;right:-4%}
+}
+@media(max-width:750px){
+ html[data-campaign="halloween"] .halloween-hero{min-height:500px;align-items:flex-end}
+ html[data-campaign="halloween"] .halloween-hero .hero-image{object-position:62% center}
+ html[data-campaign="halloween"] .halloween-hero:before{background:linear-gradient(0deg,#090609 0%,#0d0809f0 48%,#0d070899 73%,#0d070841 100%)}
+ html[data-campaign="halloween"] .hero-halloween-logo{right:0;top:4%;width:55%;height:45%;opacity:.8}
+ html[data-campaign="halloween"] .halloween-hero .hero-content{padding:32px 22px;max-width:100%}
+ html[data-campaign="halloween"] .halloween-hero h1{font-size:clamp(35px,10vw,54px)}
+ html[data-campaign="halloween"] .halloween-hero .trustline{flex-wrap:wrap}
+ html[data-campaign="halloween"] .page{background:none}
+}
