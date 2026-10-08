@@ -268,10 +268,13 @@ function init(){
        cloudflare_unavailable:'Cloudflare no responde correctamente.',
        model_not_listed:'Cloudflare responde, pero no confirma FLUX.2 Klein 4B.',
        cloudflare_error:'Cloudflare ha rechazado la comprobación.',
-       connection_timeout:'Se agotó el tiempo al conectar con Cloudflare.'
+       connection_timeout:'Cloudflare no ha respondido dentro del tiempo de espera.',
+       network_error:'El servidor no ha podido establecer la conexión de red con Cloudflare.',
+       token_invalid:'Cloudflare no ha validado el token. Revisa sus permisos y vigencia.'
      };
      const message=messages[data?.status]||'Todavía no se ha verificado la conexión gratuita.';
-     $('flux-status').textContent=window.picgiftI18n?.t(message)||message;
+     const details=data&&typeof data.token_check==='string'&&typeof data.model_check==='string' ? ' (token: '+data.token_check+'; modelos: '+data.model_check+(Number.isFinite(data.elapsed_ms)?'; '+data.elapsed_ms+' ms':'')+')':'';
+     $('flux-status').textContent=(window.picgiftI18n?.t(message)||message)+details;
      $('flux-status').dataset.verified=String(data?.verified===true);
    }catch(e){$('flux-status').textContent=window.picgiftI18n?.t(e.message)||e.message}
    finally{fluxButton.disabled=false;}
