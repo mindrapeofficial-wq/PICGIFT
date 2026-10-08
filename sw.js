@@ -1,14 +1,13 @@
-/* PICGIFT Navidad 2026: only public static assets are cached.
+/* PICGIFT Halloween 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-shell-2026-10-mobile-v3";
+const VERSION="picgift-shell-halloween-2026-v1";
 const SHELL=[
  "/","/index.html","/styles.css","/app.js","/auth.js","/generator.js",
- "/payments.js","/install.js","/config.js","/manifest.webmanifest","/logo.svg","/scenes.json",
- "/assets/scenes/golden-bokeh.jpg","/assets/scenes/reading-corner.jpg",
- "/assets/scenes/santa-workshop.jpg","/assets/scenes/christmas-chair.jpg",
- "/assets/scenes/white-trunk.jpg","/assets/scenes/winter-window.jpg",
- "/assets/scenes/cabinet-teddies.jpg"
+ "/payments.js","/install.js","/config.js","/manifest.webmanifest","/scenes.json",
+ "/assets/halloween/logo-halloween.svg","/assets/halloween/app-icon-halloween.svg",
+ "/assets/halloween/scenes/bosque-calabazas.svg","/assets/halloween/scenes/castillo-embrujado.svg",
+ "/assets/halloween/scenes/salon-embrujado.svg"
 ];
 const allowed=new Set(SHELL);
 self.addEventListener("install",event=>{
