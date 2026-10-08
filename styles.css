@@ -19,3 +19,12 @@
 .demo-steps span{font-weight:800;color:#edd2a2;font-size:11px}
 .demo-steps small{color:#b6c9ba;font-size:10px}
 @media(max-width:570px){.demo-refs{grid-template-columns:1fr 1fr;gap:10px}.demo-plus{display:none}.demo-ref-foot{padding:10px}.demo-ref-foot strong{font-size:14px}.demo-steps{grid-template-columns:1fr}.demo-steps>div{padding:12px;grid-template-columns:26px 1fr;align-items:center}.demo-steps small{grid-column:2}.demo-ref-image{aspect-ratio:3/4}}
+
+/* PICGIFT 2026 pricing system */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;align-items:stretch}
+.price-card{position:relative;border:1px solid #ebcf9b29;border-radius:22px;background:linear-gradient(160deg,#143b2f,#0a2721);padding:28px 23px;display:flex;flex-direction:column;gap:13px;overflow:hidden}
+.price-card.featured{border:2px solid #e7c488;box-shadow:0 15px 45px #d2b16f18;background:linear-gradient(140deg,#204d3c,#0b2b23)}
+.price-ribbon{position:absolute;top:16px;right:-38px;transform:rotate(34deg);background:#e7c488;color:#15382c;font-size:9px;font-weight:800;letter-spacing:.14em;padding:8px 35px}
+.price-card h3{font-size:22px;margin-top:5px}.price-card>p{color:#bacabe;font-size:12px;line-height:1.55}.price-card .price-amount{font-family:'Playfair Display',Georgia,serif;font-size:clamp(36px,3.3vw,57px);color:#f5deb0;line-height:1.2;letter-spacing:-.045em}.price-card .price-amount small{font:500 28px 'DM Sans',sans-serif;letter-spacing:0}.price-separator{height:1px;background:#d2b58d33;margin:3px 0}.price-card .btn{margin-top:auto;white-space:normal;min-height:53px}
+@media(max-width:1080px){.pricing-grid{grid-template-columns:1fr 1fr}.price-card.featured{grid-column:span 1}}
+@media(max-width:680px){.pricing-grid{grid-template-columns:1fr}.price-card{padding:24px 20px}.price-card .price-amount{font-size:46px}.price-card .btn{width:100%}}
