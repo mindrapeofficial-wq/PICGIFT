@@ -32,3 +32,25 @@
 /* Mobile install and offline indicator */
 .offline-pill{font-size:11px;padding:7px 11px;border:1px solid #dabb8155;border-radius:999px;color:#f1d5a3;background:#8b56132e;white-space:nowrap}
 @media(max-width:680px){#install-picgift{font-size:11px;padding:8px 10px}.top-actions{gap:5px}.offline-pill{font-size:10px;padding:6px 8px}}
+
+/* PICGIFT private AI: status is source-of-truth, percentage is stage-based only. */
+.result-progress-panel{display:flex;flex-direction:column;gap:0}
+.ai-progress{margin:23px 0 17px;padding:19px;border-radius:17px;background:rgba(22,59,48,.7);border:1px solid rgba(223,188,126,.24)}
+.ai-progress-top{display:flex;justify-content:space-between;align-items:baseline;gap:15px;margin-bottom:14px;font-size:13px;color:var(--cream)}
+.ai-progress-top strong:last-child{font-family:'DM Sans',sans-serif;font-size:19px;font-variant-numeric:tabular-nums;color:var(--goldlight)}
+.ai-progress-track{width:100%;height:12px;border:1px solid rgba(250,227,185,.19);border-radius:999px;background:#06231d;overflow:hidden}
+.ai-progress-fill{height:100%;width:10%;border-radius:999px;background:linear-gradient(90deg,#c18d46,#f3dfb4);transition:width .65s ease}
+.ai-progress-track[data-state="failed"]{border-color:rgba(231,131,116,.3);background:rgba(126,49,45,.25)}
+.ai-progress-track[data-state="failed"] .ai-progress-fill{width:100%!important;background:#c67469}
+.ai-progress-track[data-state="completed"] .ai-progress-fill{background:linear-gradient(90deg,#4da781,#e5d5a5)}
+.ai-progress-track[data-state="needs_review"] .ai-progress-fill{background:#d8a65b}
+.ai-progress-stages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0 13px;font-size:9px;color:#b5c7ba}
+.ai-progress-stages span{line-height:1.5}
+.ai-progress-stages span.is-active{font-weight:800;color:#f2d19c}
+.ai-progress-stages span.is-done{color:#a8e0c5}
+.ai-progress-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.ai-progress-actions .btn{font-size:12px}
+#progress-warning{margin-top:14px;background:rgba(183,129,65,.12);border:1px solid rgba(223,188,126,.35)}
+#result-status{margin-top:15px}
+@media(max-width:660px){.ai-progress{padding:14px}.ai-progress-stages{font-size:8px;gap:3px}.ai-progress-actions .btn{flex:1}}
+@media(prefers-reduced-motion:reduce){.ai-progress-fill{transition:none}}
