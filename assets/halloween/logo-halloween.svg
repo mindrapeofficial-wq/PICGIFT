@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="820" viewBox="0 0 500 570" role="img" aria-label="PICGIFT Halloween">
+<defs>
+ <linearGradient id="copper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe0a0"/><stop offset=".23" stop-color="#ffac30"/><stop offset=".56" stop-color="#ff6812"/><stop offset=".81" stop-color="#a73500"/><stop offset="1" stop-color="#f8b34c"/></linearGradient>
+ <linearGradient id="box" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#35302c"/><stop offset=".35" stop-color="#130f10"/><stop offset="1" stop-color="#020204"/></linearGradient>
+ <radialGradient id="moon"><stop stop-color="#ffe5a2"/><stop offset=".75" stop-color="#ff931f"/><stop offset="1" stop-color="#ad3004"/></radialGradient>
+ <filter id="glow" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur stdDeviation="9"/></filter>
+ <filter id="sh"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#000" flood-opacity=".75"/></filter>
+</defs>
+<circle cx="345" cy="135" r="105" fill="url(#moon)" opacity=".9"/>
+<g fill="#07060a" opacity=".92">
+ <path d="M314 119q15 -12 29 0l9 -17 7 21q18 -5 29 10-22 -3-35 9-20-20-39-23z"/>
+ <path d="M403 148q10 -8 19 0l8 -10 3 14q14 1 17 10-15-6-27 3-11-14-20-17z"/>
+</g>
+<g filter="url(#glow)" opacity=".45"><circle cx="254" cy="264" r="153" fill="#f96c0b"/></g>
+<rect x="83" y="168" width="334" height="304" rx="34" fill="url(#box)" stroke="#f6a33a" stroke-width="10" filter="url(#sh)"/>
+<rect x="227" y="173" width="60" height="295" fill="url(#copper)"/>
+<rect x="87" y="293" width="325" height="58" fill="url(#copper)"/>
+<g fill="url(#copper)" stroke="#ffdd8a" stroke-width="7" stroke-linejoin="round">
+ <path d="M250 176C185 92 126 89 118 136c-8 40 60 72 132 52z"/>
+ <path d="M250 176C315 92 373 89 383 136c9 40-59 72-133 52z"/>
+ <path d="M241 190l-115 73 24-74 80-30z"/><path d="M259 190l115 73-24-74-80-30z"/>
+ <rect x="230" y="145" width="40" height="56" rx="10"/>
+</g>
+<circle cx="250" cy="319" r="102" fill="#070709" stroke="#ffa83a" stroke-width="14"/>
+<circle cx="250" cy="319" r="83" fill="#141015" stroke="#ffda85" stroke-width="4"/>
+<g fill="url(#copper)" stroke="#ffcf6c" stroke-width="2" transform="translate(250 319)">
+ <path d="M0 0L-23 -78q54 -12 91 32z"/><path d="M0 0L68 -46q22 47 6 91z"/>
+ <path d="M0 0L74 45q-32 48-78 35z"/><path d="M0 0L-4 80q-58 -5-75 -47z"/>
+ <path d="M0 0L-79 33q-17 -50 13 -85z"/><path d="M0 0L-66 -52q36 -33 43 -26z"/>
+</g>
+<circle cx="250" cy="319" r="10" fill="#ffe6a1"/>
+<g transform="translate(70 417)"><path d="M0 22q-3-35 23-54l32 0q27 19 20 57Q45 65 0 22z" fill="#ef6210" stroke="#ffab30" stroke-width="4"/><path d="M25-29Q16-56 36-57" fill="none" stroke="#4d5e13" stroke-width="10"/><path d="M16 0l11-11 12 13 12-13 11 10-12 14-23 0z" fill="#130a06"/><path d="M22 24l11 7 10-8 9 8 10-8-8 18H23z" fill="#150906"/></g>
+<g stroke="#ffa13c" fill="none" opacity=".8"><path d="M38 406q54-49 101-18M383 426q63-17 80-81" stroke-width="5"/><path d="M374 202q66-21 93 2m-88-33q64-5 74-10" stroke-width="3"/></g>
+<g fill="#ffb445"><circle cx="57" cy="270" r="4"/><circle cx="441" cy="265" r="5"/><circle cx="395" cy="459" r="4"/><circle cx="115" cy="214" r="3"/></g>
+<defs><linearGradient id="letters" x1="0" x2="0.3" y1="0" y2="1"><stop stop-color="#ffdc89"/><stop offset=".4" stop-color="#ff8a14"/><stop offset="1" stop-color="#c24a06"/></linearGradient></defs>
+<text x="250" y="542" text-anchor="middle" font-family="Georgia,serif" font-size="83" font-weight="bold" letter-spacing="2" fill="#1b0903" stroke="#fdae3a" stroke-width="7" paint-order="stroke">PICGIFT</text>
+<text x="250" y="542" text-anchor="middle" font-family="Georgia,serif" font-size="83" font-weight="bold" letter-spacing="2" fill="url(#letters)">PICGIFT</text>
+</svg>
