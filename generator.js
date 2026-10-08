@@ -296,20 +296,35 @@ async function removePhoto(id){
  try{await invoke({action:'delete',job_id:id});if(id===activeId){activeId=null;currentJob=null;stopPolling();$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden')}await refreshGallery();status('Fotografía eliminada de tu espacio privado.')}catch(e){status('No se pudo eliminar: '+e.message)}
 }
 function init(){
+ // Before opening the personal photo beta, test true image-to-image compositing
+ // using ONLY two publicly available fictional/example PICGIFT images.
  const sampleButton=$('flux-smoke-run');
  if(sampleButton)sampleButton.addEventListener('click',async()=>{
    if(sampleButton.disabled)return;
    sampleButton.disabled=true;
    const target=$('flux-smoke-status'),img=$('flux-smoke-image');
-   target.textContent='Generando una imagen de prueba con FLUX.2 Klein. Puede tardar un poco…';
+   target.textContent='Preparando dos imágenes ficticias para comprobar la edición real…';
    img.classList.add('hidden');img.removeAttribute('src');
    try{
-     const {data,error}=await client.functions.invoke('picgift-flux-smoke',{body:{action:'run'}});
-     if(error){let message='No se pudo realizar la prueba.';try{message=(await error.context.json())?.error||message}catch{}throw new Error(message)}
-     if(data?.ok!==true||typeof data.image!=='string'||!data.image.startsWith('data:image/'))throw new Error('Respuesta de imagen no válida.');
+     const source=await fetch('./assets/halloween/guide/cuerpo-entero.webp',{cache:'force-cache'});
+     if(!source.ok)throw Error('No se pudo cargar la muestra ficticia.');
+     const subject=await smallFluxImage(await source.blob(),'fictional-subject.jpg');
+     const backdrop=await sceneFluxImage('halloween-potions');
+     async function encoded(file){
+       const bytes=new Uint8Array(await file.arrayBuffer());
+       let binary='';
+       for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+       return btoa(binary);
+     }
+     target.textContent='Editando un personaje ficticio dentro del decorado con FLUX. Puede tardar hasta 90 segundos…';
+     const {data,error}=await client.functions.invoke('picgift-flux-edit-smoke',{
+       body:{action:'run',confirm_fictional_samples:true,subject_b64:await encoded(subject),scene_b64:await encoded(backdrop)}
+     });
+     if(error){let message='No se pudo verificar la edición.';try{message=(await error.context.json())?.error||message}catch{}throw Error(message)}
+     if(data?.ok!==true||typeof data.image!=='string'||!data.image.startsWith('data:image/'))throw Error('La edición no devolvió una imagen válida.');
      img.src=data.image;img.classList.remove('hidden');
-     target.textContent='Prueba técnica de FLUX correcta. Para retratos personales utiliza «Crear mi retrato» cuando la beta esté habilitada.';
-   }catch(e){target.textContent='Falló la prueba: '+(e.message||'No se pudo completar.');sampleButton.disabled=false;}
+     target.textContent='Edición de dos imágenes completada con una muestra ficticia. Comprueba visualmente el rostro, las manos y el fondo; la beta personal sigue desactivada hasta su revisión.';
+   }catch(e){target.textContent='La verificación de edición no se completó: '+(e.message||'Error de conexión.');sampleButton.disabled=false;}
  });
  const fluxButton=$('flux-verify');
  if(fluxButton)fluxButton.addEventListener('click',async()=>{
