@@ -35,10 +35,12 @@ const errorDescriptions={
  unexpected_error:'El servidor no pudo completar el proceso.'
 };
 function controlAi(available){
- aiReady=!!available;window.picgiftAiReady=aiReady;
- $('generate').textContent=working?'Generando…':'Generar mi foto navideña';
- $('generate').disabled=working||!aiReady;
- $('api-diagnose').disabled=!aiReady;
+ const halloween=document.documentElement.dataset.campaign==='halloween';
+ aiReady=!!available&&!halloween;
+ window.picgiftAiReady=aiReady;
+ $('generate').textContent=halloween?'Generación Halloween próximamente':working?'Generando…':'Generar mi fotografía';
+ $('generate').disabled=halloween||working||!aiReady;
+ $('api-diagnose').disabled=!available;
  window.picgiftStudioUpdate?.();
 }
 const escape=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -49,12 +51,16 @@ async function invoke(body){
  return data;
 }
 async function health(){
- try{const {data:{session}}=await client.auth.getSession();if(!session){controlAi(false);status('Inicia sesión para generar tu fotografía navideña. Puedes elegir el fondo y la foto antes de entrar.');return;}
+ try{const {data:{session}}=await client.auth.getSession();if(!session){controlAi(false);status('Los fondos de Halloween están en preparación. Puedes explorar los diseños sin iniciar sesión.');return;}
  const data=await invoke({action:'health'});
  controlAi(data.available===true);
- status(data.available
-  ?(data.pilot?'Prueba privada habilitada. Puedes generar una fotografía sin pago; cada prueba utiliza la API de OpenAI y puede generar costes de uso.':'Motor de IA disponible. Autoriza el procesamiento y pulsa Generar mi fotografía.')
-  :'La IA está en preparación y solo se permite generar a cuentas autorizadas para la prueba privada. No se enviará ninguna fotografía.');
+ if(data.campaign==='halloween'){
+  status('Campaña Halloween 2026: los nuevos escenarios son conceptos ilustrados. La generación está pausada hasta incorporar los fondos fotográficos, sin cobros ni consumo de API.');
+ }else{
+  status(data.available
+   ?(data.pilot?'Prueba privada habilitada. Puedes generar una fotografía sin pago; cada prueba utiliza la API de OpenAI y puede generar costes de uso.':'Motor de IA disponible para tu cuenta.')
+   :'La IA no está disponible para esta cuenta. No se enviará ninguna fotografía.');
+ }
  if(!data.email_available){$('photo-email-delivery').disabled=true;$('photo-email-delivery').checked=false;$('photo-email-delivery').parentElement.title='El correo de entrega se activará cuando se configure el proveedor de email.'}
  else {$('photo-email-delivery').disabled=false;$('photo-email-delivery').parentElement.title='Te enviamos un enlace privado válido durante 24 horas'}
  }catch(e){controlAi(false);status('No hemos podido confirmar la conexión con la IA. Revisa tu sesión e inténtalo más tarde. '+e.message)}
@@ -87,9 +93,9 @@ async function preparedFile(file){
 function finishButton(){working=false;controlAi(aiReady)}
 async function create(ev){
  if(working)return;
- if(!aiReady){status('La IA todavía no está disponible para esta cuenta. Comprueba tu inicio de sesión o la conexión con OpenAI.');return;}const {file,scene_id,format,pose,outfit,consent,email_requested}=ev.detail||{};
+ if(!aiReady){status('La generación de Halloween está en preparación y no se enviará ninguna fotografía al proveedor de IA.');return;}const {file,scene_id,format,pose,outfit,consent,email_requested}=ev.detail||{};
  if(!file||consent!==true){status('Selecciona una foto y autoriza su tratamiento antes de generar.');return}
- if(!Object.prototype.hasOwnProperty.call(labels,scene_id)){status('Este escenario es solo una referencia provisional y todavía no admite generación IA. Elige uno de los fondos PICGIFT.');return}
+ if(!Object.prototype.hasOwnProperty.call(labels,scene_id)){status('Este escenario está en preparación y todavía no admite generación con IA.');return}
  working=true;$('generate').disabled=true;$('generate').textContent='Preparando solicitud…';
  let path=null;
  try{
