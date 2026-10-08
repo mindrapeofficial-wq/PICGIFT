@@ -403,3 +403,9 @@ html[data-campaign="halloween"] .sidebar .brand img{width:154px;height:108px;max
 html[data-campaign="halloween"] .sidebar .brand{min-height:112px}
 html[data-campaign="halloween"] .mobile-logo img{width:110px!important;height:68px!important;object-fit:contain}
 @media(max-width:600px){#splash .splash-inner img{width:94vw!important;max-height:65dvh!important}html[data-campaign="halloween"] .mobile-logo img{width:94px!important;height:60px!important}}
+
+/* Protected administration entry points: visible only after backend role check.
+   Keep the mobile web header compact; admin remains in the Account page. */
+#admin-topbar-link{white-space:nowrap;font-weight:800;background:#ffaf6720;border:1px solid #ffaf6770;color:#ffd4aa;padding:10px 13px;min-height:42px;border-radius:12px}
+#admin-sidebar-link{display:flex;align-items:center}
+@media(max-width:820px){#admin-topbar-link{display:none!important}}
