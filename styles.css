@@ -345,3 +345,38 @@ html[data-campaign="halloween"] .price-card[data-promo-card].is-promo-active.fea
  .price-card .promo-discount-badge{font-size:12px}
  .price-card.featured .promo-discount-badge{margin-top:18px}
 }
+
+/* Web Halloween logo: transparent brand mark, not a square tile.
+   Applied to desktop homepage/sidebar and responsive web header. */
+html[data-campaign="halloween"] .web-hero-lockup{
+ display:flex;align-items:center;gap:16px;min-height:104px;margin:0 0 4px;
+}
+html[data-campaign="halloween"] .web-hero-lockup img{
+ width:100px;height:112px;flex:0 0 auto;display:block;
+ object-fit:contain;background:transparent;border:0;border-radius:0;
+ filter:drop-shadow(0 7px 15px rgba(244,113,25,.2));
+}
+html[data-campaign="halloween"] .web-hero-lockup .eyebrow{
+ max-width:270px;line-height:1.6;color:#ffc17e;
+}
+html[data-campaign="halloween"] .halloween-hero .hero-content>.web-hero-lockup+h1{
+ margin-top:9px;
+}
+html[data-campaign="halloween"] .sidebar .brand img{
+ width:70px;height:80px;object-fit:contain;flex:0 0 auto;
+ background:transparent;border:0;border-radius:0;
+ filter:drop-shadow(0 3px 11px rgba(255,131,37,.26));
+}
+html[data-campaign="halloween"] .sidebar .brand{gap:8px}
+html[data-campaign="halloween"] .mobile-logo img{
+ object-fit:contain;background:transparent;border:0;border-radius:0;
+}
+@media(max-width:1180px){
+ html[data-campaign="halloween"] .web-hero-lockup img{width:81px;height:92px}
+ html[data-campaign="halloween"] .web-hero-lockup{min-height:92px}
+}
+@media(max-width:700px){
+ html[data-campaign="halloween"] .web-hero-lockup img{width:71px;height:82px}
+ html[data-campaign="halloween"] .web-hero-lockup{min-height:83px;gap:11px}
+ html[data-campaign="halloween"] .web-hero-lockup .eyebrow{font-size:9px}
+}
