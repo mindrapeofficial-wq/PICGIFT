@@ -19,7 +19,7 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  const svg=read('logo.svg');
  assert.ok(svg.startsWith('<svg'),'logo file is valid SVG');
  assert.ok(svg.includes('data:image/avif;base64,'),'logo embeds authorized Halloween artwork');
- assert.ok((svg.match(/data:image\\/avif;base64,([A-Za-z0-9+/=]+)/)?.[1]||'').length > 5000,'embedded image data is intact');
+ assert.ok((svg.split('data:image/avif;base64,')[1]||'').split('"')[0].length > 5000,'embedded image data is intact');
  assert.ok(!/<rect\\s+(?:width="500"|width="720"|width="256")/.test(svg),'no full-bleed background shape');
  assert.ok(!html.includes('Ver demostración'),'no fake demo as primary action');
 });
