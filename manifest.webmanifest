@@ -1,19 +1,19 @@
 {
-  "name": "PICGIFT · Navidad 2026",
+  "name": "PICGIFT · Halloween 2026",
   "short_name": "PICGIFT",
-  "description": "Estudio navideño de fotografía con IA, edición 2026",
+  "description": "Fotografía creativa Halloween con PICGIFT, temporada de otoño 2026",
   "lang": "es",
-  "start_url": "/#crear",
+  "start_url": "/#inicio",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#071b18",
-  "theme_color": "#071b18",
+  "background_color": "#090609",
+  "theme_color": "#090609",
   "icons": [
     {
-      "src": "/logo.svg",
+      "src": "/assets/halloween/app-icon-halloween.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "id": "/",
@@ -24,24 +24,24 @@
   "orientation": "any",
   "shortcuts": [
     {
-      "name": "Crear mi fotografía",
-      "short_name": "Crear",
-      "url": "/#crear",
+      "name": "Ver Halloween",
+      "short_name": "Halloween",
+      "url": "/#escenarios",
       "icons": [
         {
-          "src": "/logo.svg",
+          "src": "/assets/halloween/app-icon-halloween.svg",
           "sizes": "any",
           "type": "image/svg+xml"
         }
       ]
     },
     {
-      "name": "Escenarios navideños",
-      "short_name": "Escenarios",
-      "url": "/#escenarios",
+      "name": "Mis fotografías",
+      "short_name": "Mis fotos",
+      "url": "/#mis-fotos",
       "icons": [
         {
-          "src": "/logo.svg",
+          "src": "/assets/halloween/app-icon-halloween.svg",
           "sizes": "any",
           "type": "image/svg+xml"
         }
