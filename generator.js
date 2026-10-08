@@ -146,7 +146,12 @@ function plainCard(job,href,download){
  +'<button class="btn quiet" type="button" data-delete-job="'+escape(job.id)+'">Eliminar fotografía y datos</button></article>';
 }
 async function refreshGallery(){
- try{const {data,error}=await client.from('picgift_photo_jobs').select('id,scene_id,result_path,status,created_at,updated_at,email_status,failure_message,failure_code,failure_stage,result_quality').order('created_at',{ascending:false}).limit(30);
+ try{
+  if(currentJob&&['queued','analyzing','generating','reviewing'].includes(currentJob.status)){
+   const time=new Date(currentJob.updated_at||currentJob.created_at).getTime();
+   if(Date.now()-time>8*60*1000)await invoke({action:'status'});
+  }
+  const {data,error}=await client.from('picgift_photo_jobs').select('id,scene_id,result_path,status,created_at,updated_at,email_status,failure_message,failure_code,failure_stage,result_quality').order('created_at',{ascending:false}).limit(30);
  if(error)throw error;lastJobs=data||[];
  const withLinks=await Promise.all(lastJobs.map(async j=>({job:j,href:j.status==='completed'?await signed(j.result_path):null,download:j.status==='completed'?await signed(j.result_path,true):null})));
  $('photo-library').innerHTML=withLinks.length?'<div class="scene-grid">'+withLinks.map(o=>plainCard(o.job,o.href,o.download)).join('')+'</div>':'<div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Cuando generes tu primera imagen, aparecerá aquí de forma privada.</p><button class="btn outline" data-route="crear">Crear una foto</button></div>';
@@ -173,7 +178,14 @@ async function refreshGallery(){
   }
  }
  return lastJobs;
- }catch(e){console.warn('PICGIFT private gallery unavailable');return []}
+ }catch(e){
+  console.warn('PICGIFT private gallery unavailable');
+  if(currentJob&&['queued','analyzing','generating','reviewing'].includes(currentJob.status)){
+    $('progress-warning').textContent='No hemos podido conectar con el servidor. No significa que la imagen haya fallado. Comprobaremos otra vez cuando vuelva la conexión.';
+    $('progress-warning').classList.remove('hidden');
+  }
+  return null;
+ }
 }
 function stopPolling(){if(poller){clearInterval(poller);poller=null}if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}}
 function startPolling(){
@@ -184,6 +196,7 @@ function startPolling(){
   pollBusy=true;
   try{
    const jobs=await refreshGallery();
+   if(!jobs)return;
    const j=jobs.find(x=>x.id===activeId);
    if(!j){stopPolling();return}
    status(statuses[j.status]||j.status);
@@ -197,7 +210,16 @@ async function removePhoto(id){
 }
 function init(){
  window.addEventListener('picgift:generate',create);
- $('refresh-job').addEventListener('click',async()=>{const btn=$('refresh-job');btn.disabled=true;btn.textContent='Comprobando…';await refreshGallery();btn.disabled=false;btn.textContent='Comprobar estado';});
+ $('refresh-job').addEventListener('click',async()=>{
+  const btn=$('refresh-job');btn.disabled=true;btn.textContent='Comprobando…';
+  try{
+    await invoke({action:'status'});
+    await refreshGallery();
+  }catch{
+    $('progress-warning').textContent='No se ha podido contactar con el servidor. Vuelve a intentarlo en unos segundos.';
+    $('progress-warning').classList.remove('hidden');
+  }finally{btn.disabled=false;btn.textContent='Comprobar estado'}
+ });
  window.addEventListener('picgift:auth',async e=>{if(e.detail.user){await health();const jobs=await refreshGallery();if(!activeId){const inProgress=jobs.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{stopPolling();activeId=null;currentJob=null;lastJobs=[];controlAi(false);status('Inicia sesión para acceder a la generación privada.');}});
  $('photo-library').addEventListener('click',e=>{const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;if(id)removePhoto(id)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeId)refreshGallery()});
