@@ -16,11 +16,11 @@ if(client){
 $('auth-form').addEventListener('submit',async e=>{
  e.preventDefault();if(!client){msg('Acceso temporalmente no disponible.');return;}
  const email=$('auth-email').value.trim(),password=$('auth-password').value;
- if(!recovery&&!$('terms').checked){msg('Confirma que cuentas con autorización para utilizar las imágenes.');return;}
+ const signup=window.picgiftAuthMode==='register';
+ if(!recovery&&signup&&!$('terms').checked){msg('Confirma que cuentas con autorización para utilizar las imágenes.');return;}
  const submit=$('auth-submit');submit.disabled=true;msg('Conectando de forma segura…');
  try{
   if(recovery){const {error}=await client.auth.updateUser({password});if(error)throw error;resetRecovery();$('auth').classList.remove('show');msg('Contraseña actualizada.');const {data}=await client.auth.getUser();publish(data.user);return;}
-  const signup=window.picgiftAuthMode==='register';
   const res=signup?await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,data:{photo_authorization_confirmed:true}}}):await client.auth.signInWithPassword({email,password});
   if(res.error)throw res.error;
   if(signup&&!res.data.session)msg('Revisa tu correo para confirmar la cuenta. Después podrás iniciar sesión.');
@@ -30,6 +30,7 @@ $('auth-form').addEventListener('submit',async e=>{
 $('google').addEventListener('click',async()=>{
  if(!client){msg('Acceso con Google no disponible.');return}
  if(!$('terms').checked){msg('Marca antes la confirmación de autorización.');return}
+ if(typeof window.PicgiftNative==='object'){msg('El acceso con Google aún no está integrado en la APK. Puedes acceder con correo y contraseña o utilizar Google desde la web instalada en tu móvil.');return;}
  $('google').disabled=true;msg('Abriendo Google…');
  try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)throw error}
  catch(err){msg(err.message||'No se pudo abrir Google.');$('google').disabled=false;}
