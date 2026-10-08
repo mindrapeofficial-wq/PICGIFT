@@ -15,8 +15,8 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  assert.ok(html.includes('mobile-app.css?v='),'mobile CSS linked');
  assert.ok(html.includes('class="mobile-app-hero"'),'branded hero present');
  assert.ok(html.includes('class="web-hero-lockup"'),'transparent logo appears on desktop web homepage');
- assert.ok(html.includes('src="./logo.svg?v=official-halloween-20261008-v12"'),'official logo loaded with cache-busting');
- const svg=read('logo.svg');
+ assert.ok(html.includes('src="./assets/halloween/picgift-logo-oficial.svg?v=aprobado-20261008"'),'approved full PICGIFT logo linked across web');
+ const svg=read('assets/halloween/picgift-logo-oficial.svg');
  assert.ok(svg.startsWith('<svg'),'logo file is valid SVG');
  assert.ok(svg.includes('data:image/avif;base64,'),'logo embeds authorized Halloween artwork');
  assert.ok((svg.split('data:image/avif;base64,')[1]||'').split('"')[0].length > 5000,'embedded image data is intact');
@@ -55,7 +55,7 @@ test('PWA starts in Create and caches its mobile app assets',()=>{
  const sw=read('sw.js');
  assert.ok(sw.includes('"/mobile-app.css"'));
  assert.ok(/const VERSION="picgift-[^"]+"/.test(sw),'PWA cache has explicit version');
- assert.ok(sw.includes('picgift-official-user-logo-20261008-v12'),'official logo cache version set');
+ assert.ok(sw.includes('picgift-approved-full-logo-20261008-v16'),'full logo cache is refreshed');
  const scenes=JSON.parse(read('scenes.json')).scenes;
  assert.ok(scenes.length>=3);
  assert.ok(scenes.some(x=>x.id==='halloween-pumpkin-bench'));
