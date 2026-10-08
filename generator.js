@@ -251,6 +251,21 @@ async function removePhoto(id){
  try{await invoke({action:'delete',job_id:id});if(id===activeId){activeId=null;currentJob=null;stopPolling();$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden')}await refreshGallery();status('Fotografía eliminada de tu espacio privado.')}catch(e){status('No se pudo eliminar: '+e.message)}
 }
 function init(){
+ const sampleButton=$('flux-smoke-run');
+ if(sampleButton)sampleButton.addEventListener('click',async()=>{
+   if(sampleButton.disabled)return;
+   sampleButton.disabled=true;
+   const target=$('flux-smoke-status'),img=$('flux-smoke-image');
+   target.textContent='Generando una imagen de prueba con FLUX.2 Klein. Puede tardar un poco…';
+   img.classList.add('hidden');img.removeAttribute('src');
+   try{
+     const {data,error}=await client.functions.invoke('picgift-flux-smoke',{body:{action:'run'}});
+     if(error){let message='No se pudo realizar la prueba.';try{message=(await error.context.json())?.error||message}catch{}throw new Error(message)}
+     if(data?.ok!==true||typeof data.image!=='string'||!data.image.startsWith('data:image/'))throw new Error('Respuesta de imagen no válida.');
+     img.src=data.image;img.classList.remove('hidden');
+     target.textContent='Imagen técnica creada correctamente. La edición de retratos personales todavía no está activada.';
+   }catch(e){target.textContent='Falló la prueba: '+(e.message||'No se pudo completar.');sampleButton.disabled=false;}
+ });
  const fluxButton=$('flux-verify');
  if(fluxButton)fluxButton.addEventListener('click',async()=>{
    fluxButton.disabled=true;
@@ -283,6 +298,17 @@ function init(){
      const details=diagnosticText?' ('+diagnosticText+')':data&&typeof data.token_check==='string'&&typeof data.model_check==='string'?' (token: '+data.token_check+'; modelos: '+data.model_check+')':'';
      $('flux-status').textContent=(window.picgiftI18n?.t(message)||message)+details;
      $('flux-status').dataset.verified=String(data?.verified===true);
+     const samplePanel=$('flux-smoke-panel');
+     samplePanel?.classList.add('hidden');
+     if(data?.verified===true && samplePanel){
+       const {data:smoke,error:smokeError}=await client.functions.invoke('picgift-flux-smoke',{body:{action:'health'}});
+       if(!smokeError&&smoke?.available===true){
+         samplePanel.classList.remove('hidden');
+         const button=$('flux-smoke-run');
+         button.disabled=!(smoke.remaining>0);
+         if(!(smoke.remaining>0))$('flux-smoke-status').textContent='Se han agotado las pruebas técnicas de esta cuenta.';
+       }
+     }
    }catch(e){$('flux-status').textContent=window.picgiftI18n?.t(e.message)||e.message}
    finally{fluxButton.disabled=false;}
  });
