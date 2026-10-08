@@ -5,6 +5,16 @@ const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
 const labels={'golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
 let working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
+const sceneImages={
+ 'golden-christmas':'./assets/scenes/golden-bokeh.jpg',
+ 'reading-corner':'./assets/scenes/reading-corner.jpg',
+ 'santa-workshop':'./assets/scenes/santa-workshop.jpg',
+ 'christmas-armchair':'./assets/scenes/christmas-chair.jpg',
+ 'white-door':'./assets/scenes/white-trunk.jpg',
+ 'winter-window':'./assets/scenes/winter-window.jpg',
+ 'cozy-cabinet':'./assets/scenes/cabinet-teddies.jpg'
+};
+
 const phasePercent={queued:10,analyzing:25,generating:70,reviewing:90,needs_review:95,completed:100};
 const errorDescriptions={
  openai_invalid_key:'La clave de OpenAI no es válida o no está autorizada.',
@@ -130,6 +140,7 @@ function renderProgress(job){
  $('result-watermark').classList.remove('hidden');
  $('result-watermark').textContent=failed?'NO GENERADA':state==='needs_review'?'EN REVISIÓN':state==='completed'?'LISTA':(phaseNames[state]||'GENERANDO').toUpperCase();
  $('result-sample').alt=state==='completed'?'Tu resultado fotográfico privado PICGIFT':'Solo referencia del decorado, todavía no es la fotografía generada';
+ if(state!=='completed'&&sceneImages[job.scene_id])$('result-sample').src=sceneImages[job.scene_id];
  if(terminal)stopPolling();
 }
 function tickElapsed(){if(currentJob&&!['completed','needs_review','failed'].includes(currentJob.status))$('progress-elapsed').textContent='Tiempo transcurrido: '+elapsedText(currentJob)}
