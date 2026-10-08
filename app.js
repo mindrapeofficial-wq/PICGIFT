@@ -61,7 +61,7 @@ $('demo-preview').addEventListener('click',()=>{
   toast('Demostración local abierta. Tu fotografía permanece en tu dispositivo.');
 });
 $('generate').addEventListener('click',()=>{if(!selected){toast('Elige un escenario para continuar.');return}if(!file){toast('Primero selecciona una fotografía.');return}if(!$('photo-ai-consent').checked){toast('Debes autorizar expresamente el procesamiento de esta fotografía.');return}window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{file,scene_id:selected.id,format:['vertical','horizontal','square'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}))});
-$('pricing-soon').addEventListener('click',()=>toast('Los pagos se activarán cuando esté listo el generador de imágenes.'));
+// Premium controls are hidden during the private AI test; no payments are offered.
 window.addEventListener('picgift:route',e=>navigate(e.detail.name));
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'inicio',true));
 window.addEventListener('popstate',()=>navigate(location.hash.slice(1)||'inicio',true));
