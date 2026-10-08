@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="820" viewBox="0 0 500 570" role="img" aria-label="PICGIFT Halloween">
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 15 500 500" role="img" aria-label="PICGIFT Halloween">
 <defs>
  <linearGradient id="copper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe0a0"/><stop offset=".23" stop-color="#ffac30"/><stop offset=".56" stop-color="#ff6812"/><stop offset=".81" stop-color="#a73500"/><stop offset="1" stop-color="#f8b34c"/></linearGradient>
  <linearGradient id="box" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#35302c"/><stop offset=".35" stop-color="#130f10"/><stop offset="1" stop-color="#020204"/></linearGradient>
@@ -32,7 +32,4 @@
 <g transform="translate(70 417)"><path d="M0 22q-3-35 23-54l32 0q27 19 20 57Q45 65 0 22z" fill="#ef6210" stroke="#ffab30" stroke-width="4"/><path d="M25-29Q16-56 36-57" fill="none" stroke="#4d5e13" stroke-width="10"/><path d="M16 0l11-11 12 13 12-13 11 10-12 14-23 0z" fill="#130a06"/><path d="M22 24l11 7 10-8 9 8 10-8-8 18H23z" fill="#150906"/></g>
 <g stroke="#ffa13c" fill="none" opacity=".8"><path d="M38 406q54-49 101-18M383 426q63-17 80-81" stroke-width="5"/><path d="M374 202q66-21 93 2m-88-33q64-5 74-10" stroke-width="3"/></g>
 <g fill="#ffb445"><circle cx="57" cy="270" r="4"/><circle cx="441" cy="265" r="5"/><circle cx="395" cy="459" r="4"/><circle cx="115" cy="214" r="3"/></g>
-<defs><linearGradient id="letters" x1="0" x2="0.3" y1="0" y2="1"><stop stop-color="#ffdc89"/><stop offset=".4" stop-color="#ff8a14"/><stop offset="1" stop-color="#c24a06"/></linearGradient></defs>
-<text x="250" y="542" text-anchor="middle" font-family="Georgia,serif" font-size="83" font-weight="bold" letter-spacing="2" fill="#1b0903" stroke="#fdae3a" stroke-width="7" paint-order="stroke">PICGIFT</text>
-<text x="250" y="542" text-anchor="middle" font-family="Georgia,serif" font-size="83" font-weight="bold" letter-spacing="2" fill="url(#letters)">PICGIFT</text>
 </svg>
