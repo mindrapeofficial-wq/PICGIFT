@@ -67,6 +67,8 @@ test('Google account with verified email can request a new PICGIFT password', as
   };
   const context = {
     document, location: { origin: 'https://picgift.onrender.com' },
+    SUPABASE_URL: 'https://example.supabase.co',
+    SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_012345678901234567890123456789',
     window: { confirm: () => true },
     createClient: () => client
   };
@@ -91,7 +93,6 @@ test('Google account with verified email can request a new PICGIFT password', as
 test('recovery link opens usable form and saves new password without hidden email blocking submission', async () => {
   const { get, document } = fixture();
   get('auth-email').required = true;
-  get('auth-password').value = 'strong-password-123';
   let listener, resolveInitial, saves = [], authEvents = [];
   let getCalls = 0;
   const account = { id: 'account-1', email: 'oauth@example.test' };
@@ -114,6 +115,7 @@ test('recovery link opens usable form and saves new password without hidden emai
   };
   await runModule('auth.js', context);
   listener('PASSWORD_RECOVERY', { user: account });
+  get('auth-password').value = 'strong-password-123';
   assert.equal(get('auth').classList.contains('show'), true);
   assert.equal(get('auth-email').required, false);
   assert.equal(get('auth-password').focused, true);
