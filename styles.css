@@ -28,3 +28,7 @@
 .price-card h3{font-size:22px;margin-top:5px}.price-card>p{color:#bacabe;font-size:12px;line-height:1.55}.price-card .price-amount{font-family:'Playfair Display',Georgia,serif;font-size:clamp(36px,3.3vw,57px);color:#f5deb0;line-height:1.2;letter-spacing:-.045em}.price-card .price-amount small{font:500 28px 'DM Sans',sans-serif;letter-spacing:0}.price-separator{height:1px;background:#d2b58d33;margin:3px 0}.price-card .btn{margin-top:auto;white-space:normal;min-height:53px}
 @media(max-width:1080px){.pricing-grid{grid-template-columns:1fr 1fr}.price-card.featured{grid-column:span 1}}
 @media(max-width:680px){.pricing-grid{grid-template-columns:1fr}.price-card{padding:24px 20px}.price-card .price-amount{font-size:46px}.price-card .btn{width:100%}}
+
+/* Mobile install and offline indicator */
+.offline-pill{font-size:11px;padding:7px 11px;border:1px solid #dabb8155;border-radius:999px;color:#f1d5a3;background:#8b56132e;white-space:nowrap}
+@media(max-width:680px){#install-picgift{font-size:11px;padding:8px 10px}.top-actions{gap:5px}.offline-pill{font-size:10px;padding:6px 8px}}
