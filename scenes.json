@@ -1,7 +1,7 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "visibility": "public-metadata-only",
-  "notice": "No se publican recetas, prompts ni imágenes privadas.",
+  "notice": "Las imágenes son referencias libres de Unsplash, no los escenarios finales; las recetas JSON privadas no figuran aquí.",
   "scenes": [
     {
       "id": "rustic-sleigh",
@@ -15,7 +15,16 @@
         "Sentado delante",
         "De pie al lado"
       ],
-      "status": "preview"
+      "status": "preview",
+      "badge": "Colección especial",
+      "image": "https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Fujiphilm",
+        "url": "https://unsplash.com/photos/christmas-tree-with-red-and-gold-ornaments-and-gifts-cxvfPfbu2vE",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
     },
     {
       "id": "santa-workshop",
@@ -28,7 +37,16 @@
         "Sentado trabajando",
         "De pie"
       ],
-      "status": "preview"
+      "status": "preview",
+      "badge": "Taller mágico",
+      "image": "https://images.unsplash.com/photo-1761682753495-353db742860f?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1761682753495-353db742860f?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Jason Leung",
+        "url": "https://unsplash.com/photos/toys-and-craft-supplies-on-wooden-shelves-6SfykQC7QeY",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
     },
     {
       "id": "snow-forest",
@@ -41,7 +59,16 @@
         "Sentado",
         "De pie"
       ],
-      "status": "preview"
+      "status": "preview",
+      "badge": "Naturaleza",
+      "image": "https://images.unsplash.com/photo-1767813364465-5d45663021ab?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1767813364465-5d45663021ab?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Tolga Ahmetler",
+        "url": "https://unsplash.com/photos/snow-covered-evergreen-trees-in-a-forest-dl3EytOQgxU",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
     },
     {
       "id": "christmas-train",
@@ -54,7 +81,16 @@
         "De pie",
         "Sentado"
       ],
-      "status": "preview"
+      "status": "preview",
+      "badge": "Aventura",
+      "image": "https://images.unsplash.com/photo-1774023155739-0a82c46ffe2e?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1774023155739-0a82c46ffe2e?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Wolfgang Weiser",
+        "url": "https://unsplash.com/photos/a-vintage-steam-train-travels-through-a-snowy-forest-8ugL4UBc8qM",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
     },
     {
       "id": "reading-corner",
@@ -66,7 +102,16 @@
       "poses": [
         "Sentado leyendo"
       ],
-      "status": "preview"
+      "status": "preview",
+      "badge": "Rincón de lectura",
+      "image": "https://images.unsplash.com/photo-1701976835763-48f87eef60af?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1701976835763-48f87eef60af?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Zoe",
+        "url": "https://unsplash.com/photos/a-person-reading-a-book-under-a-christmas-tree-uMWN81jvrqE",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
     },
     {
       "id": "christmas-kitchen",
@@ -79,7 +124,16 @@
         "Sentado",
         "De pie"
       ],
-      "status": "preview"
+      "status": "preview",
+      "badge": "Dulces recuerdos",
+      "image": "https://images.unsplash.com/photo-1765150037389-7d9803a28d78?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1765150037389-7d9803a28d78?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Cemrecan Yurtman",
+        "url": "https://unsplash.com/photos/christmas-gingerbread-cookies-on-trays-with-festive-decorations-JXaUXzRlhVs",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
     }
   ]
 }
