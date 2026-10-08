@@ -361,12 +361,12 @@ function init(){
      const samplePanel=$('flux-smoke-panel');
      samplePanel?.classList.add('hidden');
      if(data?.verified===true && samplePanel){
-       const {data:smoke,error:smokeError}=await client.functions.invoke('picgift-flux-smoke',{body:{action:'health'}});
+       const {data:smoke,error:smokeError}=await client.functions.invoke('picgift-flux-edit-smoke',{body:{action:'health'}});
        if(!smokeError&&smoke?.available===true){
          samplePanel.classList.remove('hidden');
          const button=$('flux-smoke-run');
          button.disabled=!(smoke.remaining>0);
-         if(!(smoke.remaining>0))$('flux-smoke-status').textContent='Se han agotado las pruebas técnicas de esta cuenta.';
+         if(!(smoke.remaining>0))$('flux-smoke-status').textContent='Se han agotado las dos pruebas de edición ficticia autorizadas.';
        }
      }
    }catch(e){$('flux-status').textContent=window.picgiftI18n?.t(e.message)||e.message}
