@@ -380,3 +380,6 @@ html[data-campaign="halloween"] .mobile-logo img{
  html[data-campaign="halloween"] .web-hero-lockup{min-height:83px;gap:11px}
  html[data-campaign="halloween"] .web-hero-lockup .eyebrow{font-size:9px}
 }
+
+/* Topbar: compact actions aligned to the right; no redundant strapline or install button. */
+.topbar .top-actions{margin-left:auto;justify-content:flex-end}
