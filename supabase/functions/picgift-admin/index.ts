@@ -48,12 +48,18 @@ Deno.serve(async request=>{
    return result.error?reply({error:"save_failed"},503):reply({ok:true});
  }
  if(action==="list"){
-   const users:Array<{id:string,email:string,confirmed:boolean,created_at:string}>=[];
+   const users:Array<{id:string,email:string,confirmed:boolean,created_at:string,last_sign_in_at:string|null,providers:string[]}>=[];
    for(let page=1;page<=5;page++){
      const {data,error}=await db.auth.admin.listUsers({page,perPage:200});
      if(error)return reply({error:"list_users_failed"},503);
      for(const u of data?.users||[]){
-       users.push({id:u.id,email:u.email||"",confirmed:!!u.email_confirmed_at,created_at:u.created_at||""});
+       // Only expose access metadata needed by verified administrators. Never expose password hashes or tokens.
+       const providerList=u.app_metadata?.providers;
+       const providers=Array.isArray(providerList)
+         ?providerList.filter((provider:unknown):provider is string=>typeof provider==="string")
+         :typeof u.app_metadata?.provider==="string"?[u.app_metadata.provider]:[];
+       users.push({id:u.id,email:u.email||"",confirmed:!!u.email_confirmed_at,created_at:u.created_at||"",
+         last_sign_in_at:u.last_sign_in_at||null,providers});
      }
      if((data?.users||[]).length<200)break;
    }
