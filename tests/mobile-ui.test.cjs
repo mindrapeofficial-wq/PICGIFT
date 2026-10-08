@@ -14,7 +14,11 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  for(const id of needed)assert.ok(ids.includes(id),'missing control: '+id);
  assert.ok(html.includes('mobile-app.css?v='),'mobile CSS linked');
  assert.ok(html.includes('class="mobile-app-hero"'),'branded hero present');
- assert.ok(html.includes('src="./assets/halloween/logo-halloween.svg"'),'official brand logo');
+ assert.ok(html.includes('src="./logo.svg?v=transparent-20261008-v1"'),'transparent brand logo loaded with cache-busting');
+ const svg=read('logo.svg');
+ assert.ok(svg.startsWith('<svg'),'logo file is valid SVG');
+ assert.ok(!svg.includes('data:image/webp;base64'),'no opaque background embedded in logo');
+ assert.ok(!/<rect\\s+(?:width="500"|width="720"|width="256")/.test(svg),'no full-bleed background shape');
  assert.ok(!html.includes('Ver demostración'),'no fake demo as primary action');
 });
 
