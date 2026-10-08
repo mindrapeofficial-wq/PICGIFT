@@ -14,10 +14,12 @@ async function invoke(body){
  return data;
 }
 async function health(){
- try{const {data:{session}}=await client.auth.getSession();if(!session)return;
+ try{const {data:{session}}=await client.auth.getSession();if(!session){controlAi(false);status('Inicia sesión para acceder al generador de IA. La demostración funciona sin registrar tu foto.');return;}
  const data=await invoke({action:'health'});
  controlAi(data.available===true);
- status(data.available?'Motor de IA disponible. Autoriza el procesamiento y pulsa Generar mi fotografía.':'El motor IA está preparado, pero todavía necesita la clave privada del proveedor para activarse. No se enviará ninguna fotografía.');
+ status(data.available
+  ?(data.pilot?'Prueba privada habilitada. Puedes generar una fotografía sin pago; cada prueba utiliza la API de OpenAI y puede generar costes de uso.':'Motor de IA disponible. Autoriza el procesamiento y pulsa Generar mi fotografía.')
+  :'La IA está en preparación y solo se permite generar a cuentas autorizadas para la prueba privada. No se enviará ninguna fotografía.');
  if(!data.email_available){$('photo-email-delivery').disabled=true;$('photo-email-delivery').checked=false;$('photo-email-delivery').parentElement.title='El correo de entrega se activará cuando se configure el proveedor de email.'}
  else {$('photo-email-delivery').disabled=false;$('photo-email-delivery').parentElement.title='Te enviamos un enlace privado válido durante 24 horas'}
  }catch(e){controlAi(false);status('No se ha podido comprobar el motor de IA. Puedes utilizar la demostración sin enviar fotos. '+e.message)}
@@ -106,9 +108,9 @@ async function removePhoto(id){
 }
 function init(){
  window.addEventListener('picgift:generate',create);
- window.addEventListener('picgift:auth',async e=>{if(e.detail.user){await health();const jobs=await refreshGallery();if(!activeId){const inProgress=jobs.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{stopPolling();activeId=null;lastJobs=[]}});
+ window.addEventListener('picgift:auth',async e=>{if(e.detail.user){await health();const jobs=await refreshGallery();if(!activeId){const inProgress=jobs.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{stopPolling();activeId=null;lastJobs=[];controlAi(false);status('Inicia sesión para acceder a la generación privada.');}});
  $('photo-library').addEventListener('click',e=>{const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;if(id)removePhoto(id)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeId)refreshGallery()});
- client.auth.getUser().then(({data})=>{if(data?.user){health();refreshGallery()}}).catch(()=>{});
+ client.auth.getUser().then(async ({data})=>{if(data?.user){await health();const jobs=await refreshGallery();const pending=jobs.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(pending){activeId=pending.id;startPolling()}}}).catch(()=>{});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
