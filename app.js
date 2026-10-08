@@ -32,6 +32,20 @@ document.addEventListener('click',e=>{const select=e.target.closest('[data-selec
 $('filters').addEventListener('click',e=>{const el=e.target.closest('[data-filter]');if(!el)return;filter=el.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));renderCatalog()});
 $('choose-photo').addEventListener('click',()=>$('photo').click());$('change-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));
 const dz=$('drop-zone');['dragenter','dragover'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.add('dragging')}));['dragleave','drop'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.remove('dragging')}));dz.addEventListener('drop',e=>acceptFile(e.dataTransfer.files[0]));
+$('demo-preview').addEventListener('click',()=>{
+  if(!selected){toast('Escoge un escenario primero.');return}
+  $('demo-scene-image').src=selected.image;
+  $('demo-scene-name').textContent=selected.name;
+  $('demo-client-image').classList.toggle('hidden',!localURL);
+  $('demo-client-empty').classList.toggle('hidden',!!localURL);
+  if(localURL)$('demo-client-image').src=localURL;
+  $('demo-result').classList.remove('hidden');
+  $('real-result').classList.add('hidden');
+  $('result-page-title').textContent='Tu demostración';
+  $('result-page-description').textContent='Descubre cómo trabajará PICGIFT con tu fotografía y el escenario. Sin generación de IA ni subida a servidores.';
+  navigate('resultado');
+  toast('Demostración local abierta. Tu fotografía permanece en tu dispositivo.');
+});
 $('generate').addEventListener('click',()=>{if(!selected){toast('Elige un escenario para continuar.');return}if(!file){toast('Primero selecciona una fotografía.');return}if(!$('photo-ai-consent').checked){toast('Debes autorizar expresamente el procesamiento de esta fotografía.');return}window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{file,scene_id:selected.id,format:['vertical','horizontal','square'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}))});
 $('pricing-soon').addEventListener('click',()=>toast('Los pagos se activarán cuando esté listo el generador de imágenes.'));
 window.addEventListener('picgift:route',e=>navigate(e.detail.name));
