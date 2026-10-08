@@ -31,10 +31,10 @@ No usar créditos de Stripe ni Google Play en el piloto. Dejar los pagos y enlac
 
 ## Pruebas de extremo a extremo
 1. Comprobar que la API de OpenAI tenga facturación y permiso para el modelo de imágenes seleccionado.
-2. Guardar los 3 secrets anteriores en Supabase y esperar a que se propaguen. Cerrar sesión y volver a entrar en PICGIFT.
+2. Guardar únicamente `OPENAI_API_KEY` y `PICGIFT_GENERATION_ENABLED=true` en Supabase, si todavía no estaban configuradas. La primera cuenta verificada ya está autorizada en la tabla privada, por lo que no necesita `PICGIFT_PILOT_EMAILS`. Cerrar sesión y volver a entrar en PICGIFT.
 3. Con un retrato adulto autorizado y un fondo propio PICGIFT, pulsar «Generar con IA» en \`/#crear\`.
 4. Verificar en Supabase que \`picgift_photo_jobs\` avanza \`queued → analyzing → generating → reviewing → completed\` (o \`needs_review\` / \`failed\`).
 5. Confirmar que la descarga y eliminación desde \`Mis fotos\` funcionan; que los clientes no autorizados no puedan generar ni acceder al resultado; que Stripe siga inactivo.
 6. Revisar las métricas de consumo y el coste real por prueba antes de subir la calidad a \`xhigh\` o \`max\`.
 
-El modo piloto es una integración desplegada, **no una generación ya probada**. La conexión real depende de la clave privada de OpenAI, los secrets de Supabase, la disponibilidad del modelo en la cuenta y una prueba con consentimiento.
+El modo piloto está desplegado y la primera cuenta registrada y verificada ya está autorizada. **No es todavía una generación real probada**; hay que verificar el acceso de la API y revisar el primer resultado con una foto autorizada. La conexión real depende de la clave privada de OpenAI, los secrets de Supabase, la disponibilidad del modelo en la cuenta y una prueba con consentimiento.
