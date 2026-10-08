@@ -26,14 +26,16 @@ export async function editWithCloudflareFlux(input: FluxInput): Promise<FluxResu
   validateBase64(input.subject.base64);
   if (input.scene) validateBase64(input.scene.base64);
 
-  // The API expects reference images as objects with image content in multipart.
-  // Check the live Cloudflare model schema before enabling any beta traffic.
+  // Cloudflare requires input_image_0..3, each strictly below 512x512 pixels.
+  // Callers MUST downscale/validate all references before invoking this adapter.
   const multipart = new FormData();
   multipart.set("prompt", input.prompt);
   const asFile = (image: FluxInput["subject"], name: string) =>
     new File([Uint8Array.from(atob(image.base64), c => c.charCodeAt(0))], name, { type: image.mime });
-  multipart.append("image", asFile(input.subject, "subject.jpg"));
-  if (input.scene) multipart.append("image", asFile(input.scene, "scene.jpg"));
+  multipart.append("input_image_0", asFile(input.subject, "subject.jpg"));
+  if (input.scene) multipart.append("input_image_1", asFile(input.scene, "scene.jpg"));
+  multipart.set("width", "1024");
+  multipart.set("height", "1024");
 
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/${MODEL}`,
