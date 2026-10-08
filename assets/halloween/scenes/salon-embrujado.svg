@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Salón de retratos embrujado">
+<defs>
+<radialGradient id="sky" cx="55%" cy="45%" r="80%"><stop stop-color="#62301d"/><stop offset=".55" stop-color="#23101a"/><stop offset="1" stop-color="#09060b"/></radialGradient>
+<linearGradient id="hill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#32150e"/><stop offset="1" stop-color="#080707"/></linearGradient>
+<radialGradient id="moon"><stop stop-color="#fff0bf"/><stop offset=".75" stop-color="#ffa842"/><stop offset="1" stop-color="#bc500a"/></radialGradient>
+<filter id="light" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="17"/></filter>
+</defs><rect width="1200" height="800" fill="url(#sky)"/>
+<circle cx="820" cy="206" r="146" fill="url(#moon)"/>
+<circle cx="820" cy="206" r="168" fill="#ff8e24" opacity=".15" filter="url(#light)"/>
+<g fill="#09070a"><path d="M688 160q21-19 40-2l12-21 11 26q25-5 37 12-28-3-47 14-22-25-53-29z"/><path d="M954 294q15-13 29 0l10-16 7 22q19 1 24 14-20-7-36 7-17-19-34-27z"/></g>
+<g fill="#140e11" stroke="#e46c1e" stroke-opacity=".24" stroke-width="8">
+<rect x="145" y="195" width="900" height="606" rx="22"/>
+<rect x="240" y="262" width="338" height="435" rx="10" fill="#251719"/>
+<rect x="272" y="296" width="277" height="366" fill="#5d2e20" stroke="#d58e49" stroke-width="20"/>
+<path d="M695 710V350q112-190 231 0v360z" fill="#291717" stroke="#bc6724" stroke-width="18"/>
+</g>
+<g fill="#ffa43a"><path d="M330 593l140 0-35-56-70 0z"/><path d="M735 390q72-90 139 0v190H735z"/></g>
+<g fill="#0c0b0d"><path d="M360 599q-17-105 33-166l-9-33q40-35 71-1l-8 35q51 49 40 165z"/></g>
+<path d="M193 741h810" stroke="#e6762b" stroke-width="15"/>
+<g stroke="#ffb050" stroke-width="8"><path d="M685 640v-100m245 100v-100"/></g>
+<g fill="#ffd595"><ellipse cx="684" cy="528" rx="23" ry="52"/><ellipse cx="929" cy="528" rx="23" ry="52"/></g>
+<rect x="0" y="0" width="1200" height="800" fill="none" stroke="#cf621d" stroke-opacity=".14" stroke-width="7"/>
+</svg>
