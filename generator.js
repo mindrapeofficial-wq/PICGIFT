@@ -34,7 +34,7 @@ const errorDescriptions={
  stale_timeout:'La solicitud no finalizó a tiempo.',
  unexpected_error:'El servidor no pudo completar el proceso.'
 };
-function controlAi(available){aiReady=!!available;$('generate').disabled=!aiReady||working;$('generate').textContent=aiReady?'Generar con IA':'Generar con IA (pendiente)';}
+function controlAi(available){aiReady=!!available;$('generate').disabled=!aiReady||working;$('generate').textContent=aiReady?'Generar con IA':'Generar con IA (pendiente)';$('api-diagnose').disabled=!aiReady;}
 const escape=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const status=s=>{$('generator-status').textContent=s};
 async function invoke(body){
@@ -52,6 +52,20 @@ async function health(){
  if(!data.email_available){$('photo-email-delivery').disabled=true;$('photo-email-delivery').checked=false;$('photo-email-delivery').parentElement.title='El correo de entrega se activará cuando se configure el proveedor de email.'}
  else {$('photo-email-delivery').disabled=false;$('photo-email-delivery').parentElement.title='Te enviamos un enlace privado válido durante 24 horas'}
  }catch(e){controlAi(false);status('No se ha podido comprobar el motor de IA. Puedes utilizar la demostración sin enviar fotos. '+e.message)}
+}
+async function diagnoseApi(){
+ const button=$('api-diagnose'),out=$('api-diagnose-result');
+ button.disabled=true;button.textContent='Comprobando conexión…';
+ out.classList.remove('hidden');out.textContent='Verificando clave y acceso a los modelos, sin crear ninguna imagen…';
+ try{
+   const data=await invoke({action:'diagnose'});
+   const problems=(data.checks||[]).filter(c=>!c.ok);
+   const labels={analysis:'análisis fotográfico',image:'generación de imágenes'};
+   const errors={openai_invalid_key:'clave no válida',openai_access:'acceso denegado',openai_model_access:'modelo no disponible',openai_verification:'verificación pendiente',openai_rate_limit:'límite temporal de peticiones',openai_billing:'saldo o facturación pendientes',connection_error:'sin conexión con OpenAI'};
+   if(data.ready)out.textContent='Conexión comprobada: la clave responde y los modelos de análisis e imagen están accesibles. Esto NO verifica el saldo de la API. Ya puedes intentar una única generación de prueba.';
+   else out.textContent='No se ha podido validar: '+problems.map(c=>(labels[c.name]||'servicio')+' ('+(errors[c.error]||'error del proveedor')+')').join('; ')+'. No generes todavía otra fotografía.';
+ }catch(e){out.textContent='No fue posible comprobar la conexión: '+e.message}
+ finally{button.disabled=!aiReady;button.textContent='Comprobar conexión con OpenAI'}
 }
 async function preparedFile(file){
  if(file.size<=3.5*1024*1024)return file;
@@ -225,6 +239,7 @@ async function removePhoto(id){
 }
 function init(){
  window.addEventListener('picgift:generate',create);
+ $('api-diagnose').addEventListener('click',diagnoseApi);
  $('refresh-job').addEventListener('click',async()=>{
   const btn=$('refresh-job');btn.disabled=true;btn.textContent='Comprobando…';
   try{
