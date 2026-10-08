@@ -37,52 +37,73 @@ Deno.serve(async (req) => {
     message: "El Account ID no tiene el formato esperado.",
   });
 
-  // Diagnostics only. No inference or user photos; credentials stay server-side.
-  // Distinguish auth, permission, network, and timeout errors rather than guessing.
+  // Network-only diagnostic: no inference, photos or editable AI recipes.
+  // Also test a public control URL to separate Cloudflare failures from general egress.
+  // Do not expose secret values, raw error messages or personal information.
   const since = Date.now();
-  const checks = await Promise.all([
-    ["token", "https://api.cloudflare.com/client/v4/user/tokens/verify"],
-    ["models", `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/models/search?search=flux-2-klein-4b&per_page=20`],
-  ].map(async ([name, endpoint]) => {
+  const timeoutSupported = typeof AbortSignal.timeout === "function";
+  async function check(name: string, endpoint: string, auth = false) {
+    const begun = Date.now();
+    const controller = new AbortController();
+    const cancel = setTimeout(() => controller.abort(), 9000);
     try {
-      const response = await fetch(endpoint, {
-        headers: { Authorization: `Bearer ${token.trim()}` },
-        signal: AbortSignal.timeout(10000),
-      });
-      let payload: any;
-      try { payload = await response.json(); }
-      catch { return { name, status: "invalid_response", http_status: response.status }; }
+      const headers: Record<string, string> = { Accept: "application/json" };
+      if (auth) headers.Authorization = `Bearer ${token.trim()}`;
+      const response = await fetch(endpoint, { method: "GET", headers, signal: controller.signal });
+      let payload: any = null;
+      if (name !== "control") {
+        try { payload = await response.json(); }
+        catch { return {name,status:"invalid_response",http_status:response.status,elapsed_ms:Date.now()-begun}; }
+      }
       return {
         name,
-        status: response.ok && payload?.success === true ? "ok" : "api_error",
+        status: response.ok && (name === "control" || payload?.success === true) ? "ok" : "api_error",
         http_status: response.status,
         active: name === "token" ? payload?.result?.status === "active" : undefined,
         listed: name === "models" && Array.isArray(payload?.result)
-          ? payload.result.some((m: any) =>
-              String(m?.name || m?.id || m?.model || "").includes("flux-2-klein-4b"))
+          ? payload.result.some((m: any) => String(m?.name || m?.id || m?.model || "").includes("flux-2-klein-4b"))
           : undefined,
+        elapsed_ms: Date.now()-begun,
       };
     } catch (err) {
-      const code = err instanceof Error ? err.name : "UnknownError";
-      return { name, status: code === "TimeoutError" || code === "AbortError" ? "timeout" : "network_error",
-        error_type: ["TimeoutError", "AbortError", "TypeError"].includes(code) ? code : "other" };
+      const kind = err instanceof Error ? err.name : "UnknownError";
+      const raw = err instanceof Error ? err.message : "";
+      const problem = controller.signal.aborted ? "timeout"
+        : /networkerror|error sending request|failed to fetch|connection/i.test(raw) ? "request_network"
+        : /dns|resolve|getaddrinfo/i.test(raw) ? "dns"
+        : /certificate|tls|ssl/i.test(raw) ? "tls"
+        : /invalid url|parse/i.test(raw) ? "invalid_url"
+        : /aborts?ignal|not a function|unsupported/i.test(raw) ? "runtime"
+        : "unknown";
+      return {name,status:controller.signal.aborted?"timeout":"network_error",error_type:kind,
+        error_category:problem,elapsed_ms:Date.now()-begun};
+    } finally {
+      clearTimeout(cancel);
     }
-  }));
+  }
+  const checks = await Promise.all([
+    check("control", "https://example.com"),
+    check("token", "https://api.cloudflare.com/client/v4/user/tokens/verify", true),
+    check("models", `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/models/search?search=flux-2-klein-4b&per_page=20`, true),
+  ]);
   const byName: Record<string, any> = Object.fromEntries(checks.map(c => [c.name, c]));
-  const a = byName.token, m = byName.models;
+  const base = byName.control, a = byName.token, m = byName.models;
   const verified = a?.status === "ok" && a.active === true && m?.status === "ok" && m.listed === true;
-  let status = "connected";
-  if (a.status === "timeout" || m.status === "timeout") status = "connection_timeout";
-  else if (a.status === "network_error" || m.status === "network_error") status = "network_error";
+  let status = verified ? "connected" : "cloudflare_unavailable";
+  if (base.status !== "ok" && (a.status === "network_error" || m.status === "network_error")) status = "server_network_error";
+  else if (a.status === "timeout" || m.status === "timeout") status = "connection_timeout";
+  else if (a.status === "network_error" || m.status === "network_error") status = "cloudflare_network_error";
   else if (a.status !== "ok" || a.active !== true) status = "token_invalid";
   else if (m.http_status === 401 || m.http_status === 403) status = "cloudflare_permission_error";
   else if (m.status !== "ok") status = "cloudflare_unavailable";
   else if (!m.listed) status = "model_not_listed";
-  // Only safe diagnostic codes and timings leave the server. Never expose credentials or raw responses.
   return respond({
-    configured: true, verified, status, model: "FLUX.2 Klein 4B",
-    token_check: a.status, model_check: m.status, token_http: a.http_status ?? null,
-    model_http: m.http_status ?? null, elapsed_ms: Date.now() - since,
-    generation_enabled: false,
+    configured:true,verified,status,model:"FLUX.2 Klein 4B",
+    control_check:base.status,token_check:a.status,model_check:m.status,
+    token_http:a.http_status??null,model_http:m.http_status??null,
+    network_diagnostics:checks.map(c=>({name:c.name,status:c.status,category:c.error_category??null,
+      type:c.error_type??null,elapsed_ms:c.elapsed_ms})),
+    runtime_timeout_support:timeoutSupported,
+    elapsed_ms:Date.now()-since,generation_enabled:false,
   });
 });
