@@ -1,12 +1,17 @@
 package com.picgift.christmas
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.WebResourceRequest
+import android.webkit.WebChromeClient
+import android.webkit.ValueCallback
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.android.billingclient.api.BillingClient
@@ -23,6 +28,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var billing: BillingClient
     private var currentAccount: String? = null
+    private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
+    private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val value = if (result.resultCode == Activity.RESULT_OK) {
+            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+        } else null
+        pendingFileUpload?.onReceiveValue(value)
+        pendingFileUpload = null
+    }
     private val products = mapOf(
         "esencial" to "picgift_esencial_1",
         "magico" to "picgift_magico_5",
@@ -40,7 +53,7 @@ class MainActivity : AppCompatActivity() {
                         dispatchPurchase(productId, purchase.purchaseToken)
                     }
                 } else if (result.responseCode != BillingClient.BillingResponseCode.USER_CANCELED) {
-                    web.post { web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:play-error'));", null) }
+                    if (::web.isInitialized) web.post { web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:play-error'));", null) }
                 }
             }
             .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
@@ -54,6 +67,47 @@ class MainActivity : AppCompatActivity() {
         web.settings.allowFileAccess = false
         web.settings.allowContentAccess = false
         web.settings.javaScriptCanOpenWindowsAutomatically = false
+
+        // Android WebView does not provide a file picker by default.
+        // Allow the customer to select a photo from the device without camera/storage permissions.
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(
+                webView: WebView?,
+                filePathCallback: ValueCallback<Array<Uri>>?,
+                fileChooserParams: FileChooserParams?
+            ): Boolean {
+                pendingFileUpload?.onReceiveValue(null)
+                pendingFileUpload = filePathCallback
+                val pick = Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "image/*"
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
+                }
+                return try {
+                    filePicker.launch(Intent.createChooser(pick, "Seleccionar fotografía"))
+                    true
+                } catch (_: Exception) {
+                    pendingFileUpload?.onReceiveValue(null)
+                    pendingFileUpload = null
+                    false
+                }
+            }
+        }
+        // The app must handle Android's Back button instead of quitting on every inner route.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (web.canGoBack()) web.goBack() else finish()
+            }
+        })
+        // Images are available through short-lived signed links. Open downloads in the browser.
+        web.setDownloadListener { link, _, _, _, _ ->
+            val target = Uri.parse(link)
+            if (target.scheme == "https" &&
+                target.host == "uimrvgrpenccijumyiek.supabase.co" &&
+                (target.path ?: "").startsWith("/storage/v1/object/sign/picgift-generated/")) {
+                startActivity(Intent(Intent.ACTION_VIEW, target))
+            }
+        }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             WebViewCompat.addWebMessageListener(web, "PicgiftNative", setOf("https://picgift.onrender.com")) { _, message, sourceOrigin, isMainFrame, _ ->
@@ -79,7 +133,8 @@ class MainActivity : AppCompatActivity() {
                 return false
             }
         }
-        web.loadUrl("https://picgift.onrender.com")
+        if (savedInstanceState == null) web.loadUrl("https://picgift.onrender.com")
+        else web.restoreState(savedInstanceState)
     }
 
     private fun connectBilling() {
@@ -128,7 +183,14 @@ class MainActivity : AppCompatActivity() {
         web.post { web.evaluateJavascript(js, null) }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        if (::web.isInitialized) web.saveState(outState)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
+        pendingFileUpload?.onReceiveValue(null)
+        pendingFileUpload = null
         if (::billing.isInitialized) billing.endConnection()
         if (::web.isInitialized) web.destroy()
         super.onDestroy()
