@@ -3,7 +3,7 @@
   "short_name": "PICGIFT",
   "description": "Estudio navideño de fotografía con IA, edición 2026",
   "lang": "es",
-  "start_url": "/#inicio",
+  "start_url": "/#crear",
   "scope": "/",
   "display": "standalone",
   "background_color": "#071b18",
