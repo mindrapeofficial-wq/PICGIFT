@@ -29,6 +29,14 @@
 <div class="search-row"><label>Buscar usuario<input id="user-search" type="search" placeholder="Correo electrónico"></label><label class="only-enabled"><input id="filter-enabled" type="checkbox"> Solo habilitados</label></div>
 <div id="user-list" class="user-list"></div>
 <p class="footnote">Estos límites no modifican los packs comprados. El correo del usuario debe estar confirmado.</p>
-</section></div></div></main>
+</section></div>
+<section class="card" id="flux-review-section" style="margin-top:22px" aria-labelledby="flux-review-title">
+ <div class="heading"><span class="eyebrow">BETA FLUX · REVISIÓN HUMANA</span><h2 id="flux-review-title">Retratos pendientes de aprobar</h2></div>
+ <p>El resultado permanece privado hasta que un administrador compruebe manualmente la semejanza facial, las manos, las proporciones y la calidad del montaje. No se liberan imágenes automáticamente.</p>
+ <button class="button" type="button" id="flux-review-refresh">Actualizar pendientes</button>
+ <div id="flux-review-status" class="status" role="status">Esperando comprobación de acceso…</div>
+ <div id="flux-review-list" class="user-list"></div>
+</section>
+</div></main>
 <script type="module" src="./admin.js?v=1"></script>
-</body></html>
+<script type="module" src="./flux-review-admin.js?v=20261008-v1"></script></body></html>
