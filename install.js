@@ -13,8 +13,10 @@ function updateConnectivity(){
 function showInstall(){
  if(!button)return;
  const isApple=/iPad|iPhone|iPod/i.test(navigator.userAgent);
+ const isMobile=/Android|iPad|iPhone|iPod/i.test(navigator.userAgent);
+ if(window.PicgiftNative){button.classList.add('hidden');return;}
  if(standalone()){button.classList.add("hidden");if(hint)hint.textContent="Ya estás utilizando PICGIFT como aplicación instalada.";return}
- if(proposal||isApple){
+ if(proposal||isMobile){
    button.classList.remove("hidden");
    button.textContent=proposal?"Instalar PICGIFT":"Añadir al inicio";
  }
@@ -24,7 +26,7 @@ window.addEventListener("beforeinstallprompt",event=>{
  proposal=event;
  showInstall();
 });
-window.addEventListener("appinstalled",()=>{proposal=null;showInstall()});
+window.addEventListener("appinstalled",()=>{proposal=null;if(button)button.classList.add('hidden');if(hint)hint.textContent='PICGIFT se ha instalado correctamente.';});
 if(button)button.addEventListener("click",async()=>{
  if(proposal){
    const choice=proposal;proposal=null;
