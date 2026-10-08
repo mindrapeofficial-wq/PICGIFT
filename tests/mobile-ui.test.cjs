@@ -14,7 +14,8 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  for(const id of needed)assert.ok(ids.includes(id),'missing control: '+id);
  assert.ok(html.includes('mobile-app.css?v='),'mobile CSS linked');
  assert.ok(html.includes('class="mobile-app-hero"'),'branded hero present');
- assert.ok(html.includes('src="./logo.svg?v=transparent-20261008-v1"'),'transparent brand logo loaded with cache-busting');
+ assert.ok(html.includes('class="web-hero-lockup"'),'transparent logo appears on desktop web homepage');
+ assert.ok(html.includes('src="./logo.svg?v=transparent-20261008-web-v2"'),'transparent brand logo loaded with cache-busting');
  const svg=read('logo.svg');
  assert.ok(svg.startsWith('<svg'),'logo file is valid SVG');
  assert.ok(!svg.includes('data:image/webp;base64'),'no opaque background embedded in logo');
@@ -53,7 +54,7 @@ test('PWA starts in Create and caches its mobile app assets',()=>{
  const sw=read('sw.js');
  assert.ok(sw.includes('"/mobile-app.css"'));
  assert.ok(/const VERSION="picgift-shell-[^"]+"/.test(sw),'PWA cache has explicit version');
- assert.ok(sw.includes('picgift-shell-transparent-logo-20261008-v10'),'cached logo invalidated');
+ assert.ok(sw.includes('picgift-shell-transparent-web-logo-20261008-v11'),'cached logo invalidated');
  const scenes=JSON.parse(read('scenes.json')).scenes;
  assert.ok(scenes.length>=3);
  assert.ok(scenes.some(x=>x.id==='halloween-pumpkin-bench'));
