@@ -6,6 +6,43 @@ let available=false,initialized=false;
 let nativeUser=null;
 const nativeInFlight=new Set();
 const PRODUCT_IDS=new Set(["esencial","magico","familiar"]);
+/* Halloween 2026: 20% on 5/10 packs. Madrid midnight 1 Nov is 2026-10-31T23:00Z. */
+const PROMO_START=Date.parse("2026-10-07T22:00:00Z"),PROMO_END=Date.parse("2026-10-31T23:00:00Z");
+const PROMO_PRICES={magico:{normal:2490,promo:1992,save:498},familiar:{normal:3990,promo:3192,save:798}};
+const isPromoLive=()=>Date.now()>=PROMO_START&&Date.now()<PROMO_END;
+const isEs=()=>window.picgiftI18n?.language!=="en";
+function money(cents){return new Intl.NumberFormat(isEs()?"es-ES":"en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}).format(cents/100)}
+function renderHalloweenPromo(){
+ const active=document.documentElement.dataset.campaign==="halloween"&&isPromoLive(),es=isEs();
+ const tr=es?{
+ kicker:"OFERTA ESPECIAL HALLOWEEN 2026",headline:"20 % de descuento en los packs de 5 y 10 fotos",
+ end:"Hasta el 31 de octubre incluido · Compras todavía desactivadas",action:"Ver oferta",
+ intro:"−20 % en los packs de 5 y 10 fotografías",introCopy:"Hasta el 31 de octubre de 2026 incluido. El pack de 1 foto mantiene su precio.",
+ date:"HASTA EL 31 OCT",notice:"Promoción Halloween anunciada: las compras siguen desactivadas. La oferta solo podrá utilizarse si activamos los cobros durante su vigencia.",
+ save:"Ahorra ",until:" · Hasta el 31 de octubre"
+ }:{
+ kicker:"HALLOWEEN 2026 SPECIAL OFFER",headline:"20% off 5- and 10-photo packs",
+ end:"Through 31 October inclusive · Purchases not yet available",action:"View offer",
+ intro:"20% off 5- and 10-photo packs",introCopy:"Valid through 31 October 2026 inclusive. The 1-photo pack stays at its normal price.",
+ date:"ENDS 31 OCT",notice:"Halloween promotion announced: purchases are still disabled. This offer can only be used if payments open during the promotional period.",
+ save:"Save €",until:" · Through 31 October"
+ };
+ for(const id of ["halloween-promo-home","halloween-promo-pricing","promo-disclosure"]){const el=$(id);if(el)el.hidden=!active;}
+ const content={"promo-home-kicker":tr.kicker,"promo-home-heading":tr.headline,"promo-home-desc":tr.end,
+ "promo-home-cta":tr.action,"promo-intro-tag":tr.kicker,"promo-intro-head":tr.intro,"promo-intro-copy":tr.introCopy,
+ "promo-intro-date":tr.date,"promo-disclosure":tr.notice};
+ for(const [id,value] of Object.entries(content)){const el=$(id);if(el)el.textContent=value;}
+ for(const [id,prices] of Object.entries(PROMO_PRICES)){
+  const card=document.querySelector('[data-promo-card="'+id+'"]');if(!card)continue;
+  card.classList.toggle("is-promo-active",active);
+  card.querySelectorAll("[data-promo-badge],[data-promo-original],[data-promo-saving]").forEach(el=>{el.hidden=!active});
+  const amount=card.querySelector("[data-promo-amount]");
+  if(amount){amount.dataset.priceEur=String((active?prices.promo:prices.normal)/100);amount.textContent=money(active?prices.promo:prices.normal);}
+  const old=card.querySelector("[data-promo-original]");if(old)old.textContent=money(prices.normal);
+  const saving=card.querySelector("[data-promo-saving]");if(saving)saving.textContent=tr.save+money(prices.save)+(es?" €":"")+tr.until;
+ }
+}
+
 const isNative=()=>typeof window.PicgiftNative==="object"&&typeof window.PicgiftNative.postMessage==="function";
 function syncNative(){if(isNative())window.PicgiftNative.postMessage(JSON.stringify({action:"account",user_id:nativeUser?.id||""}));}
 function status(text){$("payment-status").textContent=text}
@@ -59,12 +96,15 @@ async function handleNativePurchase(detail){
 }
 function init(){
  if(initialized)return;initialized=true;
+ renderHalloweenPromo();window.addEventListener("picgift:language",renderHalloweenPromo);
+ setInterval(renderHalloweenPromo,60000);
  document.addEventListener("click",e=>{const btn=e.target.closest("[data-buy]");if(btn)pay(btn.dataset.buy)});
  window.addEventListener("picgift:auth",e=>{nativeUser=e.detail.user||null;syncNative();refresh();});
  window.addEventListener("picgift:native-ready",syncNative);
  window.addEventListener("picgift:play-error",()=>{status(window.picgiftI18n.t("No fue posible comenzar el pago."));buttons(available);});
  window.addEventListener("picgift:play-pending",()=>status(window.picgiftI18n.t("Pendiente de confirmación por Google Play.")));
  window.addEventListener("picgift:play-prices",e=>{
+ if(!available)return;
    for(const [id,price] of Object.entries(e.detail||{})){
      if(!PRODUCT_IDS.has(id)||typeof price!=="string")continue;
      const card=document.querySelector('[data-buy="'+id+'"]')?.closest('.price-card');
