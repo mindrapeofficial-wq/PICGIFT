@@ -1,7 +1,7 @@
 /* PICGIFT Halloween 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-shell-flux-personal-20261008-v1";
+const VERSION="picgift-shell-flux-two-image-smoke-20261008-v2";
 const SHELL=[
  "/","/index.html","/styles.css","/mobile-app.css","/app.js","/auth.js","/generator.js",
  "/assets/halloween/picgift-logo-hd.png","/assets/halloween/picgift-favicon-hd.png","/assets/halloween/picgift-halloween-offer-web-1600x781.png","/i18n.js","/locales/en.json","/collection.css","/experience.js","/photo-editor.js",
