@@ -1,0 +1,34 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#170e0b"><title>PICGIFT · Administración</title>
+<link rel="icon" href="./assets/halloween/picgift-logo-oficial.svg">
+<link rel="stylesheet" href="./admin.css?v=1"></head><body>
+<header class="topbar"><a href="./#cuenta" aria-label="Volver a PICGIFT"><img src="./assets/halloween/picgift-logo-oficial.svg" alt="PICGIFT" width="130" height="65"></a><span class="eyebrow">PANEL PRIVADO · ADMINISTRACIÓN</span><a href="./#cuenta">Volver a PICGIFT ↗</a></header>
+<main class="wrapper">
+<div id="blocked" class="card center"><span class="eyebrow">ACCESO PROTEGIDO</span><h1 id="blocked-title">Comprobando permisos…</h1><p id="blocked-message">Este panel requiere una cuenta administradora con sesión iniciada.</p><a class="button" href="./#cuenta">Ir a PICGIFT</a></div>
+<div id="dashboard" hidden>
+<div class="headline"><div><span class="eyebrow">CONTROL DE PRUEBAS · PICGIFT</span><h1>Gestión de usuarios</h1><p>Asigna límites individuales de retratos gratuitos, sin modificar los créditos premium.</p></div><button id="refresh" class="button" type="button">Actualizar datos</button></div>
+<div class="stats">
+<div class="stat"><span>USUARIOS</span><strong id="count-users">0</strong></div>
+<div class="stat"><span>HABILITADOS</span><strong id="count-enabled">0</strong></div>
+<div class="stat"><span>USADAS HOY</span><strong id="count-used">0</strong></div>
+<div class="stat"><span>RESTANTES GLOBALES</span><strong id="count-remaining">0</strong></div>
+</div>
+<div id="status" class="status" role="status">Cargando datos…</div>
+<div class="layout">
+<section class="card"><div class="heading"><span class="eyebrow">CONFIGURACIÓN GENERAL</span><h2>Cuota gratuita</h2></div><p>El máximo global protege la cuota gratuita de Cloudflare. Reinicio de contadores a las 00:00 UTC.</p>
+<form id="global-form">
+<label>Generaciones globales al día<input id="global-limit" type="number" min="0" max="48" required></label>
+<label>Límite predeterminado por tester<input id="default-limit" type="number" min="0" max="20" required></label>
+<button class="button primary" type="submit">Guardar límites globales</button>
+</form>
+<div class="notice"><strong>Formatos aprobados</strong><p>Vertical 1024 × 1536 y horizontal 1536 × 1024. Sin fotografías cuadradas.</p></div>
+<div class="notice"><strong>Estado del motor gratuito</strong><p>Los límites se preparan aquí. La edición gratuita de retratos todavía no está activada.</p></div>
+</section>
+<section class="card"><div class="heading"><span class="eyebrow">CONTROL INDIVIDUAL</span><h2>Usuarios de PICGIFT</h2><small id="day-label">Hoy (UTC)</small></div>
+<div class="search-row"><label>Buscar usuario<input id="user-search" type="search" placeholder="Correo electrónico"></label><label class="only-enabled"><input id="filter-enabled" type="checkbox"> Solo habilitados</label></div>
+<div id="user-list" class="user-list"></div>
+<p class="footnote">Estos límites no modifican los packs comprados. El correo del usuario debe estar confirmado.</p>
+</section></div></div></main>
+<script type="module" src="./admin.js?v=1"></script>
+</body></html>
