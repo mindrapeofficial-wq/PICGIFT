@@ -270,10 +270,14 @@ function init(){
        cloudflare_error:'Cloudflare ha rechazado la comprobación.',
        connection_timeout:'Cloudflare no ha respondido dentro del tiempo de espera.',
        network_error:'El servidor no ha podido establecer la conexión de red con Cloudflare.',
-       token_invalid:'Cloudflare no ha validado el token. Revisa sus permisos y vigencia.'
+       token_invalid:'Cloudflare no ha validado el token. Revisa sus permisos y vigencia.',
+       server_network_error:'Supabase no puede conectarse a servicios externos. El fallo no es necesariamente del token de Cloudflare.',
+       cloudflare_network_error:'La red de Supabase funciona, pero no consigue conectar con la API de Cloudflare.'
      };
      const message=messages[data?.status]||'Todavía no se ha verificado la conexión gratuita.';
-     const details=data&&typeof data.token_check==='string'&&typeof data.model_check==='string' ? ' (token: '+data.token_check+'; modelos: '+data.model_check+(Number.isFinite(data.elapsed_ms)?'; '+data.elapsed_ms+' ms':'')+')':'';
+     const diagnostics=Array.isArray(data?.network_diagnostics)?data.network_diagnostics:[];
+     const diagnosticText=diagnostics.map(item=>item.name+': '+item.status+(item.category?' / '+item.category:'')+(item.type?' / '+item.type:'')+' / '+item.elapsed_ms+'ms').join(' | ');
+     const details=diagnosticText?' ('+diagnosticText+')':data&&typeof data.token_check==='string'&&typeof data.model_check==='string'?' (token: '+data.token_check+'; modelos: '+data.model_check+')':'';
      $('flux-status').textContent=(window.picgiftI18n?.t(message)||message)+details;
      $('flux-status').dataset.verified=String(data?.verified===true);
    }catch(e){$('flux-status').textContent=window.picgiftI18n?.t(e.message)||e.message}
