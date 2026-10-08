@@ -8,7 +8,7 @@ const msg=text=>{$('auth-msg').textContent=text;};
 let recovery=false,previous=null;
 const publish=user=>{const id=user?.id||null;if(id!==previous){previous=id;window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:user||null}}))}};
 function openRecovery(){recovery=true;$('auth').classList.add('show');$('auth-title').textContent='Cambia tu contraseña';$('auth-email').closest('label').classList.add('hidden');$('auth-password').autocomplete='new-password';$('auth-password').value='';$('terms').closest('label').classList.add('hidden');$('terms').required=false;$('google').classList.add('hidden');$('reset-pass').classList.add('hidden');$('auth-submit').textContent='Guardar contraseña';msg('Escribe una nueva contraseña de al menos 8 caracteres.');}
-function resetRecovery(){recovery=false;$('auth-email').closest('label').classList.remove('hidden');$('terms').closest('label').classList.remove('hidden');$('terms').required=true;$('google').classList.remove('hidden');$('reset-pass').classList.remove('hidden');}
+function resetRecovery(){recovery=false;$('auth-email').closest('label').classList.remove('hidden');$('terms').closest('label').classList.remove('hidden');$('terms').required=window.picgiftAuthMode==='register';$('terms').closest('label').classList.toggle('hidden',window.picgiftAuthMode!=='register');$('google').classList.remove('hidden');$('reset-pass').classList.remove('hidden');}
 if(client){
   client.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){openRecovery();return}if(!recovery)publish(session?.user||null);});
   client.auth.getUser().then(({data,error})=>{if(!error)publish(data?.user||null);}).catch(()=>{});
@@ -29,7 +29,7 @@ $('auth-form').addEventListener('submit',async e=>{
 });
 $('google').addEventListener('click',async()=>{
  if(!client){msg('Acceso con Google no disponible.');return}
- if(!$('terms').checked){msg('Marca antes la confirmación de autorización.');return}
+ if(window.picgiftAuthMode==='register'&&!$('terms').checked){msg('Marca antes la confirmación de autorización.');return}
  if(typeof window.PicgiftNative==='object'){msg('El acceso con Google aún no está integrado en la APK. Puedes acceder con correo y contraseña o utilizar Google desde la web instalada en tu móvil.');return;}
  $('google').disabled=true;msg('Abriendo Google…');
  try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)throw error}
