@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#071b18"><meta name="description" content="PICGIFT: recuerdos navideños con una experiencia fotográfica mágica. Colección Navidad 2026.">
+<meta name="theme-color" content="#071b18">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="PICGIFT: recuerdos navideños con una experiencia fotográfica mágica. Colección Navidad 2026.">
 <link rel="icon" href="./logo.svg?v=christmas-2026-1" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://images.unsplash.com">
 <link rel="stylesheet" href="./styles.css?v=picgift-sales-2026-2"><title>PICGIFT · Edición Navidad 2026</title>
@@ -44,6 +45,8 @@
         <span class="pill christmas-pill hide-mobile">✦ Colección Navidad 2026</span>
         <button class="pill" id="signin" type="button">Entrar <svg><use href="#i-user"/></svg></button>
         <button class="pill" id="signup" type="button">Crear cuenta</button>
+        <button class="pill hidden" id="install-picgift" type="button">Instalar PICGIFT</button>
+        <span id="connection-state" class="offline-pill hidden" role="status">Sin conexión</span>
         <button class="avatar hidden" id="profile-button" data-route="cuenta" aria-label="Abrir cuenta">P</button>
       </div>
     </header>
@@ -128,7 +131,7 @@
       </section>
       <section class="page" data-page="cuenta" hidden>
         <div class="top-heading"><div><span class="eyebrow">Tu espacio PICGIFT</span><h1>Mi cuenta</h1><p>Acceso seguro con Google o correo electrónico.</p></div></div>
-        <div class="account-grid"><div class="panel"><div class="profile"><div class="avatar" id="account-avatar">P</div><div><h3>Bienvenido a PICGIFT</h3><p id="account-email">Sesión iniciada</p></div></div><div class="settings-row"><span>Temporada activa</span><strong>Navidad 2026</strong></div><div class="settings-row"><span>Créditos disponibles</span><strong id="account-credits">0 fotografías</strong></div><div class="settings-row"><span>Mis fotografías</span><strong>Pendiente del generador</strong></div><button class="btn outline" data-route="precios" style="margin-top:18px">Ver packs</button><div class="settings-row"><span>Últimos pedidos</span><strong id="account-orders">Sin compras</strong></div><button class="btn outline" id="logout" type="button" style="margin-top:25px">Cerrar sesión</button></div><div class="panel"><span class="eyebrow">Privacidad</span><h2 style="margin-top:9px">Tus imágenes importan</h2><p class="muted" style="font-size:13px;margin-top:12px">En el modo demostración, tus fotografías permanecen en este dispositivo. La generación real usará almacenamiento privado y permitirá eliminar los archivos desde Mis fotografías.</p><button class="btn outline" data-route="creditos" style="margin-top:17px">Avisos y créditos</button></div></div>
+        <div class="account-grid"><div class="panel"><div class="profile"><div class="avatar" id="account-avatar">P</div><div><h3>Bienvenido a PICGIFT</h3><p id="account-email">Sesión iniciada</p></div></div><div class="settings-row"><span>Temporada activa</span><strong>Navidad 2026</strong></div><div class="settings-row"><span>Créditos disponibles</span><strong id="account-credits">0 fotografías</strong></div><div class="settings-row"><span>Mis fotografías</span><strong>Pendiente del generador</strong></div><button class="btn outline" data-route="precios" style="margin-top:18px">Ver packs</button><div class="settings-row"><span>Últimos pedidos</span><strong id="account-orders">Sin compras</strong></div><button class="btn outline" id="logout" type="button" style="margin-top:25px">Cerrar sesión</button></div><div class="panel"><span class="eyebrow">Privacidad</span><h2 style="margin-top:9px">Tus imágenes importan</h2><p class="muted" style="font-size:13px;margin-top:12px">En el modo demostración, tus fotografías permanecen en este dispositivo. La generación real usará almacenamiento privado y permitirá eliminar los archivos desde Mis fotografías.</p><p class="tiny" id="install-help" style="margin-top:12px">En móviles compatibles también puedes añadir PICGIFT a la pantalla de inicio. Las fotografías privadas no se almacenan para uso sin conexión.</p><button class="btn outline" data-route="creditos" style="margin-top:17px">Avisos y créditos</button></div></div>
       </section>
     </div>
     <section class="page" data-page="creditos" hidden><div class="top-heading"><div><span class="eyebrow">Transparencia</span><h1>Créditos y avisos</h1><p>PICGIFT se encuentra en desarrollo y utiliza recursos visuales de muestra.</p></div></div><div class="panel"><h2>Fondos PICGIFT y referencias</h2><p class="muted" style="font-size:13px;margin-top:14px">El catálogo combina siete fondos del archivo PICGIFT con cuatro referencias provisionales de Unsplash. Las imágenes propias no incluyen personas. Los archivos han llegado comprimidos por WhatsApp y no están listos para descarga en 4K. El logotipo es una adaptación vectorial provisional del concepto de regalo/cámara.</p><div id="credits-list" style="display:grid;gap:9px;margin-top:18px"></div><p class="foot-note">La política de privacidad, términos comerciales y consentimiento específico para imágenes de menores deberán revisarse antes del lanzamiento público. El registro de esta etapa es un entorno de pruebas.</p><button class="btn outline" data-route="inicio" style="margin-top:20px">Volver al inicio</button></div></section>
@@ -158,5 +161,5 @@
  </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script defer src="./app.js?v=picgift-sales-2026-1"></script><script type="module" src="./auth.js?v=picgift-ai-2026-1"></script><script type="module" src="./generator.js?v=picgift-demo-2026-2"></script>
-<script type="module" src="./payments.js?v=picgift-sales-2026-2"></script></body></html>
+<script defer src="./app.js?v=picgift-mobile-2026-1"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-demo-2026-2"></script>
+<script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-pwa-2026-1"></script></body></html>
