@@ -37,38 +37,52 @@ Deno.serve(async (req) => {
     message: "El Account ID no tiene el formato esperado.",
   });
 
-  // Health check uses Workers AI model search only. No user images, prompts,
-  // chargeable inference, or secrets are returned or logged.
-  try {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/models/search?search=flux-2-klein-4b&per_page=20`;
-    const cf = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: AbortSignal.timeout(12000),
-    });
-    if (!cf.ok) return respond({
-      configured: true, verified: false,
-      status: cf.status === 401 || cf.status === 403 ? "cloudflare_permission_error" : "cloudflare_unavailable",
-      message: cf.status === 401 || cf.status === 403
-        ? "Cloudflare no autorizó el token para esta cuenta. Revisa Account ID y permisos Workers AI."
-        : "No se pudo validar el acceso a Cloudflare.",
-    });
-    const data = await cf.json();
-    const models = Array.isArray(data?.result) ? data.result : [];
-    const listed = models.some((m: any) =>
-      String(m?.name || m?.id || m?.model || "").includes("flux-2-klein-4b")
-    );
-    return respond({
-      configured: true,
-      verified: data?.success === true && listed,
-      status: data?.success !== true ? "cloudflare_error" : listed ? "connected" : "model_not_listed",
-      model: "FLUX.2 Klein 4B",
-      generation_enabled: false,
-      message: data?.success === true && listed
-        ? "Cuenta y token de Workers AI conectados. Aún falta activar y probar la generación."
-        : "Cloudflare respondió, pero no pudimos confirmar el modelo en la búsqueda.",
-    });
-  } catch {
-    return respond({ configured: true, verified: false,
-      status: "connection_timeout", message: "No fue posible contactar con Cloudflare." });
-  }
+  // Diagnostics only. No inference or user photos; credentials stay server-side.
+  // Distinguish auth, permission, network, and timeout errors rather than guessing.
+  const since = Date.now();
+  const checks = await Promise.all([
+    ["token", "https://api.cloudflare.com/client/v4/user/tokens/verify"],
+    ["models", `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/models/search?search=flux-2-klein-4b&per_page=20`],
+  ].map(async ([name, endpoint]) => {
+    try {
+      const response = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${token.trim()}` },
+        signal: AbortSignal.timeout(10000),
+      });
+      let payload: any;
+      try { payload = await response.json(); }
+      catch { return { name, status: "invalid_response", http_status: response.status }; }
+      return {
+        name,
+        status: response.ok && payload?.success === true ? "ok" : "api_error",
+        http_status: response.status,
+        active: name === "token" ? payload?.result?.status === "active" : undefined,
+        listed: name === "models" && Array.isArray(payload?.result)
+          ? payload.result.some((m: any) =>
+              String(m?.name || m?.id || m?.model || "").includes("flux-2-klein-4b"))
+          : undefined,
+      };
+    } catch (err) {
+      const code = err instanceof Error ? err.name : "UnknownError";
+      return { name, status: code === "TimeoutError" || code === "AbortError" ? "timeout" : "network_error",
+        error_type: ["TimeoutError", "AbortError", "TypeError"].includes(code) ? code : "other" };
+    }
+  }));
+  const byName: Record<string, any> = Object.fromEntries(checks.map(c => [c.name, c]));
+  const a = byName.token, m = byName.models;
+  const verified = a?.status === "ok" && a.active === true && m?.status === "ok" && m.listed === true;
+  let status = "connected";
+  if (a.status === "timeout" || m.status === "timeout") status = "connection_timeout";
+  else if (a.status === "network_error" || m.status === "network_error") status = "network_error";
+  else if (a.status !== "ok" || a.active !== true) status = "token_invalid";
+  else if (m.http_status === 401 || m.http_status === 403) status = "cloudflare_permission_error";
+  else if (m.status !== "ok") status = "cloudflare_unavailable";
+  else if (!m.listed) status = "model_not_listed";
+  // Only safe diagnostic codes and timings leave the server. Never expose credentials or raw responses.
+  return respond({
+    configured: true, verified, status, model: "FLUX.2 Klein 4B",
+    token_check: a.status, model_check: m.status, token_http: a.http_status ?? null,
+    model_http: m.http_status ?? null, elapsed_ms: Date.now() - since,
+    generation_enabled: false,
+  });
 });
