@@ -52,7 +52,8 @@ test('PWA starts in Create and caches its mobile app assets',()=>{
  assert.equal(manifest.start_url,'/#crear');
  const sw=read('sw.js');
  assert.ok(sw.includes('"/mobile-app.css"'));
- assert.ok(sw.includes('picgift-shell-halloween-2026-app-v7'));
+ assert.ok(/const VERSION="picgift-shell-[^"]+"/.test(sw),'PWA cache has explicit version');
+ assert.ok(sw.includes('picgift-shell-transparent-logo-20261008-v10'),'cached logo invalidated');
  const scenes=JSON.parse(read('scenes.json')).scenes;
  assert.ok(scenes.length>=3);
  assert.ok(scenes.some(x=>x.id==='halloween-pumpkin-bench'));
