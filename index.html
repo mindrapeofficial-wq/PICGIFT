@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="PICGIFT: recuerdos navideños con una experiencia fotográfica mágica. Colección Navidad 2026.">
 <link rel="icon" href="./logo.svg?v=christmas-2026-1" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://images.unsplash.com">
-<link rel="stylesheet" href="./styles.css?v=picgift-mobile-2026-1"><title>PICGIFT · Edición Navidad 2026</title>
+<link rel="stylesheet" href="./styles.css?v=picgift-progress-2026-1"><title>PICGIFT · Edición Navidad 2026</title>
 </head><body>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
   <div class="splash-inner"><img src="./logo.svg?v=christmas-2026-1" alt="PICGIFT"><div class="eyebrow">Christmas 2026</div><h2>PICGIFT</h2><p>Tus recuerdos, nuestra magia</p><span class="splash-star">✦</span></div>
@@ -124,7 +124,41 @@
           <div class="actions" style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="button" data-route="crear">Modificar mi selección</button><button class="btn outline" type="button" data-route="escenarios">Explorar otros fondos</button></div>
         </div>
         <div class="panel" id="result-empty"><h2>Tu próxima fotografía empieza aquí</h2><p class="muted" style="margin-top:10px;font-size:13px">Selecciona una fotografía y un escenario, y abre la demostración. Las generaciones reales aparecerán en este espacio cuando activemos el motor de IA.</p><button type="button" class="btn primary" data-route="crear" style="margin-top:18px">Preparar mi fotografía</button></div>
-        <div class="result-stage hidden" id="real-result"><div class="result-art"><img id="result-sample" alt="Resultado fotográfico privado de PICGIFT"><div class="result-watermark" id="result-watermark">GENERANDO</div><div class="result-foot"><span class="eyebrow">Christmas 2026 · Foto privada</span><h2 id="result-name">Escena navideña</h2></div></div><div class="panel"><span class="eyebrow">Desbloquea tus recuerdos</span><h2 style="margin-top:9px">Una foto que dura para siempre</h2><p class="muted" style="font-size:13px;margin-top:12px">La foto terminada estará disponible para descargar aquí y en Mis fotografías. Próximamente incorporaremos originales premium y pagos.</p><div class="product-card"><div class="symbol"><svg width="20" height="20"><use href="#i-photo"/></svg></div><div><strong>Vista previa</strong><p>Imagen reducida para evaluar el resultado antes de comprar.</p></div></div><div class="product-card"><div class="symbol"><svg width="20" height="20"><use href="#i-lock"/></svg></div><div><strong>Original HD</strong><p>Descarga del archivo de generación a tamaño original.</p></div></div><div class="product-card"><div class="symbol"><svg width="20" height="20"><use href="#i-spark"/></svg></div><div><strong>Premium · Gran formato</strong><p>Ampliación y refinado de imagen, pendiente de integración.</p></div></div><a class="btn primary wide hidden" id="download-result" href="#" download="picgift-navidad-2026.jpg" style="margin-top:22px">Descargar mi fotografía</a><button class="btn outline wide" type="button" id="pricing-soon" style="margin-top:12px">Ediciones premium próximamente</button><div class="notice" id="result-status" role="status" aria-live="polite">Esperando a que se complete el trabajo…</div><p class="tiny" style="margin-top:13px">No se realizará ningún cobro.</p></div></div>
+        <div class="result-stage hidden" id="real-result">
+          <div class="result-art">
+            <img id="result-sample" alt="Referencia del escenario navideño mientras se genera tu fotografía">
+            <div class="result-watermark" id="result-watermark">PREPARANDO</div>
+            <div class="result-foot"><span class="eyebrow">Christmas 2026 · Foto privada</span><h2 id="result-name">Escena navideña</h2></div>
+          </div>
+          <div class="panel result-progress-panel">
+            <span class="eyebrow" id="progress-kicker">Motor PICGIFT · Fotografía navideña</span>
+            <h2 id="progress-headline" style="margin-top:10px">Estamos preparando tu fotografía</h2>
+            <p class="muted" id="progress-description" style="font-size:13px;margin-top:12px">Puedes dejar abierta esta pantalla o regresar a Mis fotos. El estado se conserva en tu cuenta.</p>
+            <div class="ai-progress" id="generation-progress">
+              <div class="ai-progress-top">
+                <strong id="progress-phase">Preparando solicitud</strong>
+                <strong id="progress-percent" aria-label="Progreso orientativo">10%</strong>
+              </div>
+              <div class="ai-progress-track" role="progressbar" id="progress-track" aria-label="Progreso estimado por etapas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10" aria-valuetext="Preparando solicitud">
+                <div id="progress-fill" class="ai-progress-fill" style="width:10%"></div>
+              </div>
+              <div class="ai-progress-stages" aria-hidden="true">
+                <span>1 · En cola</span><span>2 · Análisis</span><span>3 · Creación</span><span>4 · Revisión</span>
+              </div>
+              <p class="tiny" id="progress-note">Porcentaje orientativo por etapas; OpenAI no informa un porcentaje exacto.</p>
+              <p class="muted" id="progress-elapsed" style="font-size:12px;margin-top:10px">Tiempo transcurrido: 0 s</p>
+              <div class="notice hidden" id="progress-warning" role="status"></div>
+              <div class="actions ai-progress-actions">
+                <button class="btn outline" type="button" id="refresh-job">Comprobar estado</button>
+                <button class="btn quiet" type="button" data-route="mis-fotos">Ir a Mis fotos</button>
+              </div>
+            </div>
+            <a class="btn primary wide hidden" id="download-result" href="#" download="picgift-navidad-2026.jpg" style="margin-top:22px">Descargar mi fotografía</a>
+            <button class="btn outline wide hidden" type="button" id="retry-job" data-route="crear" style="margin-top:12px">Preparar otra fotografía</button>
+            <div class="notice" id="result-status" role="status" aria-live="polite">Preparando el trabajo…</div>
+            <p class="tiny" style="margin-top:13px">Esta prueba privada no realiza ningún cobro.</p>
+          </div>
+        </div>
       </section>
       <section class="page" data-page="mis-fotos" hidden>
         <div class="top-heading"><div><span class="eyebrow">Mi galería privada</span><h1>Mis recuerdos</h1><p>Aquí aparecerán tus generaciones reales cuando activemos el motor. Las demostraciones locales no se guardan.</p></div><button class="btn primary" data-route="crear">Nueva fotografía <svg><use href="#i-arrow"/></svg></button></div>
@@ -163,5 +197,5 @@
  </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script defer src="./app.js?v=picgift-mobile-2026-2"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-ai-pilot-2026-1"></script>
+<script defer src="./app.js?v=picgift-mobile-2026-2"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-progress-2026-1"></script>
 <script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-pwa-2026-2"></script></body></html>
