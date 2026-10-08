@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Castillo encantado en Halloween">
+<defs>
+<radialGradient id="sky" cx="55%" cy="45%" r="80%"><stop stop-color="#62301d"/><stop offset=".55" stop-color="#23101a"/><stop offset="1" stop-color="#09060b"/></radialGradient>
+<linearGradient id="hill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#32150e"/><stop offset="1" stop-color="#080707"/></linearGradient>
+<radialGradient id="moon"><stop stop-color="#fff0bf"/><stop offset=".75" stop-color="#ffa842"/><stop offset="1" stop-color="#bc500a"/></radialGradient>
+<filter id="light" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="17"/></filter>
+</defs><rect width="1200" height="800" fill="url(#sky)"/>
+<circle cx="820" cy="206" r="146" fill="url(#moon)"/>
+<circle cx="820" cy="206" r="168" fill="#ff8e24" opacity=".15" filter="url(#light)"/>
+<g fill="#09070a"><path d="M688 160q21-19 40-2l12-21 11 26q25-5 37 12-28-3-47 14-22-25-53-29z"/><path d="M954 294q15-13 29 0l10-16 7 22q19 1 24 14-20-7-36 7-17-19-34-27z"/></g>
+<path d="M0 630Q340 490 640 611T1200 525V800H0z" fill="url(#hill)"/>
+<g fill="#100d10" stroke="#e16d20" stroke-opacity=".3" stroke-width="5">
+<path d="M310 642V326l64-80 65 80v316z"/>
+<path d="M419 645V229l67-84 66 84v416z"/>
+<path d="M535 640V344l61-92 60 92v296z"/>
+<path d="M660 641V235l65-94 64 94v406z"/>
+<path d="M771 646V333l62-81 60 81v313z"/>
+<rect x="352" y="378" width="503" height="265"/>
+</g>
+<g fill="#ffad38"><path d="M457 286v82h40v-82q-20-35-40 0zM697 280v84h40v-84q-20-34-40 0zM588 405v104h36V405q-17-37-36 0z"/><path d="M516 554v87h60v-87q-28-34-60 0z"/></g>
+<path d="M0 707Q223 612 382 702T870 698T1200 711V800H0Z" fill="#09080b"/>
+<g fill="#0d0d0d"><path d="M126 784v-260l-55-30 55 19 46-38-40 72 10 237zm874 0V431l-61-37 66 14 51-74-49 121 11 329z"/></g>
+<rect x="0" y="0" width="1200" height="800" fill="none" stroke="#cf621d" stroke-opacity=".14" stroke-width="7"/>
+</svg>
