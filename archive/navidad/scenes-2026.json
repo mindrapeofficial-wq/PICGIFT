@@ -1,0 +1,264 @@
+{
+  "version": "3.0",
+  "visibility": "public scene metadata and scene-only photos",
+  "notice": "Siete fotografías de fondo facilitadas por PICGIFT, sin personas. Cuatro imágenes conceptuales de Unsplash. Los resultados con niños permanecen en Drive privado. Fotografías recibidas comprimidas; no son 4K. Las recetas JSON y datos privados no se publican.",
+  "scenes": [
+    {
+      "id": "golden-christmas",
+      "name": "Navidad dorada",
+      "description": "Luces cálidas, regalos y destellos de cuento",
+      "icon": "🎄",
+      "category": "Fantasía",
+      "badge": "Fondo PICGIFT",
+      "ages": "1–10 años",
+      "poses": [
+        "Sentado sobre madera",
+        "De pie"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/golden-bokeh.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "reading-corner",
+      "name": "Rincón de cuentos de Navidad",
+      "description": "Casita de lectura entre abetos nevados, libros y faroles",
+      "icon": "📚",
+      "category": "Invierno",
+      "ages": "1–8 años",
+      "poses": [
+        "Sentado leyendo"
+      ],
+      "status": "preview",
+      "badge": "Fondo PICGIFT",
+      "image": "./assets/scenes/reading-corner.jpg",
+      "image4k": null,
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Autorización comercial pendiente de comprobar"
+      },
+      "previewOnly": true,
+      "source": "picgift",
+      "qualityNote": "Archivo comprimido"
+    },
+    {
+      "id": "santa-workshop",
+      "name": "Taller de Papá Noel",
+      "description": "Mesa de juguetes y pinturas entre cálidos faroles navideños",
+      "icon": "🧸",
+      "category": "Fantasía",
+      "ages": "2–8 años",
+      "poses": [
+        "Sentado trabajando",
+        "De pie"
+      ],
+      "status": "preview",
+      "badge": "Fondo PICGIFT",
+      "image": "./assets/scenes/santa-workshop.jpg",
+      "image4k": null,
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Autorización comercial pendiente de comprobar"
+      },
+      "previewOnly": true,
+      "source": "picgift",
+      "qualityNote": "Archivo comprimido"
+    },
+    {
+      "id": "christmas-armchair",
+      "name": "Sillón de Navidad",
+      "description": "Rincón elegante con sillón blanco y árbol rojo",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "1–8 años",
+      "poses": [
+        "Sentado en sillón",
+        "De pie junto al árbol"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/christmas-chair.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "white-door",
+      "name": "La puerta de Navidad",
+      "description": "Baúl blanco, corona y detalles rústicos",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "1–8 años",
+      "poses": [
+        "Sentado sobre el baúl",
+        "De pie junto a baúl"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/white-trunk.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "winter-window",
+      "name": "Ventana de invierno",
+      "description": "Ventana antigua entre nieve, piñas y velas",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "2–9 años",
+      "poses": [
+        "Asomado a la ventana",
+        "Sentado delante"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/winter-window.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "cozy-cabinet",
+      "name": "El rincón de los ositos",
+      "description": "Decorado verde botella con ositos, regalos y madera",
+      "icon": "🎄",
+      "category": "Clásicos",
+      "badge": "Fondo PICGIFT",
+      "ages": "0–6 años",
+      "poses": [
+        "Sentado en suelo",
+        "Tumbado sobre manta",
+        "De pie"
+      ],
+      "status": "preview",
+      "image": "./assets/scenes/cabinet-teddies.jpg",
+      "image4k": null,
+      "previewOnly": true,
+      "source": "picgift",
+      "credit": {
+        "author": "Archivo PICGIFT",
+        "url": null,
+        "license": "Material proporcionado por el proyecto; autorización de uso comercial pendiente de comprobar"
+      },
+      "qualityNote": "Archivo compartido mediante WhatsApp; solicitar original de mayor resolución para producción"
+    },
+    {
+      "id": "rustic-sleigh",
+      "name": "Trineo rústico",
+      "description": "Madera, abetos y luces cálidas",
+      "icon": "🛷",
+      "category": "Clásicos",
+      "ages": "1–4 años",
+      "poses": [
+        "Sentado en trineo",
+        "Sentado delante",
+        "De pie al lado"
+      ],
+      "status": "preview",
+      "badge": "Colección especial",
+      "image": "https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Fujiphilm",
+        "url": "https://unsplash.com/photos/christmas-tree-with-red-and-gold-ornaments-and-gifts-cxvfPfbu2vE",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
+    },
+    {
+      "id": "snow-forest",
+      "name": "Bosque nevado",
+      "description": "Un cuento de invierno entre árboles",
+      "icon": "🌲",
+      "category": "Invierno",
+      "ages": "1–10 años",
+      "poses": [
+        "Sentado",
+        "De pie"
+      ],
+      "status": "preview",
+      "badge": "Naturaleza",
+      "image": "https://images.unsplash.com/photo-1767813364465-5d45663021ab?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1767813364465-5d45663021ab?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Tolga Ahmetler",
+        "url": "https://unsplash.com/photos/snow-covered-evergreen-trees-in-a-forest-dl3EytOQgxU",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
+    },
+    {
+      "id": "christmas-train",
+      "name": "Tren navideño",
+      "description": "Una aventura entre luces y vapor",
+      "icon": "🚂",
+      "category": "Clásicos",
+      "ages": "2–8 años",
+      "poses": [
+        "De pie",
+        "Sentado"
+      ],
+      "status": "preview",
+      "badge": "Aventura",
+      "image": "https://images.unsplash.com/photo-1774023155739-0a82c46ffe2e?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1774023155739-0a82c46ffe2e?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Wolfgang Weiser",
+        "url": "https://unsplash.com/photos/a-vintage-steam-train-travels-through-a-snowy-forest-8ugL4UBc8qM",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
+    },
+    {
+      "id": "christmas-kitchen",
+      "name": "Cocina navideña",
+      "description": "Galletas y repostería tradicional",
+      "icon": "🍪",
+      "category": "Fantasía",
+      "ages": "1–7 años",
+      "poses": [
+        "Sentado",
+        "De pie"
+      ],
+      "status": "preview",
+      "badge": "Dulces recuerdos",
+      "image": "https://images.unsplash.com/photo-1765150037389-7d9803a28d78?auto=format&fit=crop&q=82&w=1280",
+      "image4k": "https://images.unsplash.com/photo-1765150037389-7d9803a28d78?auto=format&fit=crop&q=90&w=3840",
+      "credit": {
+        "author": "Cemrecan Yurtman",
+        "url": "https://unsplash.com/photos/christmas-gingerbread-cookies-on-trays-with-festive-decorations-JXaUXzRlhVs",
+        "license": "Unsplash License"
+      },
+      "previewOnly": true
+    }
+  ]
+}
