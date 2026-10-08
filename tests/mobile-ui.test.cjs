@@ -34,7 +34,7 @@ test('mobile shell has four meaningful routes and controls stay interactive',()=
  assert.ok(js.includes("body.classList.toggle('mobile-creator-active'"));
  assert.ok(js.includes("if(!file){$('photo').click();return}"),'CTA should open photo picker');
  assert.ok(js.includes("if(!user){openAuth('login');return}"),'CTA should require auth before upload');
- assert.ok(js.includes("if(window.picgiftAiReady!==true)"),'backend availability is mandatory');
+ assert.ok(js.includes("const service=await window.picgiftChooseService?.()"),'explicit service selection checks backend availability');
  assert.ok(js.includes("window.picgiftPhotoEditor.exportFile()"),'client crop is preserved');
  assert.ok(js.includes('renderMobileScenes();updateStudio()'),'scene UI bound to state');
  assert.ok(styles.includes('.mobile-scene-option.is-selected'),'selected scene visible');
