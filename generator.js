@@ -57,7 +57,7 @@ async function create(ev){
   const accepted=await invoke({action:'start',scene_id,source_path:path,format,pose:String(pose).slice(0,90),outfit:String(outfit).slice(0,90),consent:true,email_requested:email_requested===true});
   if(!accepted?.id)throw Error('No se pudo iniciar la generación.');
   activeId=accepted.id;path=null;
-  $('demo-result').classList.add('hidden');$('real-result').classList.remove('hidden');
+  $('demo-result').classList.add('hidden');$('result-empty').classList.add('hidden');$('real-result').classList.remove('hidden');
   $('result-page-title').textContent='Tu fotografía navideña';
   $('result-page-description').textContent='El trabajo se está procesando. Podrás descargar tu foto cuando termine y supere el control de calidad.';
   status('Solicitud aceptada. Analizando la fotografía…');
@@ -88,7 +88,8 @@ async function refreshGallery(){
  const withLinks=await Promise.all(lastJobs.map(async j=>({job:j,href:j.status==='completed'?await signed(j.result_path):null,download:j.status==='completed'?await signed(j.result_path,true):null})));
  $('photo-library').innerHTML=withLinks.length?'<div class="scene-grid">'+withLinks.map(o=>plainCard(o.job,o.href,o.download)).join('')+'</div>':'<div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Cuando generes tu primera imagen, aparecerá aquí de forma privada.</p><button class="btn outline" data-route="crear">Crear una foto</button></div>';
  const job=lastJobs.find(j=>j.id===activeId)||lastJobs[0];
- if(job){const state=statuses[job.status]||job.status;$('result-status').textContent=state+(job.email_status==='sent'?'. También hemos enviado un enlace privado por correo.':'')+(job.email_status==='skipped'?'. La entrega por correo no está configurada.':'');
+ if(job){if($('demo-result').classList.contains('hidden')){$('result-empty').classList.add('hidden');$('real-result').classList.remove('hidden')}
+ const state=statuses[job.status]||job.status;$('result-status').textContent=state+(job.email_status==='sent'?'. También hemos enviado un enlace privado por correo.':'')+(job.email_status==='skipped'?'. La entrega por correo no está configurada.':'');
   if(job.status==='completed'){const result=withLinks.find(x=>x.job.id===job.id);
    if(result?.href){$('result-sample').src=result.href;$('result-watermark').classList.add('hidden');$('download-result').href=result.download||result.href;$('download-result').classList.remove('hidden')}
   }else{$('download-result').classList.add('hidden');$('result-watermark').classList.remove('hidden');$('result-watermark').textContent=job.status==='needs_review'?'EN REVISIÓN':state.toUpperCase();}
