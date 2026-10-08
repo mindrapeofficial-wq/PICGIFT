@@ -57,7 +57,7 @@ test('PWA starts in Create and caches its mobile app assets',()=>{
  const sw=read('sw.js');
  assert.ok(sw.includes('"/mobile-app.css"'));
  assert.ok(/const VERSION="picgift-[^"]+"/.test(sw),'PWA cache has explicit version');
- assert.ok(sw.includes('picgift-halloween-home-clean-20261008-v13'),'homepage cleanup is cached for installed devices');
+ assert.ok(sw.includes('"/assets/halloween/picgift-halloween-offer-web-1600x781.png"'),'promotional artwork is cached for installed devices');
  const scenes=JSON.parse(read('scenes.json')).scenes;
  assert.ok(scenes.length>=3);
  assert.ok(scenes.some(x=>x.id==='halloween-pumpkin-bench'));
