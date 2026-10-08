@@ -1,48 +1,43 @@
-// PICGIFT Auth. Solo URL y clave PUBLICABLE de un proyecto PICGIFT dedicado.
+// PICGIFT · Auth client. Nunca publicar service_role ni secretos OAuth en GitHub.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 const $=id=>document.getElementById(id);
-const configured=/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SUPABASE_URL) && SUPABASE_PUBLISHABLE_KEY.length>25;
-const client=configured?createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}}):null;
-const msg=s=>{$('auth-msg').textContent=s;};
-let recoveryMode=false;
-function showRecovery(){recoveryMode=true;document.getElementById('auth').classList.add('show');$('auth-title').textContent='Nueva contraseña';$('auth-password').value='';$('auth-password').autocomplete='new-password';$('auth-email').closest('label').style.display='none';$('google').style.display='none';$('reset-pass').style.display='none';$('auth-submit').textContent='Guardar nueva contraseña';$('terms').closest('label').style.display='none';$('terms').required=false;msg('Introduce una contraseña nueva de al menos 8 caracteres.');}
-function clearRecovery(){recoveryMode=false;$('auth-email').closest('label').style.display='';$('google').style.display='';$('reset-pass').style.display='';$('auth-submit').textContent='Continuar';$('terms').closest('label').style.display='';$('terms').required=true;}
-const showUser=user=>{const logged=!!user; $('public').classList.toggle('hide',logged);$('workspace').classList.toggle('show',logged);$('signin').style.display=logged?'none':'';$('signup').style.display=logged?'none':''; if(logged){$('auth').classList.remove('show');} };
-if(!client){msg('El acceso está pendiente de activar con un proyecto Supabase exclusivo de PICGIFT. No se almacenan credenciales en esta web.');}
-else{
-  client.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){showRecovery();return;}if(!recoveryMode)showUser(session?.user);});
-  client.auth.getUser().then(({data,error})=>{if(!error)showUser(data.user);});
-}
+const ready=/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SUPABASE_URL)&&SUPABASE_PUBLISHABLE_KEY?.length>24;
+const client=ready?createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+const msg=text=>{$('auth-msg').textContent=text;};
+let recovery=false,previous=null;
+const publish=user=>{const id=user?.id||null;if(id!==previous){previous=id;window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:user||null}}))}};
+function openRecovery(){recovery=true;$('auth').classList.add('show');$('auth-title').textContent='Cambia tu contraseña';$('auth-email').closest('label').classList.add('hidden');$('auth-password').autocomplete='new-password';$('auth-password').value='';$('terms').closest('label').classList.add('hidden');$('terms').required=false;$('google').classList.add('hidden');$('reset-pass').classList.add('hidden');$('auth-submit').textContent='Guardar contraseña';msg('Escribe una nueva contraseña de al menos 8 caracteres.');}
+function resetRecovery(){recovery=false;$('auth-email').closest('label').classList.remove('hidden');$('terms').closest('label').classList.remove('hidden');$('terms').required=true;$('google').classList.remove('hidden');$('reset-pass').classList.remove('hidden');}
+if(client){
+  client.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){openRecovery();return}if(!recovery)publish(session?.user||null);});
+  client.auth.getUser().then(({data,error})=>{if(!error)publish(data?.user||null);}).catch(()=>{});
+}else{msg('El registro está temporalmente desactivado. No introduzcas credenciales.');}
 $('auth-form').addEventListener('submit',async e=>{
- e.preventDefault();if(!client){msg('Registro temporalmente no disponible.');return;}
+ e.preventDefault();if(!client){msg('Acceso temporalmente no disponible.');return;}
  const email=$('auth-email').value.trim(),password=$('auth-password').value;
- if(!recoveryMode&&!$('terms').checked){msg('Debes confirmar la autorización para utilizar fotografías.');return;}
- const b=$('auth-submit');b.disabled=true;msg('Verificando…');
+ if(!recovery&&!$('terms').checked){msg('Confirma que cuentas con autorización para utilizar las imágenes.');return;}
+ const submit=$('auth-submit');submit.disabled=true;msg('Conectando de forma segura…');
  try{
-   if(recoveryMode){const {error}=await client.auth.updateUser({password});if(error)throw error;clearRecovery();msg('Contraseña actualizada correctamente.');$('auth').classList.remove('show');const {data}=await client.auth.getUser();showUser(data.user);return;}
-   const register=window.picgiftAuthMode==='register';
-   const result=register
-    ?await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,data:{photo_authorization_confirmed:true}}})
-    :await client.auth.signInWithPassword({email,password});
-   if(result.error)throw result.error;
-   if(register&&!result.data.session)msg('Revisa tu correo y confirma la cuenta antes de entrar.');
-   else if(result.data.user)showUser(result.data.user);
- }catch(error){msg(error.message||'No se pudo completar el acceso.');}finally{b.disabled=false;}
+  if(recovery){const {error}=await client.auth.updateUser({password});if(error)throw error;resetRecovery();$('auth').classList.remove('show');msg('Contraseña actualizada.');const {data}=await client.auth.getUser();publish(data.user);return;}
+  const signup=window.picgiftAuthMode==='register';
+  const res=signup?await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,data:{photo_authorization_confirmed:true}}}):await client.auth.signInWithPassword({email,password});
+  if(res.error)throw res.error;
+  if(signup&&!res.data.session)msg('Revisa tu correo para confirmar la cuenta. Después podrás iniciar sesión.');
+  else if(res.data?.user)publish(res.data.user);
+ }catch(err){msg(err.message||'No se pudo iniciar sesión.');}finally{submit.disabled=false;}
 });
 $('google').addEventListener('click',async()=>{
- if(!client){msg('Google Login pendiente de configuración.');return;}
- if(!$('terms').checked){msg('Confirma primero que tienes autorización para utilizar las fotografías.');return;}
- try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)throw error;}catch(error){msg(error.message||'Error de Google Login');}
+ if(!client){msg('Acceso con Google no disponible.');return}
+ if(!$('terms').checked){msg('Marca antes la confirmación de autorización.');return}
+ $('google').disabled=true;msg('Abriendo Google…');
+ try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)throw error}
+ catch(err){msg(err.message||'No se pudo abrir Google.');$('google').disabled=false;}
 });
 $('reset-pass').addEventListener('click',async()=>{
- if(!client){msg('Recuperación de contraseña pendiente de activación.');return;}
- const email=$('auth-email').value.trim();
- if(!email){msg('Introduce tu correo electrónico.');return;}
+ if(!client){msg('Recuperación desactivada.');return}const email=$('auth-email').value.trim();
+ if(!email){msg('Primero escribe tu correo electrónico.');return}
  const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
- msg(error?error.message:'Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña.');
+ msg(error?error.message:'Si la cuenta existe, recibirás un correo para restablecer la contraseña.');
 });
-$('logout').addEventListener('click',async()=>{
- if(client)await client.auth.signOut();
- showUser(null);
-});
+$('logout').addEventListener('click',async()=>{if(client){const {error}=await client.auth.signOut();if(error){msg(error.message);return}}publish(null);window.location.hash='inicio';});
