@@ -10,9 +10,10 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  assert.equal(ids.length,new Set(ids).size,'duplicate id in index.html');
  const needed=['picgift-studio','photo','drop-zone','choose-photo','change-photo','remove-photo',
    'crop-canvas','reference-face','reference-body','mobile-scenes','generate','studio-readiness',
-   'photo-ai-consent','studio-account','auth','mobile-app-hero','selected-scene-image'];
+   'photo-ai-consent','studio-account','auth','selected-scene-image'];
  for(const id of needed)assert.ok(ids.includes(id),'missing control: '+id);
  assert.ok(html.includes('mobile-app.css?v='),'mobile CSS linked');
+ assert.ok(html.includes('class="mobile-app-hero"'),'branded hero present');
  assert.ok(html.includes('src="./assets/halloween/logo-halloween.svg"'),'official brand logo');
  assert.ok(!html.includes('Ver demostración'),'no fake demo as primary action');
 });
