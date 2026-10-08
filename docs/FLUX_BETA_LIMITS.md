@@ -37,3 +37,23 @@ Official pricing: https://developers.cloudflare.com/workers-ai/platform/pricing/
 6. Populate tester allowlist with the remaining authorized tester accounts. At the time of setting the limits, only 2 users were listed, not 12.
 
 The separate `picgift-flux-smoke` function still limits fictional sample requests to two total per user and 20 across all testers in 24 hours; it is **not** the personal-photo beta quota.
+
+## Private portrait editor rollout, 8 October 2026
+
+- `picgift-flux-personal`: deployed, JWT-only Supabase Edge Function using the Cloudflare FLUX.2 Klein 4B API, with tester authorization, a private recipe allowlist, idempotent submissions and atomic shared quota allocation. This does not use the premium OpenAI API.
+- Browser: the original stays in private storage. Portrait, backdrop and optional face/body reference JPEGs are reduced to a maximum of 480 pixels per side before being uploaded to the same user's private job folder.
+- `picgift_scene_recipes` contains the four Halloween scene instructions privately, not in publicly deployed JavaScript or the GitHub repository.
+- Generated images go to the private `picgift-generated` bucket with job status `needs_review`. Storage RLS prevents owner signing/downloading until status is `completed`. `/admin.html` has a restricted review queue; only an authorized admin can inspect, approve or reject.
+- The free beta kill switch remains `picgift_flux_beta_config.enabled=false`. The server-side quota procedure rejects even service-role claims while disabled. The published Halloween studio will NOT route to paid OpenAI as a fallback.
+- `picgift-flux-edit-smoke` separately implements an authenticated, quota-limited, admin-and-pilot-only test of **two fictional reference images**, independent of the personal beta switch. This can verify whether FLUX actually integrates a subject with a background, rather than generating unrelated sample art.
+- CI `.github/workflows/flux-personal-ci.yml` runs browser syntax checks and static security tests. A successful CI result is not proof of faithful facial identity or correct personal-photo generation.
+
+### Remaining acceptance test before enabling more testers
+
+1. On an authenticated admin tester account, press **Probar edición real con 2 imágenes ficticias** in the studio and inspect the generated image. It must preserve the fictional model's face reasonably and integrate the chosen scene naturally, without anatomical faults.
+2. Confirm the signed/private results and denial of unauthorized access. Keep credits, Stripe, Google Play and public generation switches disabled.
+3. For a real-person pilot, use an adult's explicitly authorized photo; do not upload children's photos without express representative consent. Temporarily enable the FLUX flag only for this restricted pilot, check live job, real neuron consumption and visual quality, then review through `/admin.html`.
+4. Confirm approved photos are downloadable and deletable. Verify errors and quota limits. Immediately disable the flag if this fails or model output alters the face.
+5. Only then expand the allowlist. Do not present the beta as verified until the full private end-to-end test has passed.
+
+Current state: implementation deployed, **personal-beta generation NOT enabled**, two-image live smoke test pending administrator execution and visual review.
