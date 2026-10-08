@@ -90,10 +90,10 @@ async function generate(id:string,owner:string){
   const resultPath=owner+"/"+id+"/final."+(png?"png":"jpg");
   const {error:uploadError}=await db.storage.from("picgift-generated").upload(resultPath,bytes,{contentType:png?"image/png":"image/jpeg",cacheControl:"0",upsert:false});
   if(uploadError)throw Error("storage_error");
-  // No result is released until an administrator has actually inspected fidelity and safety.
-  await mark(id,owner,"needs_review",{result_path:resultPath,result_quality:"unverified"});
+  // Completed images are immediately available to their owner; quality is not manually verified.
+  await mark(id,owner,"completed",{result_path:resultPath,result_quality:"unverified"});
   await db.from("picgift_flux_free_usage").update({status:"completed"}).eq("job_id",id).eq("user_id",owner);
-  console.log("PICGIFT_FLUX_JOB_PENDING_REVIEW",id);
+  console.log("PICGIFT_FLUX_JOB_COMPLETED",id);
  }catch(error){
   const reason=error instanceof Error?error.message:"unexpected_error";
   const codes=["source_invalid","reference_invalid","scene_unavailable","cloudflare_unavailable","cloudflare_rate_limit","provider_invalid_image","storage_error","flux_disabled"];
@@ -124,7 +124,7 @@ Deno.serve(async request=>{
    .select("id,scene_id,status,created_at,result_quality")
    .eq("image_model",TAG).eq("status","needs_review")
    .order("created_at",{ascending:true}).limit(40);
-  return error?reply({error:"review_list_unavailable"},503):reply({jobs:data||[],quality_review_required:true});
+  return error?reply({error:"review_list_unavailable"},503):reply({jobs:data||[],quality_review_required:false});
  }
  if(action==="review"){
   const {data:admin}=await db.from("picgift_admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
@@ -148,7 +148,7 @@ Deno.serve(async request=>{
  const {count:scenesCount}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true}).eq("enabled",true).in("scene_id",SCENES);
  const account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")||"";
  const available=!configError&&config?.enabled===true&&campaign?.active_campaign==="halloween"&&scenesCount===4&&/^[a-f0-9]{32}$/i.test(account)&&!!Deno.env.get("CLOUDFLARE_API_TOKEN");
- if(action==="health")return reply({available,pilot:true,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,email_available:false,quality_review:true,remaining_daily_limit:config?.per_tester_daily_limit||0});
+ if(action==="health")return reply({available,pilot:true,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,email_available:false,quality_review:false,remaining_daily_limit:config?.per_tester_daily_limit||0});
  if(action!=="start")return reply({error:"unknown_action"},400);
  if(!available)return reply({error:"La prueba de retratos aún no está activada. No se ha procesado ninguna fotografía."},503);
  if(body.consent!==true||body.guardian_consent!==true)return reply({error:"Se requiere autorización expresa del adulto responsable de la fotografía y del menor, si lo hay."},400);
@@ -185,5 +185,5 @@ Deno.serve(async request=>{
   return reply({error:"Se alcanzó el límite gratuito de intentos de hoy (o el presupuesto compartido). No se ha generado ninguna foto."},429);
  }
  EdgeRuntime.waitUntil(generate(job.id,user.id));
- return reply({id:job.id,status:"queued",review_required:true},202);
+ return reply({id:job.id,status:"queued",review_required:false},202);
 });
