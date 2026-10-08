@@ -389,3 +389,9 @@ html[data-campaign="halloween"] .mobile-logo img{
 .brand img{display:block;width:76px;height:76px;object-fit:contain}
 .mobile-logo{justify-content:center}
 .mobile-logo img{display:block;width:50px!important;height:50px!important;object-fit:contain}
+
+/* Single-logo loading screen, centered in desktop and mobile viewports. */
+#splash{display:grid;place-items:center;min-height:100dvh;padding:24px;background:#080609}
+#splash .splash-inner{display:grid;place-items:center;width:100%;gap:0}
+#splash .splash-inner img{display:block;width:clamp(190px,45vw,340px);height:auto;max-height:60dvh;object-fit:contain;margin:auto;filter:drop-shadow(0 12px 32px #0008)}
+@media(max-width:600px){#splash .splash-inner img{width:min(72vw,290px)}}
