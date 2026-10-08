@@ -301,3 +301,7 @@ html[data-campaign="halloween"] .mobile-logo img{object-fit:cover;border-radius:
  html[data-campaign="halloween"] .halloween-hero .trustline{flex-wrap:wrap}
  html[data-campaign="halloween"] .page{background:none}
 }
+
+html[data-campaign="halloween"] .season-pill{background:#df651c26;border-color:#ff994d6b;color:#ffd6ac}
+html[data-campaign="halloween"] .info-block .ico{background:#7733145c;color:#ffc67e}
+html[data-campaign="halloween"] .studio-session button{color:#ffbb78}
