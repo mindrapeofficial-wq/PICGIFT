@@ -16,14 +16,14 @@ async function refresh(){
  try{
   const {data:{session}}=await client.auth.getSession();
   if(!session){buttons(false);status("Inicia sesión para consultar tus créditos. Los pagos están pendientes de activación.");return}
-  const data=await call({action:"status"});available=!!data.checkout_available;
+  const data=await call({action:"status"});available=isNative()?!!data.google_play_available:!!data.checkout_available;
   const credits=Math.max(0,Number(data.credits)||0);
   $("account-credits").textContent=credits+" "+(credits===1?"fotografía":"fotografías");
   const {data:orders}=await client.from("picgift_orders").select("id,status,created_at,product_id").order("created_at",{ascending:false}).limit(10);
   $("account-orders").textContent=(orders||[]).filter(x=>x.status==="paid").length+" pagos confirmados";
   const enable=available;
   buttons(enable);
-  status(enable?"Ya puedes elegir un pack. Los créditos se añaden únicamente cuando el proveedor confirma el cobro.":isNative()?"La compra en Android se habilitará tras la publicación en Google Play y la validación de la integración.":"Los packs están publicados, pero no se admiten pagos hasta terminar las pruebas de generación y activar Stripe.");
+  status(enable?"Ya puedes elegir un pack. Los créditos se añaden únicamente cuando el proveedor confirma el cobro.":isNative()?"La compra en Android se habilitará tras completar las pruebas de Google Play y activar las ventas.":"Los packs están publicados, pero no se admiten pagos hasta terminar las pruebas de generación y activar Stripe.");
  }catch(err){buttons(false);status("No se pudo comprobar el estado de los pagos. La compra no está disponible por seguridad.")}
 }
 async function pay(productId){
