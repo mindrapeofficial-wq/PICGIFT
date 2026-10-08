@@ -33,6 +33,10 @@ $('generate').addEventListener('click',()=>{if(!selected){toast('Elige primero u
 $('pricing-soon').addEventListener('click',()=>toast('Los pagos se activarán cuando esté listo el generador de imágenes.'));
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'inicio',true));
 initSnow();loadCatalog();navigate(location.hash.slice(1)||'inicio',true);
+ const splash=$('splash');if(splash){let seen=false;try{seen=sessionStorage.getItem('picgift_intro_2026')==='seen';sessionStorage.setItem('picgift_intro_2026','seen')}catch(e){}
+   window.setTimeout(()=>splash.classList.add('dismissed'),seen||window.matchMedia('(prefers-reduced-motion:reduce)').matches?0:1050);
+   window.setTimeout(()=>{if(splash.parentNode)splash.remove()},seen?200:1800);
+ }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
