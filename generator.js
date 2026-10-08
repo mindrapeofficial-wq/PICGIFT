@@ -4,7 +4,7 @@ const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSe
 const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
 const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
-let fluxMode=false,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
+let fluxMode=false,freeReady=false,premiumReady=false,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
 const sceneImages={
  'halloween-potions':'./assets/halloween/backdrops/potions.jpg',
  'halloween-autumn-arch':'./assets/halloween/backdrops/autumn-arch.jpg',
@@ -57,22 +57,34 @@ async function invoke(body){
 async function health(){
  try{
   const {data:{session}}=await client.auth.getSession();
-  if(!session){fluxMode=false;controlAi(false);status('Inicia sesión para comprobar la disponibilidad del estudio.');return}
-  const beta=await client.functions.invoke('picgift-flux-personal',{body:{action:'health'}});
+  if(!session){freeReady=false;premiumReady=false;controlAi(false);status('Inicia sesión para crear tu fotografía.');return}
+  const [beta,premium]=await Promise.all([
+   client.functions.invoke('picgift-flux-personal',{body:{action:'health'}}),
+   client.functions.invoke('picgift-generate',{body:{action:'health'}})
+  ]);
   const halloween=document.documentElement.dataset.campaign==='halloween';
-  const fluxChecked=beta.error===null&&beta.data?.free_beta===true;
-  fluxMode=halloween&&fluxChecked&&beta.data?.available===true;
-  const data=halloween?(fluxChecked?beta.data:{available:false,pilot:false,references_supported:false,email_available:false}):await invoke({action:'health'});
-  window.picgiftPilot=data.pilot===true;window.picgiftReferencesReady=data.references_supported===true;
-  controlAi(data.available===true);
-  status(data.available
-   ?(fluxMode?'FLUX gratuito en pruebas: tu retrato pasará revisión antes de estar disponible para descargar.':'Tu cuenta tiene acceso al estudio.')
-   :'El estudio de retratos personales está pendiente de activación. La prueba técnica de FLUX no edita fotografías personales.');
-  const email=$('photo-email-delivery');email.disabled=fluxMode||!data.email_available;
+  freeReady=halloween&&!beta.error&&beta.data?.available===true;
+  premiumReady=!premium.error&&premium.data?.available===true;
+  window.picgiftFreeReady=freeReady;window.picgiftPremiumReady=premiumReady;
+  window.picgiftPilot=premium.data?.pilot===true;
+  window.picgiftReferencesReady=freeReady||premium.data?.references_supported===true;
+  controlAi(freeReady||premiumReady);
+  status(freeReady||premiumReady?'Elige Foto Gratis o Foto Premium para crear tu retrato.':'No hay servicios disponibles para tu cuenta en este momento.');
+  const email=$('photo-email-delivery');email.disabled=!premiumReady||premium.data?.email_available!==true;
   if(email.disabled)email.checked=false;
-  email.parentElement.title=email.disabled?'Entrega por correo no disponible en esta beta.':'Enlace privado por correo.';
- }catch(e){fluxMode=false;controlAi(false);status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde.')}
+ }catch(e){freeReady=false;premiumReady=false;controlAi(false);status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde.')}
 }
+window.picgiftChooseService=async()=>{
+ await health();
+ const dialog=$('photo-service-choice'),free=$('choose-free-photo'),premium=$('choose-premium-photo');
+ free.disabled=!freeReady;premium.disabled=!premiumReady;
+ $('free-photo-availability').textContent=freeReady?'Crea un retrato con tu fotografía. Sujeto a la cuota diaria de la beta.':'No disponible para esta cuenta.';
+ $('premium-photo-availability').textContent=premiumReady?'Crea un retrato con el servicio Premium.':'El servicio Premium no está disponible ahora.';
+ return new Promise(resolve=>{
+  const finish=()=>{dialog.removeEventListener('close',finish);resolve(['free','premium'].includes(dialog.returnValue)?dialog.returnValue:null)};
+  dialog.returnValue='';dialog.addEventListener('close',finish);dialog.showModal();
+ });
+};
 async function preparedFile(file){
  if(file.size<=3.5*1024*1024)return file;
  try{
@@ -110,7 +122,9 @@ async function sceneFluxImage(sceneId){
 function finishButton(){working=false;controlAi(aiReady)}
 async function create(ev){
  if(working)return;
- if(!aiReady){status('El estudio está en preparación. No se enviará ninguna fotografía.');return;}const {file,references={},scene_id,format,pose,outfit,consent,email_requested}=ev.detail||{};
+ const {service='free'}=ev.detail||{};if(!['free','premium'].includes(service))return;fluxMode=service==='free';
+ if(!(fluxMode?freeReady:premiumReady)){status('El servicio elegido no está disponible.');return;}const {file,references={},scene_id,format,pose,outfit,consent,email_requested:requestedEmail}=ev.detail||{};
+ const email_requested=!fluxMode&&requestedEmail===true;
  if(!file||consent!==true){status('Selecciona una foto y autoriza su tratamiento antes de generar.');return}
  if(!Object.prototype.hasOwnProperty.call(labels,scene_id)){status('Este escenario está en preparación.');return}
  working=true;$('generate').disabled=true;$('generate').textContent='Preparando solicitud…';
@@ -296,83 +310,6 @@ async function removePhoto(id){
  try{await invoke({action:'delete',job_id:id});if(id===activeId){activeId=null;currentJob=null;stopPolling();$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden')}await refreshGallery();status('Fotografía eliminada de tu espacio privado.')}catch(e){status('No se pudo eliminar: '+e.message)}
 }
 function init(){
- // Before opening the personal photo beta, test true image-to-image compositing
- // using ONLY two publicly available fictional/example PICGIFT images.
- const sampleButton=$('flux-smoke-run');
- if(sampleButton)sampleButton.addEventListener('click',async()=>{
-   if(sampleButton.disabled)return;
-   sampleButton.disabled=true;
-   const target=$('flux-smoke-status'),img=$('flux-smoke-image');
-   target.textContent='Preparando dos imágenes ficticias para comprobar la edición real…';
-   img.classList.add('hidden');img.removeAttribute('src');
-   try{
-     const source=await fetch('./assets/halloween/guide/cuerpo-entero.webp',{cache:'force-cache'});
-     if(!source.ok)throw Error('No se pudo cargar la muestra ficticia.');
-     const subject=await smallFluxImage(await source.blob(),'fictional-subject.jpg');
-     const backdrop=await sceneFluxImage('halloween-potions');
-     async function encoded(file){
-       const bytes=new Uint8Array(await file.arrayBuffer());
-       let binary='';
-       for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-       return btoa(binary);
-     }
-     target.textContent='Editando un personaje ficticio dentro del decorado con FLUX. Puede tardar hasta 90 segundos…';
-     const {data,error}=await client.functions.invoke('picgift-flux-edit-smoke',{
-       body:{action:'run',confirm_fictional_samples:true,subject_b64:await encoded(subject),scene_b64:await encoded(backdrop)}
-     });
-     if(error){let message='No se pudo verificar la edición.';try{message=(await error.context.json())?.error||message}catch{}throw Error(message)}
-     if(data?.ok!==true||typeof data.image!=='string'||!data.image.startsWith('data:image/'))throw Error('La edición no devolvió una imagen válida.');
-     img.src=data.image;img.classList.remove('hidden');
-     target.textContent='Edición de dos imágenes completada con una muestra ficticia. Comprueba visualmente el rostro, las manos y el fondo; la beta personal sigue desactivada hasta su revisión.';
-   }catch(e){target.textContent='La verificación de edición no se completó: '+(e.message||'Error de conexión.');sampleButton.disabled=false;}
- });
- const fluxButton=$('flux-verify');
- if(fluxButton)fluxButton.addEventListener('click',async()=>{
-   fluxButton.disabled=true;
-   $('flux-status').textContent=window.picgiftI18n?.t('Comprobando Cloudflare…')||'Comprobando Cloudflare…';
-   try{
-     const {data:{session}}=await client.auth.getSession();
-     if(!session)throw new Error('Inicia sesión para verificar la conexión.');
-     const {data,error}=await client.functions.invoke('picgift-flux-check',{body:{action:'health'}});
-     if(error)throw new Error('No se ha podido consultar el servidor.');
-     const messages={
-       connected:'Cloudflare conectado. La generación gratuita todavía no está activada.',
-       missing_secrets:'Faltan los secretos de Cloudflare en Supabase.',
-       invalid_account_id:'El Account ID de Cloudflare no es válido.',
-       cloudflare_permission_error:'El token no tiene acceso a Workers AI o la cuenta no coincide.',
-       cloudflare_unavailable:'Cloudflare no responde correctamente.',
-       model_not_listed:'Cloudflare responde, pero no confirma FLUX.2 Klein 4B.',
-       cloudflare_error:'Cloudflare ha rechazado la comprobación.',
-       connection_timeout:'Cloudflare no ha respondido dentro del tiempo de espera.',
-       network_error:'El servidor no ha podido establecer la conexión de red con Cloudflare.',
-       token_invalid:'Cloudflare no ha validado el token. Revisa sus permisos y vigencia.',
-       server_network_error:'Supabase no puede conectarse a servicios externos. El fallo no es necesariamente del token de Cloudflare.',
-       cloudflare_network_error:'La red de Supabase funciona, pero no consigue conectar con la API de Cloudflare.',
-       cloudflare_token_format:'El token de Cloudflare está pegado con caracteres no válidos. Revisa su valor en Supabase.',
-       cloudflare_host_unreachable:'Supabase no consigue llegar a api.cloudflare.com, incluso sin token.',
-       cloudflare_auth_header_error:'Cloudflare responde sin autenticación, pero falla la cabecera privada. Revisa el token en Supabase.'
-     };
-     const message=messages[data?.status]||'Todavía no se ha verificado la conexión gratuita.';
-     const diagnostics=Array.isArray(data?.network_diagnostics)?data.network_diagnostics:[];
-     const diagnosticText=diagnostics.map(item=>item.name+': '+item.status+(item.category?' / '+item.category:'')+(item.type?' / '+item.type:'')+' / '+item.elapsed_ms+'ms').join(' | ');
-     const details=diagnosticText?' ('+diagnosticText+')':data&&typeof data.token_check==='string'&&typeof data.model_check==='string'?' (token: '+data.token_check+'; modelos: '+data.model_check+')':'';
-     $('flux-status').textContent=(window.picgiftI18n?.t(message)||message)+details;
-     $('flux-status').dataset.verified=String(data?.verified===true);
-     const samplePanel=$('flux-smoke-panel');
-     samplePanel?.classList.add('hidden');
-     if(data?.verified===true && samplePanel){
-       const {data:smoke,error:smokeError}=await client.functions.invoke('picgift-flux-edit-smoke',{body:{action:'health'}});
-       if(!smokeError&&smoke?.available===true){
-         samplePanel.classList.remove('hidden');
-         const button=$('flux-smoke-run');
-         button.disabled=!(smoke.remaining>0);
-         if(!(smoke.remaining>0))$('flux-smoke-status').textContent='Se han agotado las dos pruebas de edición ficticia autorizadas.';
-       }
-     }
-   }catch(e){$('flux-status').textContent=window.picgiftI18n?.t(e.message)||e.message}
-   finally{fluxButton.disabled=false;}
- });
-
  window.addEventListener('picgift:generate',create);
 
  $('refresh-job').addEventListener('click',async()=>{

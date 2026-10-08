@@ -31,7 +31,22 @@ Deno.serve(async request=>{
  try {body=await request.json();if(!body||typeof body!=="object"||Array.isArray(body))throw Error("not_object")}
  catch{return reply({error:"invalid_request"},400)}
  const action=body.action;
- if(action==="health")return reply({admin:true,scope:"web",portrait_generation_active:false});
+ if(action==="health")return reply({admin:true,scope:"web"});
+ if(action==="set_premium_global"){
+   if(!isInt(body.daily_limit,0,100))return reply({error:"invalid_premium_limit"},400);
+   const {error}=await db.from("picgift_premium_settings").update({daily_limit:body.daily_limit,updated_at:new Date().toISOString()}).eq("singleton",true);
+   return error?reply({error:"save_failed"},503):reply({ok:true});
+ }
+ if(action==="set_premium_user"){
+   const userId=String(body.user_id||"");
+   if(!/^[a-f0-9-]{36}$/i.test(userId)||!(body.daily_limit===null||isInt(body.daily_limit,0,100)))return reply({error:"invalid_premium_limit"},400);
+   const {data:target,error:targetError}=await db.auth.admin.getUserById(userId);
+   if(targetError||!target.user)return reply({error:"user_not_found"},404);
+   const result=body.daily_limit===null
+    ?await db.from("picgift_premium_user_limits").delete().eq("user_id",userId)
+    :await db.from("picgift_premium_user_limits").upsert({user_id:userId,daily_limit:body.daily_limit,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+   return result.error?reply({error:"save_failed"},503):reply({ok:true});
+ }
  if(action==="list"){
    const users:Array<{id:string,email:string,confirmed:boolean,created_at:string}>=[];
    for(let page=1;page<=5;page++){
@@ -50,6 +65,12 @@ Deno.serve(async request=>{
    ]);
    if(limits.error||pilots.error||settings.error||usage.error)
      return reply({error:"settings_unavailable"},503);
+   const [premiumSettings,premiumLimits]=await Promise.all([
+     db.from("picgift_premium_settings").select("daily_limit").eq("singleton",true).single(),
+     db.from("picgift_premium_user_limits").select("user_id,daily_limit")
+   ]);
+   if(premiumSettings.error||premiumLimits.error)return reply({error:"premium_settings_unavailable"},503);
+   const premiumMap=new Map((premiumLimits.data||[]).map((r:any)=>[r.user_id,r.daily_limit]));
    const limitsMap=new Map((limits.data||[]).map((r:any)=>[r.user_id,r]));
    const pilotsSet=new Set((pilots.data||[]).map((r:any)=>r.user_id));
    const todayCounts=new Map<string,number>();
@@ -59,10 +80,10 @@ Deno.serve(async request=>{
       todayCounts.set(r.user_id,(todayCounts.get(r.user_id)||0)+1);
    }
    return reply({
-     admin:true,utc_day:today(), settings:settings.data,global_used:total,
+     admin:true,utc_day:today(), settings:settings.data,premium_settings:premiumSettings.data,global_used:total,
      users:users.map(u=>{
        const record:any=limitsMap.get(u.id);
-       return {...u,is_pilot:pilotsSet.has(u.id),has_override:!!record,
+       return {...u,is_pilot:pilotsSet.has(u.id),has_override:!!record,premium_daily_limit:premiumMap.get(u.id)??null,
          daily_limit:record?.daily_limit??settings.data.default_user_daily_limit,
          enabled:record?.enabled??false,used_today:todayCounts.get(u.id)||0};
      })

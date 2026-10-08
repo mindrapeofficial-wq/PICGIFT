@@ -17,6 +17,7 @@
 <div id="status" class="status" role="status">Cargando datos…</div>
 <div class="layout">
 <section class="card"><div class="heading"><span class="eyebrow">CONFIGURACIÓN GENERAL</span><h2>Cuota gratuita</h2></div><p>El máximo global protege la cuota gratuita de Cloudflare. Reinicio de contadores a las 00:00 UTC.</p>
+<div class="notice"><strong>Generaciones Premium</strong><form id="premium-form"><label>Límite diario general por usuario<input id="premium-default-limit" type="number" min="0" max="100" required value="3"></label><button class="button primary" type="submit">Guardar límite Premium</button></form><p>De 0 a 100 intentos al día. Reinicio a las 00:00 UTC. Puedes asignar un límite individual; deja su casilla vacía para aplicar el general. Los límites no añaden créditos a los packs.</p></div>
 <form id="global-form">
 <label>Generaciones globales al día<input id="global-limit" type="number" min="0" max="48" required></label>
 <label>Límite predeterminado por tester<input id="default-limit" type="number" min="0" max="20" required></label>
@@ -38,5 +39,5 @@
  <div id="flux-review-list" class="user-list"></div>
 </section>
 </div></main>
-<script type="module" src="./admin.js?v=1"></script>
+<script type="module" src="./admin.js?v=premium-daily-limits-20261008-v1"></script>
 <script type="module" src="./flux-review-admin.js?v=20261008-v1"></script></body></html>

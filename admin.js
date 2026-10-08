@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 const $=id=>document.getElementById(id);
 const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let users=[],settings=null,globalUsed=0;
+let users=[],settings=null,premiumSettings=null,globalUsed=0;
 const msg=(s,error=false)=>{$('status').textContent=s;$('status').classList.toggle('error',error)};
 async function api(body){
  const {data,error}=await client.functions.invoke('picgift-admin',{body});
@@ -21,6 +21,7 @@ function render(){
  $('count-remaining').textContent=Math.max(0,settings.global_daily_limit-globalUsed);
  $('global-limit').value=String(settings.global_daily_limit);
  $('default-limit').value=String(settings.default_user_daily_limit);
+ $('premium-default-limit').value=String(premiumSettings?.daily_limit??3);
  const container=$('user-list');container.replaceChildren();
  if(!filtered.length){const blank=document.createElement('div');blank.className='empty';blank.textContent='No hay usuarios que coincidan con la búsqueda.';container.append(blank);return}
  const sorted=[...filtered].sort((a,b)=>Number(b.enabled)-Number(a.enabled)||a.email.localeCompare(b.email));
@@ -30,6 +31,17 @@ function render(){
    const title=document.createElement('strong');title.textContent=user.email||'Cuenta sin correo';
    const meta=document.createElement('span');meta.className='meta';meta.textContent=(user.confirmed?'Correo verificado':'Correo sin confirmar')+' · '+user.used_today+' usadas hoy'+(user.is_pilot?' · Beta tradicional':'');
    info.append(title,meta);
+   const premiumLabel=document.createElement('label');premiumLabel.textContent='Premium por día ';
+   const premiumLimit=document.createElement('input');premiumLimit.type='number';premiumLimit.min='0';premiumLimit.max='100';premiumLimit.step='1';premiumLimit.value=user.premium_daily_limit===null?'':String(user.premium_daily_limit);premiumLimit.placeholder='General: '+(premiumSettings?.daily_limit??3);premiumLimit.setAttribute('aria-label','Límite Premium diario para '+user.email);
+   const premiumSave=document.createElement('button');premiumSave.type='button';premiumSave.className='button';premiumSave.textContent='Guardar Premium';
+   premiumLabel.append(premiumLimit);info.append(premiumLabel,premiumSave);
+   premiumSave.addEventListener('click',async()=>{
+    const n=premiumLimit.value===''?null:Number(premiumLimit.value);
+    if(n!==null&&(!Number.isInteger(n)||n<0||n>100)){msg('El límite Premium debe estar entre 0 y 100.',true);return}
+    premiumSave.disabled=true;
+    try{await api({action:'set_premium_user',user_id:user.id,daily_limit:n});user.premium_daily_limit=n;msg('Límite Premium actualizado para '+user.email);}
+    catch(e){msg('No se pudo guardar: '+e.message,true)}finally{premiumSave.disabled=false}
+   });
    const label=document.createElement('label');label.className='user-enable';
    const enabled=document.createElement('input');enabled.type='checkbox';enabled.checked=user.enabled;
    const caption=document.createElement('span');caption.textContent='Habilitado';label.append(enabled,caption);
@@ -50,12 +62,19 @@ async function load(){
  msg('Actualizando información…');
  try{
    const data=await api({action:'list'});if(!data?.admin||!Array.isArray(data.users))throw Error('Respuesta de administración no válida');
-   users=data.users;settings=data.settings;globalUsed=data.global_used||0;
+   users=data.users;settings=data.settings;premiumSettings=data.premium_settings;globalUsed=data.global_used||0;
    $('day-label').textContent=data.utc_day+' (UTC)';
    render();msg('Administración lista. Cambios protegidos por Supabase.');
  }catch(e){msg('Error al actualizar: '+e.message,true)}
 }
 $('refresh').addEventListener('click',load);
+$('premium-form').addEventListener('submit',async e=>{
+ e.preventDefault();const n=Number($('premium-default-limit').value);
+ if(!Number.isInteger(n)||n<0||n>100){msg('El límite Premium debe estar entre 0 y 100.',true);return}
+ const button=$('premium-form').querySelector('button');button.disabled=true;
+ try{await api({action:'set_premium_global',daily_limit:n});premiumSettings.daily_limit=n;render();msg('Límite diario Premium guardado.');}
+ catch(e){msg('No se pudo guardar: '+e.message,true)}finally{button.disabled=false}
+});
 $('user-search').addEventListener('input',render);
 $('filter-enabled').addEventListener('change',render);
 $('global-form').addEventListener('submit',async e=>{

@@ -32,7 +32,7 @@ function updateStudio(){
  login.classList.add('hidden');
  generate.classList.remove('hidden');
  generate.disabled=!!window.picgiftGenerating;
- const needsPack=ready&&window.picgiftPilot!==true&&!(window.picgiftCreditsAvailable>0);
+ const needsPack=false;
  generate.replaceChildren(document.createTextNode(window.picgiftGenerating?'Preparando fotografía…':needsPack?'Elegir un pack':'Crear mi foto'));
  if(!window.picgiftGenerating){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');const use=document.createElementNS('http://www.w3.org/2000/svg','use');use.setAttribute('href','#i-arrow');svg.appendChild(use);svg.setAttribute('aria-hidden','true');generate.appendChild(svg);}
  $('studio-step-photo').classList.toggle('is-done',hasPhoto);
@@ -89,9 +89,9 @@ $('generate').addEventListener('click',async()=>{
  if(!selected||selected.source!=='picgift'){toast('Elige un escenario disponible.');$('mobile-scenes').scrollIntoView({behavior:'smooth',block:'center'});return}
  if(!user){openAuth('login');return}
  if(!$('photo-ai-consent').checked){toast('Para continuar acepta la autorización de uso de la fotografía.');$('photo-ai-consent').scrollIntoView({behavior:'smooth',block:'center'});$('photo-ai-consent').focus();return}
- if(window.picgiftAiReady!==true){toast('La generación de Halloween está en preparación. Tu foto no se ha enviado.');return}
- if(window.picgiftPilot!==true&&!(window.picgiftCreditsAvailable>0)){navigate('precios');return;}
- try {if(window.picgiftGenerating)return;window.picgiftGenerating=true;updateStudio();const prepared=await window.picgiftPhotoEditor.exportFile();window.picgiftGenerating=false;window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{file:prepared,references:window.picgiftPhotoEditor.references(),scene_id:selected.id,format:['vertical','horizontal'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}));}catch(e){window.picgiftGenerating=false;updateStudio();toast(e.message||'No se pudo preparar el encuadre.')}
+ const service=await window.picgiftChooseService?.();if(!service)return;
+ if(service==='premium'&&window.picgiftPilot!==true&&!(window.picgiftCreditsAvailable>0)){navigate('precios');return;}
+ try {if(window.picgiftGenerating)return;window.picgiftGenerating=true;updateStudio();const prepared=await window.picgiftPhotoEditor.exportFile();window.picgiftGenerating=false;window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{service,file:prepared,references:window.picgiftPhotoEditor.references(),scene_id:selected.id,format:['vertical','horizontal'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}));}catch(e){window.picgiftGenerating=false;updateStudio();toast(e.message||'No se pudo preparar el encuadre.')}
 });
 // Premium controls are hidden during the private AI test; no payments are offered.
 window.addEventListener('picgift:route',e=>navigate(e.detail.name));

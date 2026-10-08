@@ -1,3 +1,4 @@
+import { buildPortraitPrompt } from "../_shared/portrait-prompt.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "npm:@supabase/supabase-js@2.57.4";
 
@@ -63,24 +64,15 @@ async function generate(id:string,owner:string){
   const paths=job.reference_paths||{};
   const subject=await preview(paths.flux_subject);
   const backdrop=await preview(paths.flux_scene);
-  const extras:Blob[]=[];
-  for(const kind of ["flux_face","flux_body"])if(paths[kind])extras.push(await preview(paths[kind]));
-  const prompt=[
-   "Create a realistic professional family portrait photograph from supplied reference images.",
-   "Input image 0 is the specific person; retain their visible face structure, eyes, nose, mouth, hairstyle, skin tone, age appearance and realistic body proportions as faithfully as possible.",
-   "Input image 1 is the authorized seasonal set to recreate in perspective, architectural layout, lighting and detail.",
-   extras.length?"Any additional input images of the same person are supporting face/body references, never extra people.":"",
-   "Place that same person believably in the following scene:",safe(scene.recipe.flux_prompt,3500),
-   "Desired pose:",safe(job.requested_pose,90),"Wardrobe:",safe(job.requested_outfit,90),
-   "Maintain photorealism, anatomically correct hands, natural head-body scaling, grounded feet or seated contact shadows, natural neutral-balanced skin color. Avoid face swapping artifacts, extra limbs, deformed fingers, illustrations, text, watermarks or logos.",
-   "Do not invent extra people. This is an editorially directed family photograph."
-  ].filter(Boolean).join(" ");
+  const extras:Array<{kind:string,blob:Blob}>=[];
+  for(const kind of ["face","body"])if(paths["flux_"+kind])extras.push({kind,blob:await preview(paths["flux_"+kind])});
+  const prompt=buildPortraitPrompt(scene,{analysis_available:false,note:"Use visible source and optional references directly; do not invent measurements."},job,extras);
   if(prompt.length>7500)throw Error("prompt_invalid");
   phase="generating";await mark(id,owner,phase);
   const form=new FormData();form.set("prompt",prompt);
   const [width,height]=SIZES[job.requested_format]||SIZES.square;
   form.set("width",String(width));form.set("height",String(height));
-  for(const [idx,img] of [subject,backdrop,...extras].entries())form.set("input_image_"+idx,new File([img],"reference-"+idx+".jpg",{type:"image/jpeg"}));
+  for(const [idx,img] of [subject,backdrop,...extras.map(r=>r.blob)].entries())form.set("input_image_"+idx,new File([img],"reference-"+idx+".jpg",{type:"image/jpeg"}));
   const account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")||"";
   const token=Deno.env.get("CLOUDFLARE_API_TOKEN")||"";
   if(!/^[a-f0-9]{32}$/i.test(account)||!token)throw Error("cloudflare_unavailable");

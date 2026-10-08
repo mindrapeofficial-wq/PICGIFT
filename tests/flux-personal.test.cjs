@@ -43,8 +43,22 @@ test('Browser scales each personal and scene reference without leaving the priva
  assert.match(frontend,/flux-subject\.jpg/);
  assert.match(frontend,/guardian_consent:consent===true/);
 });
-test('Halloween never falls back to the paid OpenAI engine',()=>{
+test('Free and Premium require an explicit service selection; no automatic paid fallback',()=>{
  assert.match(frontend,/const halloween=document\.documentElement\.dataset\.campaign==='halloween'/);
- assert.match(frontend,/const data=halloween\?\(fluxChecked\?beta\.data:/);
+ assert.match(frontend,/fluxMode=service==='free'/);
+ assert.match(frontend,/\['free','premium'\]\.includes\(service\)/);
+ assert.doesNotMatch(frontend,/confirm_fictional_samples/);
+ assert.match(index,/id="choose-free-photo"/);
+ assert.match(index,/id="choose-premium-photo"/);
  assert.match(index,/autorizaci.n expresa de sus representantes/i);
+});
+test('Both references retain their semantic roles and complete recipe instructions',async()=>{
+ const {buildPortraitPrompt}=await import('../supabase/functions/_shared/portrait-prompt.ts');
+ const recipe={recipe:{identity_rules:{preserve:['unique-face-marker']},photography:{composition:'body-proportion-marker'},quality:{review:'quality-marker'},flux_prompt:'scene-marker'}};
+ const job={requested_format:'vertical',requested_pose:'standing',requested_outfit:'wizard'};
+ const prompt=buildPortraitPrompt(recipe,{analysis_available:false},job,[{kind:'body'}]);
+ for(const marker of ['unique-face-marker','body-proportion-marker','quality-marker','scene-marker'])assert.ok(prompt.includes(marker));
+ assert.ok(prompt.includes('in this order: body.'));
+ assert.match(backend,/buildPortraitPrompt\(scene,/);
+ assert.match(backend,/extras\.push\(\{kind,blob:/);
 });
