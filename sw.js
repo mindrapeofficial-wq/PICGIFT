@@ -1,10 +1,10 @@
 /* PICGIFT Navidad 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-shell-2026-10-v1";
+const VERSION="picgift-shell-2026-10-v2";
 const SHELL=[
  "/","/index.html","/styles.css","/app.js","/auth.js","/generator.js",
- "/payments.js","/config.js","/manifest.webmanifest","/logo.svg","/scenes.json",
+ "/payments.js","/install.js","/config.js","/manifest.webmanifest","/logo.svg","/scenes.json",
  "/assets/scenes/golden-bokeh.jpg","/assets/scenes/reading-corner.jpg",
  "/assets/scenes/santa-workshop.jpg","/assets/scenes/christmas-chair.jpg",
  "/assets/scenes/white-trunk.jpg","/assets/scenes/winter-window.jpg",
