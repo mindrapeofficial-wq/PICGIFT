@@ -395,3 +395,11 @@ html[data-campaign="halloween"] .mobile-logo img{
 #splash .splash-inner{display:grid;place-items:center;width:100%;gap:0}
 #splash .splash-inner img{display:block;width:clamp(190px,45vw,340px);height:auto;max-height:60dvh;object-fit:contain;margin:auto;filter:drop-shadow(0 12px 32px #0008)}
 @media(max-width:600px){#splash .splash-inner img{width:min(72vw,290px)}}
+
+/* Official full-width PICGIFT wordmark: visible at the intended scale. */
+#splash .splash-inner{width:100%;max-width:none;display:flex;align-items:center;justify-content:center}
+#splash .splash-inner img{width:min(88vw,780px)!important;height:auto!important;max-height:70dvh!important;object-fit:contain!important;animation:none}
+html[data-campaign="halloween"] .sidebar .brand img{width:154px;height:108px;max-width:100%;object-fit:contain}
+html[data-campaign="halloween"] .sidebar .brand{min-height:112px}
+html[data-campaign="halloween"] .mobile-logo img{width:110px!important;height:68px!important;object-fit:contain}
+@media(max-width:600px){#splash .splash-inner img{width:94vw!important;max-height:65dvh!important}html[data-campaign="halloween"] .mobile-logo img{width:94px!important;height:60px!important}}
