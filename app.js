@@ -30,6 +30,7 @@ function updateStudio(){
  const login=$('studio-login'),generate=$('generate');if(!login||!generate)return;
  const hasPhoto=!!file,hasScene=!!selected&&selected.source==='picgift',hasConsent=$('photo-ai-consent').checked;
  const signedIn=!!user,ready=signedIn&&hasPhoto&&hasScene&&hasConsent&&window.picgiftAiReady===true;
+ $('studio-account').textContent=signedIn?'Sesión activa: '+user.email:'Sin iniciar sesión';
  login.classList.toggle('hidden',signedIn);
  generate.classList.toggle('hidden',!signedIn);
  generate.disabled=!ready;
