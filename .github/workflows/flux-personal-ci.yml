@@ -1,0 +1,27 @@
+name: FLUX personal editor checks
+on:
+  push:
+    paths:
+      - 'generator.js'
+      - 'index.html'
+      - 'flux-review-admin.js'
+      - 'supabase/functions/picgift-flux-personal/**'
+      - 'tests/flux-personal.test.cjs'
+      - '.github/workflows/flux-personal-ci.yml'
+  workflow_dispatch:
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse browser modules
+        run: |
+          node --input-type=module --check < generator.js
+          node --input-type=module --check < flux-review-admin.js
+      - name: Run FLUX security checks
+        run: node --test tests/flux-personal.test.cjs
