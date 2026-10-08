@@ -1,7 +1,7 @@
 /* PICGIFT Halloween 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-shell-halloween-2026-v5";
+const VERSION="picgift-shell-halloween-2026-promo-v6";
 const SHELL=[
  "/","/index.html","/styles.css","/app.js","/auth.js","/generator.js",
  "/assets/halloween/icon-192.png","/assets/halloween/icon-512.png","/i18n.js","/locales/en.json","/collection.css","/experience.js","/photo-editor.js",
