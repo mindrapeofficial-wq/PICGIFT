@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en" data-campaign="halloween"><head>
+<html lang="es" data-campaign="halloween"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090609">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="Turn family photos into magical portraits with seasonal storybook scenes. Discover PICGIFT’s Halloween collection of pumpkins, little witches and warm lanterns.">
 <link rel="icon" href="./assets/halloween/app-icon-halloween.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest?v=halloween-2026">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="./styles.css?v=picgift-halloween-2026-2"><link rel="stylesheet" href="./collection.css?v=5"><title>PICGIFT · Halloween 2026</title>
+<link rel="stylesheet" href="./styles.css?v=picgift-halloween-2026-2"><link rel="stylesheet" href="./collection.css?v=5"><link rel="stylesheet" href="./mobile-app.css?v=halloween-mobile-v1"><title>PICGIFT · Halloween 2026</title>
 <script src="./i18n.js"></script></head><body>
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
@@ -106,6 +106,17 @@
     </div>
     <div id="workspace" class="hidden">
       <section class="page" data-page="crear" hidden id="picgift-studio">
+        <header class="mobile-app-hero" aria-label="PICGIFT Halloween 2026">
+          <div class="mobile-app-hero__art">
+            <img class="mobile-app-hero__brand" src="./assets/halloween/logo-halloween.svg" alt="PICGIFT">
+            <button type="button" class="mobile-app-hero__settings" data-route="cuenta" aria-label="Abrir mi perfil"><svg><use href="#i-user"/></svg></button>
+          </div>
+          <div class="mobile-app-hero__copy">
+            <span class="mobile-app-hero__season">EDICIÓN HALLOWEEN 2026</span>
+            <h1>Halloween <em>2026</em></h1>
+            <p>Convierte tus fotos en recuerdos mágicos y misteriosos.</p>
+          </div>
+        </header>
         <div class="top-heading studio-heading">
           <div><span class="eyebrow">PICGIFT · Estudio fotográfico</span><h1>Su aventura empieza aquí</h1><p>Elige una foto nítida, encuentra su escenario y prepara un recuerdo lleno de magia.</p></div>
           <span class="studio-private-note">Campaña Halloween · Sin cobros</span>
@@ -118,7 +129,7 @@
         </div>
         <div class="create-layout studio-layout">
           <div class="panel studio-main-panel">
-            <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 1</span><h2>Elige tu fotografía</h2></div></div>
+            <div class="section-head studio-section-title studio-photo-title"><div><span class="eyebrow">PASO 1</span><h2>Tu fotografía</h2></div></div>
             <div class="photo-advice"><strong>La mejor foto: cuerpo completo, cabeza recta y mirada al frente.</strong>Procura que se vean el cabello, las manos y los pies. Usa luz suave, un fondo sencillo y una imagen nítida, sin filtros. Estas condiciones ayudan a conservar proporciones y rasgos naturales.</div>
             <details class="photo-guide"><summary>Ver ejemplos: qué foto subir y qué evitar</summary><div class="guide-grid">
               <figure><img src="./assets/halloween/guide/cuerpo-entero.webp" alt="Ejemplo ficticio correcto: cuerpo completo, cabeza recta y mirada frontal" loading="lazy"><figcaption><strong>✓ La más recomendable</strong>Cuerpo entero, manos y pies visibles. Cabeza recta y mirando al frente.</figcaption></figure>
@@ -128,9 +139,9 @@
             <div class="upload-zone" id="drop-zone" role="group" aria-label="Seleccionar una fotografía">
               <div id="upload-empty">
                 <svg aria-hidden="true"><use href="#i-upload"/></svg>
-                <h3>Sube la foto que quieres transformar</h3>
-                <p>JPG, PNG o WEBP · Hasta 15 MB · Rostros visibles</p>
-                <button type="button" class="btn primary" id="choose-photo">Elegir foto del móvil</button>
+                <h3>Sube tu foto</h3>
+                <p>JPG, PNG o WEBP · Máx. 15 MB</p>
+                <button type="button" class="btn primary" id="choose-photo">Seleccionar fotografía</button>
               </div>
               <div class="hidden" id="upload-loaded">
                 <img id="chosen-photo" class="hidden" alt="Fotografía original seleccionada">
@@ -143,10 +154,13 @@
               </div>
               <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Subir fotografía para editar">
             </div>
-            <div class="reference-grid"><div class="reference-card"><strong>Foto del rostro <span class="tiny">· Opcional</span></strong><p>Una foto cercana, nítida, con la cabeza recta y mirando al frente.</p><input type="file" id="reference-face" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Foto del rostro opcional"><img id="reference-face-preview" class="hidden" alt="Referencia opcional seleccionada: foto del rostro"><button type="button" id="reference-face-choose" class="btn outline">Añadir foto del rostro</button><button type="button" id="reference-face-remove" class="btn quiet hidden">Quitar referencia</button><div id="reference-face-status" class="reference-status" role="status">Opcional · Sin fotografía</div></div><div class="reference-card"><strong>Foto del cuerpo <span class="tiny">· Opcional</span></strong><p>Una foto de cuerpo completo, con postura natural, manos y pies visibles.</p><input type="file" id="reference-body" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Foto del cuerpo opcional"><img id="reference-body-preview" class="hidden" alt="Referencia opcional seleccionada: foto del cuerpo"><button type="button" id="reference-body-choose" class="btn outline">Añadir foto del cuerpo</button><button type="button" id="reference-body-remove" class="btn quiet hidden">Quitar referencia</button><div id="reference-body-status" class="reference-status" role="status">Opcional · Sin fotografía</div></div></div>
+            <details class="studio-references">
+              <summary><svg><use href="#i-photo"/></svg> Referencias de rostro y cuerpo <span>Opcional</span></summary>
+              <div class="reference-grid"><div class="reference-card"><strong>Foto del rostro <span class="tiny">· Opcional</span></strong><p>Una foto cercana, nítida, con la cabeza recta y mirando al frente.</p><input type="file" id="reference-face" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Foto del rostro opcional"><img id="reference-face-preview" class="hidden" alt="Referencia opcional seleccionada: foto del rostro"><button type="button" id="reference-face-choose" class="btn outline">Añadir foto del rostro</button><button type="button" id="reference-face-remove" class="btn quiet hidden">Quitar referencia</button><div id="reference-face-status" class="reference-status" role="status">Opcional · Sin fotografía</div></div><div class="reference-card"><strong>Foto del cuerpo <span class="tiny">· Opcional</span></strong><p>Una foto de cuerpo completo, con postura natural, manos y pies visibles.</p><input type="file" id="reference-body" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Foto del cuerpo opcional"><img id="reference-body-preview" class="hidden" alt="Referencia opcional seleccionada: foto del cuerpo"><button type="button" id="reference-body-choose" class="btn outline">Añadir foto del cuerpo</button><button type="button" id="reference-body-remove" class="btn quiet hidden">Quitar referencia</button><div id="reference-body-status" class="reference-status" role="status">Opcional · Sin fotografía</div></div></div>
+            </details>
             <div class="mobile-scene-selector" id="mobile-scene-selector">
-              <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 2</span><h2>Elige un escenario</h2></div></div>
-              <p class="muted" style="font-size:12px;margin-bottom:11px">Elige su escenario favorito. El estudio te indicará cuándo está disponible para crear.</p>
+              <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 2</span><h2>Elige escenario</h2></div></div>
+              <button class="mobile-app-all-scenes" type="button" data-route="escenarios">VER TODOS <svg><use href="#i-arrow"/></svg></button>
               <div class="mobile-scene-grid" id="mobile-scenes" role="group" aria-label="Conceptos de Halloween"></div>
             </div>
             <details class="studio-advanced" id="studio-advanced">
@@ -162,8 +176,8 @@
               <label class="check studio-email"><input id="photo-email-delivery" type="checkbox"><span>Enviarme un enlace privado por correo cuando esté disponible (opcional).</span></label>
             </div>
             <div class="studio-actionbar" id="studio-actionbar">
-              <button class="btn primary" id="generate" type="button" disabled>Estudio próximamente</button>
-              <button class="btn primary hidden" id="studio-login" type="button">Iniciar sesión para crear</button>
+              <button class="btn primary" id="generate" type="button">Crear mi foto <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+              <button class="btn primary hidden" id="studio-login" type="button">Iniciar sesión para crear <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
               <div class="studio-readiness" id="studio-readiness" role="status">Primero añade tu fotografía.</div>
             </div>
             <div class="notice studio-generator-status" id="generator-status" role="status" aria-live="polite">Inicia sesión para consultar la disponibilidad del estudio.</div>
@@ -233,12 +247,11 @@
     <footer class="page" style="padding-top:0"><div class="legal">© 2026 PICGIFT · Colección Halloween 2026 · <a href="./privacy.html">Privacidad</a> · <a href="./delete-account.html">Eliminar cuenta</a> · <button class="text-btn" data-route="creditos">Avisos y créditos</button></div></footer>
   </main>
 </div>
-<nav class="mobile-nav" aria-label="Navegación inferior">
-<button class="active" data-route="inicio"><svg><use href="#i-home"/></svg>Inicio</button>
-<button data-route="escenarios"><svg><use href="#i-gallery"/></svg>Fondos</button>
-<button data-route="crear"><svg><use href="#i-spark"/></svg>Crear</button>
-<button data-route="mis-fotos"><svg><use href="#i-gallery"/></svg>Mis fotos</button>
-<button data-route="cuenta"><svg><use href="#i-user"/></svg>Cuenta</button>
+<nav class="mobile-nav" aria-label="Menú de PICGIFT">
+<button data-route="crear" class="active" type="button"><svg><use href="#i-home"/></svg><span>Crear</span></button>
+<button data-route="mis-fotos" type="button"><svg><use href="#i-gallery"/></svg><span>Mis fotos</span></button>
+<button data-route="escenarios" type="button"><svg><use href="#i-spark"/></svg><span>Inspiración</span></button>
+<button data-route="cuenta" type="button"><svg><use href="#i-user"/></svg><span>Perfil</span></button>
 </nav>
 <div id="auth" class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
  <div class="dialog">
