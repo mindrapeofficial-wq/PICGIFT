@@ -10,23 +10,26 @@ function card(s){
  const available=s.source==='picgift',previewable=available||['concept','sample'].includes(s.source);
  return '<article class="scene-card'+(available?'':' scene-unavailable')+'"'+(previewable?' data-select="'+escapeHTML(s.id)+'" tabindex="0" role="button" aria-label="Ver escenario '+escapeHTML(s.name)+'"':'')+'><div class="scene-pic"><img src="'+imageRef(s)+'" loading="lazy" alt="Decorado de '+escapeHTML(s.name)+'" onerror="this.style.opacity=.1"><span class="scene-label">'+escapeHTML(available?'Colección Halloween':'Próximamente')+'</span></div><div class="scene-body"><h3>'+escapeHTML(s.name)+'</h3><p>'+escapeHTML(s.description)+'</p><div class="scene-bottom"><span>'+(available?'Elegir este escenario':'Decorado de la colección')+'</span>'+(previewable?'<button class="round-arrow" type="button" aria-label="Ver '+escapeHTML(s.name)+'" data-select="'+escapeHTML(s.id)+'">→</button>':'')+'</div></div></article>'
 }
+const referenceScenes=[{"id":"reference-pumpkin-forest","name":"Bosque de calabazas","category":"Bosques","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/pumpkin-forest.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-haunted-castle","name":"Castillo embrujado","category":"Fantasía","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/haunted-castle.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-portrait-hall","name":"Salón de retratos","category":"Clásicos","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/portrait-hall.webp","poses":["De pie"],"ages":"Retratos familiares"}];
 function renderCatalog(){
+ scenes=[...referenceScenes,...scenes.filter(s=>!s.id.startsWith("reference-"))];
  $('home-scenes').innerHTML=scenes.slice(0,3).map(card).join('');
  $('collection-scenes').innerHTML=scenes.filter(s=>filter==='Todos'||s.category===filter).map(card).join('')||'<div class="notice">No hay escenarios en esta categoría.</div>';
  $('credits-list').innerHTML='<p>Fotografías de muestra autorizadas y decorados de la colección PICGIFT. Las imágenes ilustran el estilo; cada retrato personalizado puede variar.</p>';
- if(!selected&&scenes.length)selectScene(scenes.find(x=>x.id==='halloween-pumpkin-bench')?.id||scenes[0].id,false);
+ if(!selected&&scenes.length)selectScene(scenes[0].id,false);
  renderMobileScenes();updateStudio();
 }
 async function loadCatalog(){try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}catch(e){scenes=staticScenes;toast('Catálogo de Halloween cargado sin conexión al servidor.')}renderCatalog()}
 function renderMobileScenes(){
  const wrap=$('mobile-scenes');if(!wrap)return;
- const order=['halloween-pumpkin-bench','halloween-autumn-arch','halloween-lantern-street','halloween-potions'];
+ const order=['reference-pumpkin-forest','reference-haunted-castle','reference-portrait-hall','halloween-pumpkin-bench','halloween-autumn-arch','halloween-lantern-street','halloween-potions'];
  const available=[...scenes].sort((a,b)=>(order.indexOf(a.id)===-1?99:order.indexOf(a.id))-(order.indexOf(b.id)===-1?99:order.indexOf(b.id)));
  wrap.innerHTML=available.map(s=>'<button type="button" class="mobile-scene-option'+(selected?.id===s.id?' is-selected':'')+'" data-select="'+escapeHTML(s.id)+'" aria-pressed="'+(selected?.id===s.id)+'" aria-label="Elegir '+escapeHTML(s.name)+'"><img loading="lazy" src="'+imageRef(s)+'" alt=""><span>'+escapeHTML(s.name)+'</span><span class="mobile-scene-check" aria-hidden="true">✓</span></button>').join('');
 }
 function updateStudio(){
  const login=$('studio-login'),generate=$('generate');if(!login||!generate)return;
  const hasPhoto=!!file,hasScene=!!selected&&selected.source==='picgift',hasConsent=$('photo-ai-consent').checked;
+ document.body.classList.toggle('studio-has-photo',hasPhoto);
  const signedIn=!!user,ready=signedIn&&hasPhoto&&hasScene&&hasConsent&&window.picgiftAiReady===true&&!window.picgiftGenerating;
  $('studio-account').textContent=signedIn?'Sesión activa: '+user.email:'Sin iniciar sesión';
  login.classList.add('hidden');
@@ -86,7 +89,7 @@ window.addEventListener('pagehide',e=>{if(!e.persisted&&localURL)URL.revokeObjec
 const dz=$('drop-zone');['dragenter','dragover'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.add('dragging')}));['dragleave','drop'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.remove('dragging')}));dz.addEventListener('drop',e=>acceptFile(e.dataTransfer.files[0]));
 $('generate').addEventListener('click',async()=>{
  if(!file){$('photo').click();return}
- if(!selected||selected.source!=='picgift'){toast('Elige un escenario disponible.');$('mobile-scenes').scrollIntoView({behavior:'smooth',block:'center'});return}
+ if(!selected||selected.source!=='picgift'){toast('Este nuevo escenario estará disponible próximamente. Puedes elegir uno de los cuatro decorados activos.');$('mobile-scenes').scrollIntoView({behavior:'smooth',block:'center'});return}
  if(!user){openAuth('login');return}
  if(!$('photo-ai-consent').checked){toast('Para continuar acepta la autorización de uso de la fotografía.');$('photo-ai-consent').scrollIntoView({behavior:'smooth',block:'center'});$('photo-ai-consent').focus();return}
  const service=await window.picgiftChooseService?.();if(!service)return;
