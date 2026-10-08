@@ -57,7 +57,7 @@ async function health(){
   :'La IA está en preparación y solo se permite generar a cuentas autorizadas para la prueba privada. No se enviará ninguna fotografía.');
  if(!data.email_available){$('photo-email-delivery').disabled=true;$('photo-email-delivery').checked=false;$('photo-email-delivery').parentElement.title='El correo de entrega se activará cuando se configure el proveedor de email.'}
  else {$('photo-email-delivery').disabled=false;$('photo-email-delivery').parentElement.title='Te enviamos un enlace privado válido durante 24 horas'}
- }catch(e){controlAi(false);status('No se ha podido comprobar el motor de IA. Puedes utilizar la demostración sin enviar fotos. '+e.message)}
+ }catch(e){controlAi(false);status('No hemos podido confirmar la conexión con la IA. Revisa tu sesión e inténtalo más tarde. '+e.message)}
 }
 async function diagnoseApi(){
  const button=$('api-diagnose'),out=$('api-diagnose-result');
