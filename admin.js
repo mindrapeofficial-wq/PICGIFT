@@ -3,6 +3,9 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 const $=id=>document.getElementById(id);
 const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let users=[],settings=null,premiumSettings=null,globalUsed=0;
+const displayDate=value=>{if(!value)return 'Nunca';const date=new Date(value);return Number.isNaN(date.getTime())?'No disponible':new Intl.DateTimeFormat('es-ES',{dateStyle:'medium',timeStyle:'short'}).format(date)};
+const providerNames={email:'Correo y contraseña',google:'Google',apple:'Apple',facebook:'Facebook',github:'GitHub',azure:'Microsoft'};
+const loginMethods=user=>(Array.isArray(user.providers)?user.providers:[]).filter(p=>typeof p==='string');
 const msg=(s,error=false)=>{$('status').textContent=s;$('status').classList.toggle('error',error)};
 async function api(body){
  const {data,error}=await client.functions.invoke('picgift-admin',{body});
@@ -55,7 +58,29 @@ function render(){
      try{await api({action:'set_user',user_id:user.id,enabled:enabled.checked,daily_limit:n});user.enabled=enabled.checked;user.daily_limit=n;user.has_override=true;msg('Límite actualizado para '+user.email);save.textContent='Guardado';setTimeout(()=>{save.textContent='Guardar'},900)}
      catch(e){msg('No se pudo guardar: '+e.message,true);save.textContent='Guardar'}finally{save.disabled=false}
    });
-   card.append(info,label,limit,save);container.append(card);
+   const methods=loginMethods(user);
+   const access=document.createElement('div');access.className='account-access';
+   const details=document.createElement('div');details.className='account-details';
+   const method=document.createElement('span');method.textContent='Inicio de sesión: '+(methods.length?methods.map(p=>providerNames[p]||p).join(', '):'Método no disponible');
+   const last=document.createElement('span');last.textContent='Último acceso: '+displayDate(user.last_sign_in_at)+' · Registro: '+displayDate(user.created_at);
+   const password=document.createElement('span');password.textContent=methods.includes('email')?'Contraseña: protegida, no visible para administradores':'Contraseña: no disponible en el panel';
+   details.append(method,last,password);
+   const reset=document.createElement('button');reset.type='button';reset.className='button';reset.textContent='Enviar recuperación de contraseña';
+   const canReset=Boolean(user.confirmed&&user.email&&methods.includes('email'));
+   reset.disabled=!canReset;
+   if(!canReset)reset.title=methods.includes('google')&&!methods.includes('email')?'Esta cuenta utiliza Google. No tiene contraseña de PICGIFT que recuperar.':'Solo disponible para usuarios con correo confirmado y acceso por contraseña.';
+   reset.addEventListener('click',async()=>{
+     if(!canReset||!window.confirm('¿Enviar un correo de recuperación de contraseña a '+user.email+'?'))return;
+     reset.disabled=true;reset.textContent='Solicitando envío…';
+     try{
+       const {error}=await client.auth.resetPasswordForEmail(user.email,{redirectTo:location.origin+'/'});
+       if(error)throw error;
+       msg('Recuperación solicitada para '+user.email+'. La entrega depende de la configuración de correo de Supabase.');
+     }catch(e){msg('No se pudo solicitar la recuperación: '+(e.message||'Error desconocido'),true)}
+     finally{reset.disabled=false;reset.textContent='Enviar recuperación de contraseña'}
+   });
+   access.append(details,reset);
+   card.append(info,label,limit,save,access);container.append(card);
  }
 }
 async function load(){
