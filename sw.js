@@ -1,10 +1,10 @@
 /* PICGIFT Halloween 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-shell-copy-cleanup-20261008-v2";
+const VERSION="picgift-shell-studio-promo-20261008-v3";
 const SHELL=[
  "/","/index.html","/styles.css","/mobile-app.css","/app.js","/auth.js","/generator.js",
- "/assets/halloween/picgift-logo-hd.png","/assets/halloween/picgift-favicon-hd.png","/i18n.js","/locales/en.json","/collection.css","/experience.js","/photo-editor.js",
+ "/assets/halloween/picgift-logo-hd.png","/assets/halloween/picgift-favicon-hd.png","/assets/halloween/picgift-halloween-offer-web-1600x781.png","/i18n.js","/locales/en.json","/collection.css","/experience.js","/photo-editor.js",
  "/assets/halloween/guide/retrato.webp","/assets/halloween/guide/cuerpo-entero.webp","/assets/halloween/guide/sentado.webp","/assets/halloween/guide/evitar.webp","/privacy.html","/delete-account.html",
  "/assets/halloween/backdrops/potions.jpg","/assets/halloween/backdrops/autumn-arch.jpg","/assets/halloween/backdrops/pumpkin-bench.jpg","/assets/halloween/backdrops/lantern-street.jpg","/assets/halloween/journey/result.webp","/assets/halloween/samples/pociones.webp","/assets/halloween/samples/bosque.webp","/assets/halloween/samples/calabazas.webp",
  "/payments.js","/install.js","/config.js","/manifest.webmanifest","/scenes.json",
