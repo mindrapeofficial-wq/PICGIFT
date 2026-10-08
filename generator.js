@@ -251,6 +251,32 @@ async function removePhoto(id){
  try{await invoke({action:'delete',job_id:id});if(id===activeId){activeId=null;currentJob=null;stopPolling();$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden')}await refreshGallery();status('Fotografía eliminada de tu espacio privado.')}catch(e){status('No se pudo eliminar: '+e.message)}
 }
 function init(){
+ const fluxButton=$('flux-verify');
+ if(fluxButton)fluxButton.addEventListener('click',async()=>{
+   fluxButton.disabled=true;
+   $('flux-status').textContent=window.picgiftI18n?.t('Comprobando Cloudflare…')||'Comprobando Cloudflare…';
+   try{
+     const {data:{session}}=await client.auth.getSession();
+     if(!session)throw new Error('Inicia sesión para verificar la conexión.');
+     const {data,error}=await client.functions.invoke('picgift-flux-check',{body:{action:'health'}});
+     if(error)throw new Error('No se ha podido consultar el servidor.');
+     const messages={
+       connected:'Cloudflare conectado. La generación gratuita todavía no está activada.',
+       missing_secrets:'Faltan los secretos de Cloudflare en Supabase.',
+       invalid_account_id:'El Account ID de Cloudflare no es válido.',
+       cloudflare_permission_error:'El token no tiene acceso a Workers AI o la cuenta no coincide.',
+       cloudflare_unavailable:'Cloudflare no responde correctamente.',
+       model_not_listed:'Cloudflare responde, pero no confirma FLUX.2 Klein 4B.',
+       cloudflare_error:'Cloudflare ha rechazado la comprobación.',
+       connection_timeout:'Se agotó el tiempo al conectar con Cloudflare.'
+     };
+     const message=messages[data?.status]||'Todavía no se ha verificado la conexión gratuita.';
+     $('flux-status').textContent=window.picgiftI18n?.t(message)||message;
+     $('flux-status').dataset.verified=String(data?.verified===true);
+   }catch(e){$('flux-status').textContent=window.picgiftI18n?.t(e.message)||e.message}
+   finally{fluxButton.disabled=false;}
+ });
+
  window.addEventListener('picgift:generate',create);
 
  $('refresh-job').addEventListener('click',async()=>{
