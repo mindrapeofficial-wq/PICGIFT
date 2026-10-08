@@ -1,0 +1,49 @@
+name: PICGIFT Halloween Mobile UI
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - index.html
+      - app.js
+      - mobile-app.css
+      - sw.js
+      - manifest.webmanifest
+      - scenes.json
+      - 'tests/**'
+      - '.github/workflows/mobile-ui.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static tests
+        run: node --test tests/*.test.cjs
+      - name: Browser tooling
+        run: |
+          npm install --no-save playwright@1.55.1
+          npx playwright install chromium --with-deps
+      - name: Start PICGIFT localhost
+        run: |
+          python3 -m http.server 8099 --bind 127.0.0.1 > /tmp/picgift-http.log 2>&1 &
+          sleep 2
+      - name: Test real mobile flow
+        run: node tests/mobile-browser.mjs
+      - name: Save visual proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: picgift-halloween-mobile-screenshot
+          path: artifacts/picgift-mobile-halloween.png
+          if-no-files-found: ignore
+          retention-days: 7
