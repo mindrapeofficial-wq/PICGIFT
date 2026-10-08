@@ -23,14 +23,25 @@ if(['mis-fotos','cuenta'].includes(name)&&!user){pending=name;openAuth('register
 route=name;document.querySelectorAll('[data-page]').forEach(el=>el.hidden=(el.dataset.page!==name));document.querySelectorAll('[data-route]').forEach(el=>{if(el.classList.contains('nav-link')||el.closest('.mobile-nav')){el.classList.toggle('active',el.dataset.route===name);}});
 if(!fromHistory && location.hash!=='#'+name)history.pushState({page:name},'','#'+name);window.scrollTo({top:0,behavior:'instant'});if(name==='resultado'&&selected){$('result-sample').src=selected.image;$('result-name').textContent=selected.name}}
 function openAuth(mode='login'){window.picgiftAuthMode=mode;$('auth-title').textContent=mode==='register'?'Crear cuenta':'Iniciar sesión';$('terms').required=mode==='register';$('terms').closest('label').classList.toggle('hidden',mode!=='register');$('auth-submit').textContent=mode==='register'?'Crear mi cuenta':'Entrar en mi cuenta';$('auth-password').autocomplete=mode==='register'?'new-password':'current-password';$('auth').classList.add('show');$('auth-msg').textContent='Puedes acceder con correo o Google.';$('auth-email').focus()}
-window.addEventListener('picgift:auth',e=>{user=e.detail.user||null;$('signin').classList.toggle('hidden',!!user);$('signup').classList.toggle('hidden',!!user);$('profile-button').classList.toggle('hidden',!user);$('workspace').classList.remove('hidden');$('account-email').textContent=user?.email||'Sesión iniciada';$('account-avatar').textContent=(user?.email||'P')[0].toUpperCase();$('profile-button').textContent=(user?.email||'P')[0].toUpperCase();if(user){$('auth').classList.remove('show');if(pending){const dest=pending;pending=null;navigate(dest)}else if(!['crear','mis-fotos','resultado','cuenta'].includes(route))navigate(route,true)}else if(['mis-fotos','cuenta'].includes(route))navigate('inicio');});
+window.addEventListener('picgift:auth',e=>{const wasLoggedIn=!!user;user=e.detail.user||null;if(wasLoggedIn&&!user)clearPhoto();$('signin').classList.toggle('hidden',!!user);$('signup').classList.toggle('hidden',!!user);$('profile-button').classList.toggle('hidden',!user);$('workspace').classList.remove('hidden');$('account-email').textContent=user?.email||'Sesión iniciada';$('account-avatar').textContent=(user?.email||'P')[0].toUpperCase();$('profile-button').textContent=(user?.email||'P')[0].toUpperCase();if(user){$('auth').classList.remove('show');if(pending){const dest=pending;pending=null;navigate(dest)}else if(!['crear','mis-fotos','resultado','cuenta'].includes(route))navigate(route,true)}else if(['mis-fotos','cuenta'].includes(route))navigate('inicio');});
 function initSnow(){if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;const n=window.innerWidth<700?27:53,container=$('snow');for(let i=0;i<n;i++){const flake=document.createElement('i');flake.className='flake';const x=((i*47.33)%101),size=1.1+((i*17)%28)/10;flake.style.left=x+'%';flake.style.width=flake.style.height=size+'px';flake.style.opacity=(.2+((i*13)%55)/100).toFixed(2);flake.style.animationDuration=(12+(i*7)%24)+'s';flake.style.animationDelay=(-((i*13)%29))+'s';container.appendChild(flake)}document.addEventListener('visibilitychange',()=>{container.style.animationPlayState=document.hidden?'paused':'running';container.querySelectorAll('.flake').forEach(el=>el.style.animationPlayState=document.hidden?'paused':'running')})}
 function acceptFile(next){if(!next)return;if(!['image/png','image/jpeg','image/webp'].includes(next.type)){toast('Solo se admiten archivos JPG, PNG o WEBP.');return}if(next.size>15*1024*1024){toast('El archivo supera el máximo de 15 MB.');return}if(localURL)URL.revokeObjectURL(localURL);localURL=URL.createObjectURL(next);file=next;$('chosen-photo').src=localURL;$('file-name').textContent=next.name+' · '+(next.size/1024/1024).toFixed(1)+' MB';$('upload-empty').classList.add('hidden');$('upload-loaded').classList.remove('hidden')}
+function clearPhoto(){
+ if(localURL)URL.revokeObjectURL(localURL);
+ localURL=null;file=null;$('photo').value='';
+ $('chosen-photo').removeAttribute('src');$('file-name').textContent='';
+ $('upload-empty').classList.remove('hidden');$('upload-loaded').classList.add('hidden');
+ $('demo-client-image').removeAttribute('src');
+ $('demo-client-image').classList.add('hidden');
+ $('demo-client-empty').classList.remove('hidden');
+ $('demo-result').classList.add('hidden');
+ $('result-empty').classList.remove('hidden');
+}
 function init(){
 $('signin').addEventListener('click',()=>openAuth('login'));$('signup').addEventListener('click',()=>openAuth('register'));$('close').addEventListener('click',()=>$('auth').classList.remove('show'));$('auth').addEventListener('click',e=>{if(e.target===$('auth'))$('auth').classList.remove('show')});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('auth').classList.remove('show')});
 document.addEventListener('click',e=>{const select=e.target.closest('[data-select]');if(select){selectScene(select.dataset.select);return}const routeButton=e.target.closest('[data-route]');if(routeButton){e.preventDefault();navigate(routeButton.dataset.route)}});
 $('filters').addEventListener('click',e=>{const el=e.target.closest('[data-filter]');if(!el)return;filter=el.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));renderCatalog()});
-$('choose-photo').addEventListener('click',()=>$('photo').click());$('change-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));
+$('choose-photo').addEventListener('click',()=>$('photo').click());$('change-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));$('remove-photo').addEventListener('click',clearPhoto);
 window.addEventListener('pagehide',()=>{if(localURL)URL.revokeObjectURL(localURL)});
 const dz=$('drop-zone');['dragenter','dragover'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.add('dragging')}));['dragleave','drop'].forEach(x=>dz.addEventListener(x,e=>{e.preventDefault();dz.classList.remove('dragging')}));dz.addEventListener('drop',e=>acceptFile(e.dataTransfer.files[0]));
 $('demo-preview').addEventListener('click',()=>{
@@ -43,6 +54,7 @@ $('demo-preview').addEventListener('click',()=>{
   if(localURL)$('demo-client-image').src=localURL;
   $('demo-result').classList.remove('hidden');
   $('real-result').classList.add('hidden');
+  $('result-empty').classList.add('hidden');
   $('result-page-title').textContent='Tu demostración';
   $('result-page-description').textContent='Descubre cómo trabajará PICGIFT con tu fotografía y el escenario. Sin generación de IA ni subida a servidores.';
   navigate('resultado');
