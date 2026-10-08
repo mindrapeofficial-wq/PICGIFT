@@ -17,3 +17,10 @@ Antes de compilar:
 La comunicación web/Android usa AndroidX WebViewCompat.addWebMessageListener, restringido al origen https://picgift.onrender.com y a marcos principales. Android no almacena secretos de Stripe ni de Google Play Publisher. Los tokens de compra se verifican desde Supabase, nunca en el navegador.
 
 NOTA: La carpeta es código fuente para el proyecto de Android Studio; no contiene un APK compilado, certificado ni publicación en Play Store.
+
+## Mejoras móviles (octubre de 2026)
+- WebView incorpora WebChromeClient.onShowFileChooser para que el selector `<input type=file>` de PICGIFT pueda elegir fotografías de la galería de Android, sin solicitar permisos de almacenamiento.
+- Navegación Atrás mediante historial WebView, restauración de estado al recrear Activity y apertura de descargas privadas desde el navegador Android.
+- El botón de Google OAuth **no debe usarse en WebView** porque Google bloquea los navegadores integrados y la sesión no regresa automáticamente al WebView. Hasta implementar el login nativo con App Links/PKCE, usar correo y contraseña en APK, o Google desde la PWA Chrome.
+- PWA web: se puede usar una demo privada sin registrarse, antes de activar generación IA. Crear fotos finales y galería remota sí requieren sesión.
+- Pendiente: compilar con Android Studio, probar en un dispositivo real el selector de fotos y descargas, configurar registro/login nativos, habilitar App Links, añadir iconografía de producción y firmar el paquete AAB/APK.
