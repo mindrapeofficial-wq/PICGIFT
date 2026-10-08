@@ -272,7 +272,10 @@ function init(){
        network_error:'El servidor no ha podido establecer la conexión de red con Cloudflare.',
        token_invalid:'Cloudflare no ha validado el token. Revisa sus permisos y vigencia.',
        server_network_error:'Supabase no puede conectarse a servicios externos. El fallo no es necesariamente del token de Cloudflare.',
-       cloudflare_network_error:'La red de Supabase funciona, pero no consigue conectar con la API de Cloudflare.'
+       cloudflare_network_error:'La red de Supabase funciona, pero no consigue conectar con la API de Cloudflare.',
+       cloudflare_token_format:'El token de Cloudflare está pegado con caracteres no válidos. Revisa su valor en Supabase.',
+       cloudflare_host_unreachable:'Supabase no consigue llegar a api.cloudflare.com, incluso sin token.',
+       cloudflare_auth_header_error:'Cloudflare responde sin autenticación, pero falla la cabecera privada. Revisa el token en Supabase.'
      };
      const message=messages[data?.status]||'Todavía no se ha verificado la conexión gratuita.';
      const diagnostics=Array.isArray(data?.network_diagnostics)?data.network_diagnostics:[];
