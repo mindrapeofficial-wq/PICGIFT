@@ -175,10 +175,10 @@ Deno.serve(async request=>{
  if(storageError||!objects||required.some(name=>!objects.some(o=>o.name===name)))return reply({error:"Sube antes las referencias de la fotografía."},400);
  const {data:recipe}=await db.from("picgift_scene_recipes").select("enabled,recipe").eq("scene_id",scene).single();
  if(!recipe?.enabled||!safe(recipe.recipe?.flux_prompt,3500))return reply({error:"Escenario no preparado para FLUX."},400);
- const {data:ongoing}=await db.from("picgift_photo_jobs").select("id").eq("user_id",user.id).in("status",["queued","analyzing","generating","reviewing"]).limit(1);
- if(ongoing?.length)return reply({error:"Espera a que termine tu retrato anterior."},429);
  const {data:existing}=await db.from("picgift_photo_jobs").select("id,status").eq("user_id",user.id).eq("source_path",source).eq("image_model",TAG).maybeSingle();
  if(existing)return reply({id:existing.id,status:existing.status,already_submitted:true},200);
+ const {data:ongoing}=await db.from("picgift_photo_jobs").select("id").eq("user_id",user.id).in("status",["queued","analyzing","generating","reviewing"]).limit(1);
+ if(ongoing?.length)return reply({error:"Espera a que termine tu retrato anterior."},429);
  const {data:job,error:insertError}=await db.from("picgift_photo_jobs").insert({
    user_id:user.id,scene_id:scene,source_path:source,reference_paths:refs,
    requested_format:format,requested_pose:pose,requested_outfit:outfit,
