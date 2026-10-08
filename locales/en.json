@@ -544,5 +544,7 @@
   "Todavía no se ha verificado la conexión gratuita.": "The free AI connection has not been verified yet.",
   "Cloudflare no ha respondido dentro del tiempo de espera.": "Cloudflare did not respond before the timeout.",
   "El servidor no ha podido establecer la conexión de red con Cloudflare.": "The server could not establish a network connection to Cloudflare.",
-  "Cloudflare no ha validado el token. Revisa sus permisos y vigencia.": "Cloudflare could not validate the token. Check its permissions and expiry."
+  "Cloudflare no ha validado el token. Revisa sus permisos y vigencia.": "Cloudflare could not validate the token. Check its permissions and expiry.",
+  "Supabase no puede conectarse a servicios externos. El fallo no es necesariamente del token de Cloudflare.": "Supabase cannot connect to external services. The Cloudflare token is not necessarily the problem.",
+  "La red de Supabase funciona, pero no consigue conectar con la API de Cloudflare.": "Supabase networking works, but it cannot reach the Cloudflare API."
 }
