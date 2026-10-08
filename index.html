@@ -1,14 +1,15 @@
 <!doctype html>
-<html lang="es" data-campaign="halloween"><head>
+<html lang="en" data-campaign="halloween"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090609">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="PICGIFT Halloween 2026: retratos inolvidables y una experiencia fotográfica misteriosa.">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="Turn family photos into magical portraits with seasonal storybook scenes. Discover PICGIFT’s Halloween collection of pumpkins, little witches and warm lanterns.">
 <link rel="icon" href="./assets/halloween/app-icon-halloween.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest?v=halloween-2026">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://images.unsplash.com">
-<link rel="stylesheet" href="./styles.css?v=picgift-halloween-2026-1"><title>PICGIFT · Halloween 2026</title>
-</head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="./styles.css?v=picgift-halloween-2026-2"><link rel="stylesheet" href="./collection.css?v=2"><title>PICGIFT · Halloween 2026</title>
+<script src="./i18n.js"></script></head><body>
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
-  <div class="splash-inner"><img src="./assets/halloween/app-icon-halloween.svg" alt="PICGIFT"><div class="eyebrow">Halloween 2026</div><h2>PICGIFT</h2><p>El misterio se convierte en recuerdo</p><span class="splash-star">✦</span></div>
+  <div class="splash-inner"><img src="./assets/halloween/app-icon-halloween.svg" alt="PICGIFT"><div class="eyebrow">Halloween 2026</div><h2>PICGIFT</h2><p>Pequeños protagonistas. Recuerdos mágicos.</p><span class="splash-star">✦</span></div>
 </div>
 <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
 <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/></symbol>
@@ -27,7 +28,7 @@
 <div class="app">
   <aside class="sidebar" aria-label="Menú principal">
     <a href="#inicio" class="brand" data-route="inicio"><img src="./assets/halloween/app-icon-halloween.svg" alt=""><div><strong>PICGIFT</strong><span>Halloween 2026</span></div></a>
-    <span class="side-caption">Descubre la magia</span>
+    <span class="side-caption">Tu estudio de recuerdos</span>
     <nav class="nav">
       <button class="nav-link active" data-route="inicio"><svg><use href="#i-home"/></svg> Inicio</button>
       <button class="nav-link" data-route="escenarios"><svg><use href="#i-gallery"/></svg> Escenarios</button>
@@ -36,13 +37,13 @@
       <button class="nav-link" data-route="mis-fotos"><svg><use href="#i-photo"/></svg> Mis fotografías</button>
       <button class="nav-link" data-route="cuenta"><svg><use href="#i-user"/></svg> Mi cuenta</button>
     </nav>
-    <div class="side-bottom"><div class="sidebar-promo"><span class="eyebrow">Edición limitada de temporada</span><h3 style="margin-top:8px">El misterio empieza aquí.</h3><p>Escenarios de otoño, calabazas y castillos para los retratos de otra dimensión.</p><a class="mini-link" href="#escenarios" data-route="escenarios">Explorar Halloween →</a></div><p class="tiny">© PICGIFT 2026 · Marca provisional</p></div>
+    <div class="side-bottom"><div class="sidebar-promo"><span class="eyebrow">Edición limitada de temporada</span><h3 style="margin-top:8px">La magia empieza con una sonrisa.</h3><p>Pequeños magos, brujitas y calabazas: historias de otoño para recordar en familia.</p><a class="mini-link" href="#escenarios" data-route="escenarios">Explorar Halloween →</a></div><p class="tiny">© PICGIFT 2026 · Retratos de cuento</p></div>
   </aside>
-  <div class="main">
+  <main class="main" id="main-content">
     <header class="topbar">
       <a href="#inicio" class="mobile-logo" data-route="inicio"><img src="./assets/halloween/app-icon-halloween.svg" alt="Logotipo PICGIFT"><strong>PICGIFT</strong></a>
-      <div class="top-left"><span class="dot"></span><span>EL ESTUDIO DE HALLOWEEN · EDICIÓN 2026</span></div>
-      <div class="top-actions">
+      <div class="top-left"><span class="dot"></span><span>RETRATOS DE CUENTO · PICGIFT</span></div>
+      <div class="top-actions"><label class="language-picker"><span>Idioma</span><select data-language-selector aria-label="Idioma" data-no-translate><option value="auto" aria-label="Automatic">🌐</option><option value="es" aria-label="Español">🇪🇸</option><option value="en" aria-label="English">🇬🇧</option></select></label>
         <span class="pill season-pill hide-mobile">✦ Colección Halloween 2026</span>
         <button class="pill" id="signin" type="button">Entrar <svg><use href="#i-user"/></svg></button>
         <button class="pill" id="signup" type="button">Crear cuenta</button>
@@ -54,45 +55,50 @@
     <div id="public">
       <section class="page" data-page="inicio">
         <div class="hero halloween-hero">
-          <img class="hero-image" alt="Escenario ilustrado de un castillo de Halloween bajo la luna naranja" src="./assets/halloween/scenes/castillo-embrujado.svg">
-          <img class="hero-halloween-logo" src="./assets/halloween/logo-halloween.svg" alt="Logotipo de la colección PICGIFT Halloween">
           <div class="hero-content">
-            <span class="eyebrow">✦ EDICIÓN ESPECIAL HALLOWEEN 2026</span>
-            <h1>Tu lado más <em>mágico y misterioso.</em></h1>
-            <p>Un nuevo universo PICGIFT en naranja y negro: noches encantadas, calabazas luminosas y retratos con personalidad. Estamos preparando los decorados fotográficos.</p>
-            <div class="actions"><button class="btn primary" id="start" data-route="escenarios">Descubrir Halloween <svg><use href="#i-arrow"/></svg></button><button class="btn outline" data-route="mis-fotos">Mis fotografías</button></div>
-            <div class="trustline"><span>Edición Halloween</span><span>Estilo premium</span><span>Escenarios en preparación</span></div>
+            <span class="eyebrow">✦ COLECCIÓN DE TEMPORADA · HALLOWEEN 2026</span>
+            <h1>Pequeños protagonistas.<br><em>Recuerdos mágicos.</em></h1>
+            <p>Brujitas, pequeños magos y calabazas que sonríen. Un Halloween de cuento para guardar esa sonrisa para siempre.</p>
+            <div class="actions"><button class="btn primary" id="start" data-route="escenarios">Descubrir la colección <svg><use href="#i-arrow"/></svg></button><button class="btn outline" data-route="crear">Visitar el estudio</button></div>
+            <div class="trustline"><span>Para familias</span><span>Tu galería privada</span><span>Magia de temporada</span></div>
           </div>
+          <figure class="hero-portrait"><img src="./assets/halloween/backdrops/lantern-street.jpg" alt="Una calle de cuento con farolillos, calabazas y luz de luna" fetchpriority="high" width="1122" height="1402"><figcaption><span>EL ÁLBUM DE HALLOWEEN</span><strong>Donde empieza su aventura.</strong><small>Muestra de estilo · El resultado de cada retrato puede variar</small></figcaption></figure>
         </div>
-        <section class="section"><div class="section-head"><div><span class="eyebrow">Próxima colección</span><h2>Tres historias para una noche única</h2></div><button class="text-btn" data-route="escenarios">Explorar conceptos ↗</button></div><div class="scene-grid" id="home-scenes"></div></section>
+        <div class="collection-note"><span class="collection-note-star" aria-hidden="true">✦</span><p><strong>El encanto está en los pequeños detalles.</strong> Luz cálida, disfraces de cuento y escenarios llenos de imaginación.</p><span class="collection-note-date">OCTUBRE · 2026</span></div>
+        <section class="section"><div class="section-head"><div><span class="eyebrow">Decorados de la colección</span><h2>Elige dónde empieza su cuento</h2></div><button class="text-btn" data-route="escenarios">Ver todos los escenarios ↗</button></div><div class="scene-grid" id="home-scenes"></div></section>
+        <section class="section journey-section"><div class="section-head"><div><span class="eyebrow">DE UNA FOTO A UN RECUERDO</span><h2>Así empieza la magia</h2></div><button class="text-btn" data-route="crear">Preparar mi foto ↗</button></div><div class="journey-grid">
+<figure><div class="journey-image"><img src="./assets/halloween/guide/cuerpo-entero.webp" alt="Foto original de ejemplo: niño ficticio de cuerpo entero, cabeza recta y mirando al frente" loading="lazy"><span>01 · TU FOTO</span></div><figcaption><strong>Una foto natural</strong><p>Cuerpo completo, cabeza recta y mirada al frente. Sin disfraces ni filtros.</p></figcaption></figure>
+<figure><div class="journey-image"><img src="./assets/halloween/backdrops/lantern-street.jpg" alt="Fondo usado para el ejemplo: calle de farolillos vacía con calabazas" loading="lazy"><span>02 · SU ESCENARIO</span></div><figcaption><strong>Un lugar de cuento</strong><p>Elegimos la calle de los farolillos: perspectiva, calabazas y luz cálida.</p></figcaption></figure>
+<figure><div class="journey-image"><img src="./assets/halloween/journey/result.webp" alt="Ejemplo ilustrativo del retrato final: el niño de la foto original con vestuario de mago en la calle de farolillos" loading="lazy"><span>03 · EL RECUERDO</span></div><figcaption><strong>Su propia aventura</strong><p>Vestuario, encuadre e iluminación integrados para un retrato de temporada.</p></figcaption></figure>
+</div><p class="foot-note">Demostración ilustrativa con un personaje ficticio. No representa una entrega real ni una garantía de resultado o de calidad de un pack.</p></section>
         <section class="info-strip">
-          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-gallery"/></svg></div><strong>01 · Descubre los escenarios</strong><p>Explora los tres primeros conceptos de Halloween.</p></div>
-          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-photo"/></svg></div><strong>02 · Prepara tu fotografía</strong><p>La foto seleccionada permanece en tu dispositivo mientras no inicies una generación.</p></div>
-          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-spark"/></svg></div><strong>03 · Muy pronto, la magia</strong><p>Publicaremos la generación cuando los fondos fotográficos y las recetas de Halloween estén validados.</p></div>
+          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-gallery"/></svg></div><strong>01 · Descubre los escenarios</strong><p>Encuentra su rincón favorito entre calabazas, hojas de otoño y magia.</p></div>
+          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-photo"/></svg></div><strong>02 · Prepara tu fotografía</strong><p>La foto seleccionada permanece en tu dispositivo mientras no inicies crear un retrato.</p></div>
+          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-spark"/></svg></div><strong>03 · Muy pronto, la magia</strong><p>Estamos preparando la apertura del estudio. Mientras tanto, descubre los decorados y prepara su fotografía.</p></div>
         </section>
-        <div class="ribbon halloween-ribbon"><div><strong>La temporada más misteriosa de PICGIFT</strong><small>Los cobros siguen desactivados. Tus fotografías anteriores siguen en tu cuenta privada.</small></div><button class="btn" data-route="escenarios">Ver la colección <svg><use href="#i-arrow"/></svg></button></div>
+        <div class="ribbon halloween-ribbon"><div><strong>Su Halloween más mágico</strong><small>Los cobros siguen desactivados. Tus fotografías anteriores siguen en tu cuenta privada.</small></div><button class="btn" data-route="escenarios">Ver la colección <svg><use href="#i-arrow"/></svg></button></div>
       </section>
       <section class="page" data-page="precios" hidden>
         <div class="top-heading"><div><span class="eyebrow">Edición Halloween 2026</span><h1>Un recuerdo para siempre</h1><p>Próximamente, paquetes de fotografías temáticas sin suscripción. Los cobros continúan desactivados.</p></div><span class="pill">✦ Pago único</span></div>
-        <div class="pricing-grid">
-          <article class="price-card"><span class="eyebrow">PICGIFT ESENCIAL</span><h3>Tu primer recuerdo</h3><div class="price-amount">7,90 <small>€</small></div><p>1 fotografía digital · 1 crédito</p><div class="price-separator"></div><p>Un escenario temático</p><p>Descarga digital cuando la generación esté activa</p><button class="btn outline wide" type="button" data-buy="esencial" disabled>Comprar 1 fotografía</button></article>
-          <article class="price-card featured"><div class="price-ribbon">MÁS ELEGIDO</div><span class="eyebrow">PICGIFT MÁGICO</span><h3>La colección perfecta</h3><div class="price-amount">24,90 <small>€</small></div><p>5 fotografías digitales · 5 créditos</p><div class="price-separator"></div><p>Combina diferentes escenarios</p><p>Ideal para álbumes y regalos familiares</p><button class="btn primary wide" type="button" data-buy="magico" disabled>Comprar pack de 5</button></article>
-          <article class="price-card"><span class="eyebrow">PICGIFT FAMILIAR</span><h3>La colección completa</h3><div class="price-amount">39,90 <small>€</small></div><p>10 fotografías digitales · 10 créditos</p><div class="price-separator"></div><p>Para varios decorados y composiciones</p><p>Tu colección temática más completa</p><button class="btn outline wide" type="button" data-buy="familiar" disabled>Comprar pack de 10</button></article>
+        <p class="pack-quality-note">La misma calidad de retrato en todos los packs. Elige cuántos recuerdos quieres crear.</p><div class="pricing-grid">
+          <article class="price-card"><span class="eyebrow">PICGIFT ESENCIAL</span><h3>Tu primer recuerdo</h3><div class="price-amount"><span data-price-eur="7.9">7,90</span> <small>€</small></div><p>1 fotografía digital · 1 crédito</p><div class="price-separator"></div><p>Retratos cuidados, con atención al rostro, la luz y los detalles.</p><p>Un escenario temático</p><p>Descarga digital cuando la generación esté activa</p><button class="btn outline wide" type="button" data-buy="esencial" disabled>Comprar 1 fotografía</button></article>
+          <article class="price-card featured"><div class="price-ribbon">PACK DE 5 RETRATOS</div><span class="eyebrow">PICGIFT MÁGICO</span><h3>La colección perfecta</h3><div class="price-amount"><span data-price-eur="24.9">24,90</span> <small>€</small></div><p>5 fotografías digitales · 5 créditos</p><div class="price-separator"></div><p>Retratos cuidados, con atención al rostro, la luz y los detalles.</p><p>Combina diferentes escenarios</p><p>Ideal para álbumes y regalos familiares</p><button class="btn primary wide" type="button" data-buy="magico" disabled>Comprar pack de 5</button></article>
+          <article class="price-card"><span class="eyebrow">PICGIFT FAMILIAR</span><h3>La colección completa</h3><div class="price-amount"><span data-price-eur="39.9">39,90</span> <small>€</small></div><p>10 fotografías digitales · 10 créditos</p><div class="price-separator"></div><p>Retratos cuidados, con atención al rostro, la luz y los detalles.</p><p>Para varios decorados y composiciones</p><p>Tu colección temática más completa</p><button class="btn outline wide" type="button" data-buy="familiar" disabled>Comprar pack de 10</button></article>
         </div>
-        <div class="notice" id="payment-status" role="status" aria-live="polite">Los packs están publicados como catálogo. Las compras se habilitarán cuando terminemos las pruebas de IA y configuremos el proveedor de pagos.</div>
+        <div class="notice" id="payment-status" role="status" aria-live="polite">Las compras se abrirán cuando el estudio esté disponible. No se realizan cargos actualmente.</div>
         <div class="panel" style="margin-top:22px"><h2>¿Cómo funciona?</h2><p class="muted" style="margin-top:12px;font-size:13px">Un crédito permite recibir una fotografía terminada. Los intentos fallidos no deben consumir el crédito. El precio mostrado es el precio total anunciado del paquete; las condiciones definitivas de compra y devolución se publicarán antes del lanzamiento. Las fotografías con menores necesitan autorización de sus representantes.</p><p class="foot-note">Web: Checkout seguro de Stripe · Android desde Google Play: Google Play Billing. No realizamos cargos actualmente.</p></div>
       </section>
       <section class="page" data-page="escenarios" hidden>
-        <div class="top-heading"><div><span class="eyebrow">PICGIFT · Colección Halloween 2026</span><h1>Tu próxima historia</h1><p>Descubre tres escenarios de inspiración para la próxima colección. La generación con IA de Halloween todavía no está disponible.</p></div><span class="pill">3 conceptos</span></div>
+        <div class="top-heading"><div><span class="eyebrow">PICGIFT · Colección Halloween 2026</span><h1>Tu próxima historia</h1><p>Inspírate en nuestras muestras y elige el universo de su próximo retrato. La disponibilidad de creación se indica en el estudio.</p></div><span class="pill">4 escenarios</span></div>
         <div class="filterbar" id="filters"><button class="chip" aria-pressed="true" data-filter="Todos">Todos</button><button class="chip" aria-pressed="false" data-filter="Clásicos">Clásicos</button><button class="chip" aria-pressed="false" data-filter="Fantasía">Fantasía</button><button class="chip" aria-pressed="false" data-filter="Bosques">Bosques</button></div>
         <div class="scene-grid" id="collection-scenes"></div>
-        <p class="foot-note">Estos diseños son ilustraciones conceptuales. Todavía no son fondos fotográficos finales ni están habilitados para generación.</p>
+        <p class="foot-note">Los decorados muestran el ambiente de la colección. La composición y los detalles de cada retrato pueden variar.</p>
       </section>
     </div>
     <div id="workspace" class="hidden">
       <section class="page" data-page="crear" hidden id="picgift-studio">
         <div class="top-heading studio-heading">
-          <div><span class="eyebrow">PICGIFT · Estudio fotográfico</span><h1>Crea tu futuro retrato de Halloween</h1><p>Explora los escenarios conceptuales y prepara tu fotografía. La generación Halloween llegará cuando sus recetas estén listas.</p></div>
+          <div><span class="eyebrow">PICGIFT · Estudio fotográfico</span><h1>Su aventura empieza aquí</h1><p>Elige una foto nítida, encuentra su escenario y prepara un recuerdo lleno de magia.</p></div>
           <span class="studio-private-note">Campaña Halloween · Sin cobros</span>
         </div>
         <div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
@@ -104,6 +110,12 @@
         <div class="create-layout studio-layout">
           <div class="panel studio-main-panel">
             <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 1</span><h2>Elige tu fotografía</h2></div></div>
+            <div class="photo-advice"><strong>La mejor foto: cuerpo completo, cabeza recta y mirada al frente.</strong>Procura que se vean el cabello, las manos y los pies. Usa luz suave, un fondo sencillo y una imagen nítida, sin filtros. Estas condiciones ayudan a conservar proporciones y rasgos naturales.</div>
+            <details class="photo-guide"><summary>Ver ejemplos: qué foto subir y qué evitar</summary><div class="guide-grid">
+              <figure><img src="./assets/halloween/guide/cuerpo-entero.webp" alt="Ejemplo ficticio correcto: cuerpo completo, cabeza recta y mirada frontal" loading="lazy"><figcaption><strong>✓ La más recomendable</strong>Cuerpo entero, manos y pies visibles. Cabeza recta y mirando al frente.</figcaption></figure>
+              <figure><img src="./assets/halloween/guide/retrato.webp" alt="Ejemplo ficticio de referencia opcional de rostro nítido y frontal" loading="lazy"><figcaption><strong>✓ Referencia del rostro</strong>La cara completa, nítida y sin accesorios que oculten los rasgos.</figcaption></figure>
+              <figure><img src="./assets/halloween/guide/sentado.webp" alt="Ejemplo ficticio correcto de niño sentado con postura natural" loading="lazy"><figcaption><strong>✓ Una postura natural</strong>Si está sentado, que se vean bien el cuerpo y los apoyos.</figcaption></figure>
+            </div><figure class="bad-guide"><img src="./assets/halloween/guide/evitar.webp" alt="Ejemplos ficticios a evitar: rostro oscuro a contraluz, cabeza inclinada de perfil y fotografía movida con el cuerpo cortado" loading="lazy"><figcaption><strong>Evita el contraluz, los perfiles y las fotos movidas.</strong>Una cara tapada, la cabeza inclinada o el cuerpo cortado dificultan la transformación. Ejemplos ilustrativos con personajes ficticios.</figcaption></figure></details>
             <div class="upload-zone" id="drop-zone" role="group" aria-label="Seleccionar una fotografía">
               <div id="upload-empty">
                 <svg aria-hidden="true"><use href="#i-upload"/></svg>
@@ -112,43 +124,41 @@
                 <button type="button" class="btn primary" id="choose-photo">Elegir foto del móvil</button>
               </div>
               <div class="hidden" id="upload-loaded">
-                <img id="chosen-photo" alt="Fotografía seleccionada para el retrato">
+                <img id="chosen-photo" class="hidden" alt="Fotografía original seleccionada">
+                <div class="crop-stage"><canvas id="crop-canvas" width="600" height="750" tabindex="0" role="img" aria-label="Vista previa del encuadre. Arrastra o usa las flechas del teclado para mover la fotografía."></canvas></div>
+                <div class="crop-toolbar"><label for="crop-zoom">Zoom <input id="crop-zoom" type="range" min="1" max="3" step="0.05" value="1"><output id="crop-zoom-value" for="crop-zoom">1.0×</output></label><label for="crop-ratio">Encuadre <select id="crop-ratio"><option value="original">Foto completa</option><option value="0.8">Retrato 4:5</option><option value="1">Cuadrado</option><option value="1.5">Horizontal 3:2</option></select></label><button id="crop-reset" type="button" class="btn quiet">Restablecer</button></div>
+                <div class="crop-buttons" role="group" aria-label="Mover el encuadre"><button type="button" data-crop-pan="left" aria-label="Mover foto a la izquierda">←</button><button type="button" data-crop-pan="up" aria-label="Mover foto hacia arriba">↑</button><button type="button" data-crop-pan="down" aria-label="Mover foto hacia abajo">↓</button><button type="button" data-crop-pan="right" aria-label="Mover foto a la derecha">→</button></div>
+                <p class="crop-help" id="crop-status" role="status">Cargando la foto…</p><p class="crop-help">No recortes la cabeza ni los pies. El ajuste se realiza en tu dispositivo; las guías no aparecen en la foto enviada.</p>
                 <p style="margin-top:8px" id="file-name"></p>
                 <div class="studio-photo-actions"><button class="btn outline" type="button" id="change-photo">Cambiar foto</button><button class="btn quiet" type="button" id="remove-photo">Quitar foto</button></div>
               </div>
               <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Subir fotografía para editar">
             </div>
+            <div class="reference-grid"><div class="reference-card"><strong>Foto del rostro <span class="tiny">· Opcional</span></strong><p>Una foto cercana, nítida, con la cabeza recta y mirando al frente.</p><input type="file" id="reference-face" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Foto del rostro opcional"><img id="reference-face-preview" class="hidden" alt="Referencia opcional seleccionada: foto del rostro"><button type="button" id="reference-face-choose" class="btn outline">Añadir foto del rostro</button><button type="button" id="reference-face-remove" class="btn quiet hidden">Quitar referencia</button><div id="reference-face-status" class="reference-status" role="status">Opcional · Sin fotografía</div></div><div class="reference-card"><strong>Foto del cuerpo <span class="tiny">· Opcional</span></strong><p>Una foto de cuerpo completo, con postura natural, manos y pies visibles.</p><input type="file" id="reference-body" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Foto del cuerpo opcional"><img id="reference-body-preview" class="hidden" alt="Referencia opcional seleccionada: foto del cuerpo"><button type="button" id="reference-body-choose" class="btn outline">Añadir foto del cuerpo</button><button type="button" id="reference-body-remove" class="btn quiet hidden">Quitar referencia</button><div id="reference-body-status" class="reference-status" role="status">Opcional · Sin fotografía</div></div></div>
             <div class="mobile-scene-selector" id="mobile-scene-selector">
               <div class="section-head studio-section-title"><div><span class="eyebrow">PASO 2</span><h2>Elige un escenario</h2></div></div>
-              <p class="muted" style="font-size:12px;margin-bottom:11px">Toca un concepto para ver sus detalles. La generación todavía está en preparación.</p>
+              <p class="muted" style="font-size:12px;margin-bottom:11px">Elige su escenario favorito. El estudio te indicará cuándo está disponible para crear.</p>
               <div class="mobile-scene-grid" id="mobile-scenes" role="group" aria-label="Conceptos de Halloween"></div>
             </div>
             <details class="studio-advanced" id="studio-advanced">
               <summary>Personalizar vestuario, orientación y pose <span class="studio-chevron" aria-hidden="true">⌄</span></summary>
               <div class="studio-advanced-inner">
-                <div class="form-grid"><label class="field"><span>Vestuario</span><select id="outfit"><option>Automático para la escena</option><option>Elegancia oscura</option><option>Halloween clásico</option><option>Personaje de fantasía</option></select></label><label class="field"><span>Orientación</span><select id="format"><option>Vertical · Retrato</option><option>Horizontal · Escenario</option><option>Cuadrado</option></select></label></div>
-                <label class="field"><span>Posición del modelo</span><select id="pose"><option>Elige primero un escenario</option></select></label>
+                <div class="form-grid"><label class="field"><span>Vestuario</span><select id="outfit"><option value="Automático para la escena">Automático para la escena</option><option value="Brujita de cuento">Brujita de cuento</option><option value="Pequeño mago">Pequeño mago</option><option value="Conservar ropa original">Conservar ropa original</option></select></label><label class="field"><span>Orientación</span><select id="format"><option value="Vertical · Retrato">Vertical · Retrato</option><option value="Horizontal · Escenario">Horizontal · Escenario</option><option value="Cuadrado">Cuadrado</option></select></label></div>
+                <label class="field"><span>Postura</span><select id="pose"><option value="Elige primero un escenario">Elige primero un escenario</option></select></label>
               </div>
             </details>
             <div class="studio-confirm">
               <p class="studio-chosen" id="studio-chosen" role="status">Escenario: selecciona uno para continuar.</p>
-              <label class="check studio-consent"><input id="photo-ai-consent" type="checkbox"><span>Autorizo que PICGIFT procese esta fotografía con IA y la envíe al proveedor para crear el retrato. Confirmo que tengo autorización para utilizar la imagen de todas las personas que aparecen.</span></label>
+              <label class="check studio-consent"><input id="photo-ai-consent" type="checkbox"><span>Autorizo que PICGIFT utilice mi fotografía y las referencias opcionales, las procese y las envíe al proveedor para crear el retrato. Confirmo que tengo autorización para utilizar la imagen de todas las personas que aparecen. <a href="./privacy.html">Ver política de privacidad</a>.</span></label>
               <label class="check studio-email"><input id="photo-email-delivery" type="checkbox"><span>Enviarme un enlace privado por correo cuando esté disponible (opcional).</span></label>
             </div>
             <div class="studio-actionbar" id="studio-actionbar">
-              <button class="btn primary" id="generate" type="button" disabled>Generación Halloween próximamente</button>
-              <button class="btn primary hidden" id="studio-login" type="button">Iniciar sesión para generar</button>
+              <button class="btn primary" id="generate" type="button" disabled>Estudio próximamente</button>
+              <button class="btn primary hidden" id="studio-login" type="button">Iniciar sesión para crear</button>
               <div class="studio-readiness" id="studio-readiness" role="status">Primero añade tu fotografía.</div>
             </div>
-            <div class="notice studio-generator-status" id="generator-status" role="status" aria-live="polite">Los nuevos fondos de Halloween todavía no están habilitados para generar. La cuenta, la galería y los datos anteriores siguen disponibles.</div>
-            <details class="studio-diagnostics">
-              <summary>¿Problemas con la IA? Comprobar conexión</summary>
-              <div class="studio-diagnostics-body">
-                <button class="btn outline" type="button" id="api-diagnose" disabled>Comprobar conexión con OpenAI</button>
-                <div id="api-diagnose-result" class="notice hidden" role="status" aria-live="polite"></div>
-                <p class="tiny">Comprobación del acceso a los modelos. No genera fotografías ni verifica el saldo de facturación.</p>
-              </div>
-            </details>
+            <div class="notice studio-generator-status" id="generator-status" role="status" aria-live="polite">Inicia sesión para consultar la disponibilidad del estudio.</div>
+
           </div>
           <aside class="panel studio-scene-aside">
             <div class="section-head"><div><span class="eyebrow">PASO 2</span><h2>Escenario seleccionado</h2></div></div>
@@ -157,12 +167,12 @@
             <div class="summary-line"><span>Edad orientativa</span><strong id="selected-ages">Según el escenario</strong></div>
             <div class="summary-line"><span>Estado</span><strong id="selected-status">Escenario elegido</strong></div>
             <button type="button" class="btn outline wide" data-route="escenarios" style="margin-top:19px">Elegir otro escenario</button>
-            <p class="foot-note">Las recetas profesionales del escenario permanecen privadas en nuestro servidor.</p>
+
           </aside>
         </div>
       </section>
       <section class="page" data-page="resultado" hidden>
-        <div class="top-heading"><div><span class="eyebrow">Motor PICGIFT · Generación privada</span><h1 id="result-page-title">Tu fotografía PICGIFT</h1><p id="result-page-description">Aquí podrás consultar tu fotografía y descargarla cuando el trabajo finalice. Los pagos todavía no están activos.</p></div><button class="btn outline" data-route="crear">← Volver</button></div>
+        <div class="top-heading"><div><span class="eyebrow">Estudio PICGIFT · Retrato privado</span><h1 id="result-page-title">Tu fotografía PICGIFT</h1><p id="result-page-description">Aquí podrás consultar tu fotografía y descargarla cuando el trabajo finalice. Los pagos todavía no están activos.</p></div><button class="btn outline" data-route="crear">← Volver</button></div>
         <div class="panel" id="result-empty"><h2>La colección Halloween está en preparación</h2><p class="muted" style="margin-top:10px;font-size:13px">Pronto podrás generar fotografías de Halloween. Mientras tanto, tus resultados anteriores siguen en Mis fotos.</p><button type="button" class="btn primary" data-route="crear" style="margin-top:18px">Explorar Halloween</button></div>
         <div class="result-stage hidden" id="real-result">
           <div class="result-art">
@@ -171,7 +181,7 @@
             <div class="result-foot"><span class="eyebrow">Halloween 2026 · Foto privada</span><h2 id="result-name">Fotografía PICGIFT</h2></div>
           </div>
           <div class="panel result-progress-panel">
-            <span class="eyebrow" id="progress-kicker">Motor PICGIFT · Fotografía privada</span>
+            <span class="eyebrow" id="progress-kicker">Estudio PICGIFT · Fotografía privada</span>
             <h2 id="progress-headline" style="margin-top:10px">Estamos preparando tu fotografía</h2>
             <p class="muted" id="progress-description" style="font-size:13px;margin-top:12px">Puedes dejar abierta esta pantalla o regresar a Mis fotos. El estado se conserva en tu cuenta.</p>
             <div class="ai-progress" id="generation-progress">
@@ -183,9 +193,9 @@
                 <div id="progress-fill" class="ai-progress-fill" style="width:10%"></div>
               </div>
               <div class="ai-progress-stages" aria-hidden="true">
-                <span>1 · En cola</span><span>2 · Análisis</span><span>3 · Creación</span><span>4 · Revisión</span>
+                <span>1 · En cola</span><span>2 · Preparación</span><span>3 · Creación</span><span>4 · Revisión</span>
               </div>
-              <p class="tiny" id="progress-note">Porcentaje orientativo por etapas; OpenAI no informa un porcentaje exacto.</p>
+              <p class="tiny" id="progress-note">Avance orientativo por etapas de preparación.</p>
               <p class="muted" id="progress-elapsed" style="font-size:12px;margin-top:10px">Tiempo transcurrido: 0 s</p>
               <div class="notice hidden" id="progress-warning" role="status"></div>
               <div class="actions ai-progress-actions">
@@ -195,9 +205,9 @@
             </div>
             <a class="btn primary wide hidden" id="download-result" href="#" download="picgift-fotografia-2026.jpg" style="margin-top:22px">Descargar mi fotografía</a>
             <button class="btn outline wide hidden" type="button" id="retry-job" data-route="crear" style="margin-top:12px">Preparar otra fotografía</button>
-            <a id="openai-billing-help" class="btn outline wide hidden" href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer" style="margin-top:14px">Revisar saldo y límites de la API de OpenAI ↗</a>
+
             <div class="notice" id="result-status" role="status" aria-live="polite">Preparando el trabajo…</div>
-            <p class="tiny" style="margin-top:13px">Esta prueba privada no realiza ningún cobro.</p>
+            <p class="tiny" style="margin-top:13px">Los cobros permanecen desactivados durante la preparación del estudio.</p>
           </div>
         </div>
       </section>
@@ -206,13 +216,13 @@
         <div id="photo-library"><div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Tu primera fotografía aparecerá aquí después de generarla.</p><button class="btn outline" data-route="crear">Empezar</button></div></div>
       </section>
       <section class="page" data-page="cuenta" hidden>
-        <div class="top-heading"><div><span class="eyebrow">Tu espacio PICGIFT</span><h1>Mi cuenta</h1><p>Acceso seguro con Google o correo electrónico.</p></div></div>
-        <div class="account-grid"><div class="panel"><div class="profile"><div class="avatar" id="account-avatar">P</div><div><h3>Bienvenido a PICGIFT</h3><p id="account-email">Sesión iniciada</p></div></div><div class="settings-row"><span>Temporada activa</span><strong>Halloween 2026</strong></div><div class="settings-row"><span>Créditos disponibles</span><strong id="account-credits">0 fotografías</strong></div><div class="settings-row"><span>Mis fotografías</span><strong>Pendiente del generador</strong></div><button class="btn outline" data-route="precios" style="margin-top:18px">Ver packs</button><div class="settings-row"><span>Últimos pedidos</span><strong id="account-orders">Sin compras</strong></div><button class="btn outline" id="logout" type="button" style="margin-top:25px">Cerrar sesión</button></div><div class="panel"><span class="eyebrow">Privacidad</span><h2 style="margin-top:9px">Tus imágenes importan</h2><p class="muted" style="font-size:13px;margin-top:12px">Al elegir una foto, la vista previa permanece en tu dispositivo. Solo se enviará al servidor privado al autorizar e iniciar una generación con IA. Puedes eliminar los archivos desde Mis fotografías.</p><p class="tiny" id="install-help" style="margin-top:12px">En móviles compatibles también puedes añadir PICGIFT a la pantalla de inicio. Las fotografías privadas no se almacenan para uso sin conexión.</p><button class="btn outline" data-route="creditos" style="margin-top:17px">Avisos y créditos</button></div></div>
+        <div class="top-heading"><div><span class="eyebrow">Tu espacio PICGIFT</span><h1>Mi cuenta</h1><p>Tu cuenta, tus fotografías y tus recuerdos en un solo lugar.</p></div></div>
+        <div class="account-grid"><div class="panel"><div class="profile"><div class="avatar" id="account-avatar">P</div><div><h3>Bienvenido a PICGIFT</h3><p id="account-email">Sesión iniciada</p></div></div><div class="settings-row"><span>Temporada activa</span><strong>Halloween 2026</strong></div><div class="settings-row"><span>Créditos disponibles</span><strong id="account-credits">0 fotografías</strong></div><div class="settings-row"><span>Mis fotografías</span><button class="text-btn" data-route="mis-fotos">Abrir mi galería →</button></div><button class="btn outline" data-route="precios" style="margin-top:18px">Ver packs</button><div class="settings-row"><span>Últimos pedidos</span><strong id="account-orders">Sin compras</strong></div><a class="btn quiet" href="./delete-account.html" style="margin-top:18px">Solicitar eliminación de cuenta</a><button class="btn outline" id="logout" type="button" style="margin-top:25px">Cerrar sesión</button></div><div class="panel"><span class="eyebrow">Privacidad</span><h2 style="margin-top:9px">Tus imágenes importan</h2><p class="muted" style="font-size:13px;margin-top:12px">Al elegir una foto, la vista previa permanece en tu dispositivo. Solo se enviará al servidor privado al autorizar e iniciar una creación del retrato. Puedes eliminar los archivos desde Mis fotografías.</p><p class="tiny" id="install-help" style="margin-top:12px">En móviles compatibles también puedes añadir PICGIFT a la pantalla de inicio. Las fotografías privadas no se almacenan para uso sin conexión.</p><button class="btn outline" data-route="creditos" style="margin-top:17px">Avisos y créditos</button></div></div>
       </section>
     </div>
-    <section class="page" data-page="creditos" hidden><div class="top-heading"><div><span class="eyebrow">Transparencia</span><h1>Créditos y avisos</h1><p>La campaña Halloween 2026 se encuentra en preparación.</p></div></div><div class="panel"><h2>Recursos visuales PICGIFT</h2><p class="muted" style="font-size:13px;margin-top:14px">El logotipo y el icono de Halloween son recursos de marca de la campaña. Los escenarios publicados son bocetos ilustrados, no fondos fotográficos listos para generar con IA. La campaña anterior se conserva para futuras modificaciones.</p><div id="credits-list" style="display:grid;gap:9px;margin-top:18px"></div><p class="foot-note">No se realizan cobros. Las condiciones legales y el consentimiento para fotografías de menores se revisarán antes del lanzamiento comercial.</p><button class="btn outline" data-route="inicio" style="margin-top:20px">Volver al inicio</button></div></section>
-    <footer class="page" style="padding-top:0"><div class="legal">© 2026 PICGIFT · Colección Halloween 2026 · <button class="text-btn" data-route="creditos">Avisos y créditos</button></div></footer>
-  </div>
+    <section class="page" data-page="creditos" hidden><div class="top-heading"><div><span class="eyebrow">Transparencia</span><h1>Créditos y avisos</h1><p>La campaña Halloween 2026 se encuentra en preparación.</p></div></div><div class="panel"><h2>Recursos visuales PICGIFT</h2><p class="muted" style="font-size:13px;margin-top:14px">El logotipo y el icono de Halloween son recursos de marca de la campaña. Los decorados y las muestras ilustran el estilo de la colección. La campaña anterior se conserva para futuras modificaciones.</p><div id="credits-list" style="display:grid;gap:9px;margin-top:18px"></div><p class="foot-note">No se realizan cobros. Las condiciones legales y el consentimiento para fotografías de menores se revisarán antes del lanzamiento comercial.</p><button class="btn outline" data-route="inicio" style="margin-top:20px">Volver al inicio</button></div></section>
+    <footer class="page" style="padding-top:0"><div class="legal">© 2026 PICGIFT · Colección Halloween 2026 · <a href="./privacy.html">Privacidad</a> · <a href="./delete-account.html">Eliminar cuenta</a> · <button class="text-btn" data-route="creditos">Avisos y créditos</button></div></footer>
+  </main>
 </div>
 <nav class="mobile-nav" aria-label="Navegación inferior">
 <button class="active" data-route="inicio"><svg><use href="#i-home"/></svg>Inicio</button>
@@ -221,7 +231,7 @@
 <button data-route="mis-fotos"><svg><use href="#i-gallery"/></svg>Mis fotos</button>
 <button data-route="cuenta"><svg><use href="#i-user"/></svg>Cuenta</button>
 </nav>
-<div id="auth" class="modal" role="dialog" aria-modal="true" aria-label="Acceso a PICGIFT">
+<div id="auth" class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
  <div class="dialog">
    <button class="close" id="close" aria-label="Cerrar" type="button">×</button><img class="auth-logo" src="./assets/halloween/app-icon-halloween.svg" alt="PICGIFT">
    <span class="eyebrow" style="display:block;text-align:center">Halloween 2026</span><h2 id="auth-title">Iniciar sesión</h2><p class="auth-caption">Tus recuerdos empiezan aquí.</p>
@@ -234,9 +244,9 @@
    <button class="btn outline" type="button" id="google">Continuar con Google</button>
    <button class="btn quiet" type="button" id="reset-pass">¿Has olvidado tu contraseña?</button>
    <div class="notice" role="status" aria-live="polite" id="auth-msg">Puedes acceder con correo o Google.</div>
-   <p class="tiny">Entorno de pruebas. La documentación legal definitiva se incorporará antes del lanzamiento.</p>
+   <p class="tiny">Solo para personas adultas. Las fotos de menores requieren autorización de sus representantes. <a href="./privacy.html">Información de privacidad</a>.</p>
  </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script defer src="./app.js?v=picgift-halloween-2026-1"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-halloween-2026-1"></script>
-<script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-halloween-2026-1"></script></body></html>
+<script defer src="./photo-editor.js?v=2"></script><script defer src="./experience.js?v=2"></script><script defer src="./app.js?v=picgift-halloween-2026-2"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-halloween-2026-2"></script>
+<script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-halloween-2026-2"></script></body></html>

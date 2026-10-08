@@ -8,7 +8,7 @@ const offline=document.getElementById("connection-state");
 let proposal=null;
 const standalone=()=>window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 function updateConnectivity(){
- if(offline){offline.classList.toggle("hidden",navigator.onLine);offline.textContent="Sin conexión: puedes explorar contenidos guardados, pero el inicio de sesión y la IA necesitan internet.";}
+ if(offline){offline.classList.toggle("hidden",navigator.onLine);offline.textContent="Sin conexión: puedes explorar contenidos guardados, pero el inicio de sesión y la creación de retratos necesitan internet.";}
 }
 function showInstall(){
  if(!button)return;

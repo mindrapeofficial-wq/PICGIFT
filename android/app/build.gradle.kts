@@ -3,16 +3,31 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 android {
-    namespace = "com.picgift.christmas"
-    compileSdk = 35
+    namespace = "com.picgift.myapp"
+    compileSdk = 36
     defaultConfig {
-        applicationId = "com.picgift.christmas"
+        applicationId = "com.picgift.myapp"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0-halloween"
+        targetSdk = 36
+        versionCode = 3
+        versionName = "1.2.0"
     }
-    buildTypes { release { isMinifyEnabled = false } }
+    buildFeatures { buildConfig = true }
+    val uploadStore = System.getenv("PICGIFT_UPLOAD_STORE")
+    signingConfigs {
+        if (!uploadStore.isNullOrBlank()) create("upload") {
+            storeFile = file(uploadStore)
+            storePassword = System.getenv("PICGIFT_UPLOAD_STORE_PASSWORD")
+            keyAlias = System.getenv("PICGIFT_UPLOAD_KEY_ALIAS")
+            keyPassword = System.getenv("PICGIFT_UPLOAD_KEY_PASSWORD")
+        }
+    }
+    buildTypes { release {
+        isMinifyEnabled = true
+        isShrinkResources = true
+        proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        if (!uploadStore.isNullOrBlank()) signingConfig = signingConfigs.getByName("upload")
+    } }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
 }

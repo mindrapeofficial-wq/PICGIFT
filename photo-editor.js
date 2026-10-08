@@ -1,0 +1,28 @@
+/* Local-only crop editor. References are transmitted only after AI consent. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id),canvas=$('crop-canvas'),ctx=canvas.getContext('2d');
+let image=null,url=null,version=0,scale=1,x=0,y=0,drag=null,originalFile=null;
+const refs={face:null,body:null},refURLs={face:null,body:null},refVersions={face:0,body:0};
+const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+function limits(){if(!image)return;const fit=Math.max(canvas.width/image.naturalWidth,canvas.height/image.naturalHeight);const w=image.naturalWidth*fit*scale,h=image.naturalHeight*fit*scale;x=clamp(x,canvas.width-w,0);y=clamp(y,canvas.height-h,0);return {fit,w,h};}
+function draw(){if(!image)return;const {w,h}=limits();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,x,y,w,h);ctx.save();ctx.strokeStyle='#ffffff40';ctx.lineWidth=1;for(let i=1;i<3;i++){ctx.beginPath();ctx.moveTo(canvas.width*i/3,0);ctx.lineTo(canvas.width*i/3,canvas.height);ctx.moveTo(0,canvas.height*i/3);ctx.lineTo(canvas.width,canvas.height*i/3);ctx.stroke();}ctx.restore();$('crop-zoom-value').textContent=scale.toFixed(1)+'×';}
+function reset(){if(!image)return;const aspect=$('crop-ratio').value==='original'?image.naturalWidth/image.naturalHeight:Number($('crop-ratio').value);canvas.width=600;canvas.height=Math.round(600/aspect);scale=1;$('crop-zoom').value='1';const {w,h}=limits();x=(canvas.width-w)/2;y=(canvas.height-h)/2;draw();}
+function clear(){version++;if(url)URL.revokeObjectURL(url);url=null;image=null;originalFile=null;ctx.clearRect(0,0,canvas.width,canvas.height);for(const type of ['face','body'])removeRef(type);}
+async function open(file){const current=++version;if(url)URL.revokeObjectURL(url);originalFile=file;url=URL.createObjectURL(file);const candidate=new Image();candidate.src=url;try{await candidate.decode();if(current!==version)return;image=candidate;$('crop-ratio').value='original';reset();$('crop-status').textContent='Arrastra para ajustar. El encuadre mostrado será la foto enviada.';}catch{if(current===version){image=null;$('crop-status').textContent='No se pudo leer esta foto. Elige otro archivo JPG, PNG o WEBP.';}}}
+async function exportFile(){if(!image)throw Error('Espera a que termine de cargar la foto o selecciona otra.');const {fit}=limits();const sourceW=canvas.width/(fit*scale),sourceH=canvas.height/(fit*scale),sx=-x/(fit*scale),sy=-y/(fit*scale);const out=document.createElement('canvas'),ratio=Math.min(1,2560/Math.max(sourceW,sourceH));out.width=Math.max(1,Math.round(sourceW*ratio));out.height=Math.max(1,Math.round(sourceH*ratio));out.getContext('2d').drawImage(image,sx,sy,sourceW,sourceH,0,0,out.width,out.height);const blob=await new Promise(resolve=>out.toBlob(resolve,'image/jpeg',.95));if(!blob)throw Error('No se pudo guardar el encuadre.');return new File([blob],'picgift-encuadre.jpg',{type:'image/jpeg'});}
+function removeRef(type){refVersions[type]++;refs[type]=null;if(refURLs[type])URL.revokeObjectURL(refURLs[type]);refURLs[type]=null;$('reference-'+type).value='';$('reference-'+type+'-preview').removeAttribute('src');$('reference-'+type+'-preview').classList.add('hidden');$('reference-'+type+'-remove').classList.add('hidden');$('reference-'+type+'-status').textContent='Opcional · Sin fotografía';}
+for(const type of ['face','body']){
+ $('reference-'+type+'-choose').addEventListener('click',()=>$('reference-'+type).click());
+ $('reference-'+type+'-remove').addEventListener('click',()=>removeRef(type));
+ $('reference-'+type).addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>15*1024*1024){$('reference-'+type+'-status').textContent='Usa JPG, PNG o WEBP de hasta 15 MB.';e.target.value='';return;}const current=version,referenceVersion=++refVersions[type];const nextURL=URL.createObjectURL(file),probe=new Image();probe.src=nextURL;try{await probe.decode();if(current!==version||referenceVersion!==refVersions[type]){URL.revokeObjectURL(nextURL);return;}removeRef(type);refs[type]=file;refURLs[type]=nextURL;$('reference-'+type+'-preview').src=nextURL;$('reference-'+type+'-preview').classList.remove('hidden');$('reference-'+type+'-remove').classList.remove('hidden');$('reference-'+type+'-status').textContent=file.name;}catch{URL.revokeObjectURL(nextURL);$('reference-'+type+'-status').textContent='No se pudo leer esta imagen.';}});
+}
+$('crop-zoom').addEventListener('input',e=>{if(!image)return;const old=scale;scale=Number(e.target.value);x=canvas.width/2-(canvas.width/2-x)*scale/old;y=canvas.height/2-(canvas.height/2-y)*scale/old;draw();});
+$('crop-ratio').addEventListener('change',reset);$('crop-reset').addEventListener('click',reset);
+canvas.addEventListener('pointerdown',e=>{if(!image)return;canvas.setPointerCapture(e.pointerId);drag={id:e.pointerId,cx:e.clientX,cy:e.clientY,x,y};});
+canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const rect=canvas.getBoundingClientRect();x=drag.x+(e.clientX-drag.cx)*canvas.width/rect.width;y=drag.y+(e.clientY-drag.cy)*canvas.height/rect.height;draw();});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>{drag=null;});
+function pan(direction){if(!image)return;const d=25;({left:()=>x+=d,right:()=>x-=d,up:()=>y+=d,down:()=>y-=d}[direction])();draw();}
+canvas.addEventListener('keydown',e=>{const dir={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'}[e.key];if(dir){e.preventDefault();pan(dir);}});
+document.querySelectorAll('[data-crop-pan]').forEach(b=>b.addEventListener('click',()=>pan(b.dataset.cropPan)));
+window.picgiftPhotoEditor={open,clear,exportFile,references:()=>({...refs})};
+})();

@@ -1,19 +1,25 @@
 {
-  "name": "PICGIFT · Halloween 2026",
+  "name": "PICGIFT",
   "short_name": "PICGIFT",
-  "description": "Fotografía creativa Halloween con PICGIFT, temporada de otoño 2026",
-  "lang": "es",
+  "lang": "en",
+  "description": "Seasonal storybook portraits for family memories",
   "start_url": "/#inicio",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#090609",
-  "theme_color": "#090609",
+  "background_color": "#161110",
+  "theme_color": "#161110",
   "icons": [
     {
-      "src": "/assets/halloween/app-icon-halloween.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/assets/halloween/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/halloween/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "id": "/",
@@ -24,7 +30,7 @@
   "orientation": "any",
   "shortcuts": [
     {
-      "name": "Ver Halloween",
+      "name": "Halloween",
       "short_name": "Halloween",
       "url": "/#escenarios",
       "icons": [
@@ -36,8 +42,8 @@
       ]
     },
     {
-      "name": "Mis fotografías",
-      "short_name": "Mis fotos",
+      "name": "PICGIFT gallery",
+      "short_name": "Gallery",
       "url": "/#mis-fotos",
       "icons": [
         {

@@ -1,0 +1,12 @@
+android/.gradle/
+android/local.properties
+android/**/build/
+*.jks
+*.keystore
+*.p12
+*.aab
+*.apk
+.env*
+!.env.example
+
+android/.kotlin/

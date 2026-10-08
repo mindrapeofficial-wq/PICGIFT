@@ -1,64 +1,82 @@
 {
-  "version": "halloween-2026.1",
+  "version": "halloween-2026.2",
   "campaign": "halloween",
-  "visibility": "public illustrative previews",
-  "notice": "Los fondos de Halloween son bocetos ilustrados. No representan escenarios fotográficos maestros ni permiten generación con IA todavía. La campaña de Navidad se conserva en el archivo GitHub.",
+  "visibility": "authorized photographic style samples",
+  "notice": "Colección de Halloween. Consulta la disponibilidad de creación al iniciar sesión.",
   "scenes": [
     {
-      "id": "halloween-pumpkin-forest",
-      "name": "Bosque de calabazas",
-      "description": "Un sendero encantado bajo la luna naranja",
-      "category": "Bosques",
-      "badge": "En preparación",
-      "ages": "Todas las edades",
-      "poses": [
-        "Automática"
-      ],
-      "source": "concept",
-      "status": "coming_soon",
-      "previewOnly": true,
-      "image": "./assets/halloween/scenes/bosque-calabazas.svg",
-      "credit": {
-        "author": "PICGIFT",
-        "url": null
-      }
-    },
-    {
-      "id": "halloween-haunted-castle",
-      "name": "Castillo embrujado",
-      "description": "Luces de otoño y torres misteriosas",
+      "id": "halloween-potions",
+      "name": "La escuela de magia",
+      "description": "Pociones brillantes, libros antiguos y un pequeño gran mago.",
       "category": "Fantasía",
-      "badge": "En preparación",
-      "ages": "Todas las edades",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
       "poses": [
-        "Automática"
+        "De pie tras el caldero"
       ],
-      "source": "concept",
-      "status": "coming_soon",
-      "previewOnly": true,
-      "image": "./assets/halloween/scenes/castillo-embrujado.svg",
+      "source": "picgift",
+      "status": "pilot",
+      "previewOnly": false,
+      "image": "./assets/halloween/backdrops/potions.jpg",
       "credit": {
         "author": "PICGIFT",
         "url": null
       }
     },
     {
-      "id": "halloween-portrait-hall",
-      "name": "Salón de retratos",
-      "description": "Un rincón gótico elegante a la luz de las velas",
-      "category": "Clásicos",
-      "badge": "En preparación",
-      "ages": "Todas las edades",
+      "id": "halloween-autumn-arch",
+      "name": "El bosque encantado",
+      "description": "Una brujita de cuento bajo un arco de hojas y farolillos.",
+      "category": "Bosques",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
       "poses": [
-        "Automática"
+        "De pie"
       ],
-      "source": "concept",
-      "status": "coming_soon",
-      "previewOnly": true,
-      "image": "./assets/halloween/scenes/salon-embrujado.svg",
+      "source": "picgift",
+      "status": "pilot",
+      "previewOnly": false,
+      "image": "./assets/halloween/backdrops/autumn-arch.jpg",
       "credit": {
         "author": "PICGIFT",
         "url": null
+      }
+    },
+    {
+      "id": "halloween-pumpkin-bench",
+      "name": "El rincón de las calabazas",
+      "description": "Calabazas, gatos negros y una sonrisa que lo ilumina todo.",
+      "category": "Clásicos",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "Sentado en el banco"
+      ],
+      "source": "picgift",
+      "status": "pilot",
+      "previewOnly": false,
+      "image": "./assets/halloween/backdrops/pumpkin-bench.jpg",
+      "credit": {
+        "author": "PICGIFT",
+        "url": null
+      }
+    },
+    {
+      "id": "halloween-lantern-street",
+      "name": "La calle de los farolillos",
+      "description": "Un paseo de cuento entre calabazas y luces cálidas.",
+      "category": "Fantasía",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "De pie"
+      ],
+      "source": "picgift",
+      "status": "pilot",
+      "previewOnly": false,
+      "image": "./assets/halloween/backdrops/lantern-street.jpg",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado"
       }
     }
   ]

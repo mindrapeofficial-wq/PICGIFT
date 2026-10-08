@@ -1,9 +1,12 @@
 /* PICGIFT Halloween 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-shell-halloween-2026-v1";
+const VERSION="picgift-shell-halloween-2026-v3";
 const SHELL=[
  "/","/index.html","/styles.css","/app.js","/auth.js","/generator.js",
+ "/assets/halloween/icon-192.png","/assets/halloween/icon-512.png","/i18n.js","/locales/en.json","/collection.css","/experience.js","/photo-editor.js",
+ "/assets/halloween/guide/retrato.webp","/assets/halloween/guide/cuerpo-entero.webp","/assets/halloween/guide/sentado.webp","/assets/halloween/guide/evitar.webp","/privacy.html","/delete-account.html",
+ "/assets/halloween/backdrops/potions.jpg","/assets/halloween/backdrops/autumn-arch.jpg","/assets/halloween/backdrops/pumpkin-bench.jpg","/assets/halloween/backdrops/lantern-street.jpg","/assets/halloween/journey/result.webp","/assets/halloween/samples/pociones.webp","/assets/halloween/samples/bosque.webp","/assets/halloween/samples/calabazas.webp",
  "/payments.js","/install.js","/config.js","/manifest.webmanifest","/scenes.json",
  "/assets/halloween/logo-halloween.svg","/assets/halloween/app-icon-halloween.svg",
  "/assets/halloween/scenes/bosque-calabazas.svg","/assets/halloween/scenes/castillo-embrujado.svg",
