@@ -46,7 +46,7 @@ function renderHalloweenPromo(){
 const isNative=()=>typeof window.PicgiftNative==="object"&&typeof window.PicgiftNative.postMessage==="function";
 function syncNative(){if(isNative())window.PicgiftNative.postMessage(JSON.stringify({action:"account",user_id:nativeUser?.id||""}));}
 function status(text){$("payment-status").textContent=text}
-function buttons(can){document.querySelectorAll("[data-buy]").forEach(btn=>{btn.disabled=!can;btn.textContent=btn.dataset.buy==="esencial"?"Comprar 1 fotografía":btn.dataset.buy==="magico"?"Comprar pack de 5":"Comprar pack de 10";});}
+function buttons(can){document.querySelectorAll("[data-buy]").forEach(btn=>{btn.disabled=!can;btn.textContent="Elegir pack";});}
 async function call(body){
  const {data,error}=await client.functions.invoke("picgift-checkout",{body});
  if(error){let message="No se pudo consultar el servicio de pagos.";try{const reply=await error.context.json();message=reply.error||message}catch{}throw Error(message)}

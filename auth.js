@@ -42,3 +42,9 @@ $('reset-pass').addEventListener('click',async()=>{
  msg(error?error.message:'Si la cuenta existe, recibirás un correo para restablecer la contraseña.');
 });
 $('logout').addEventListener('click',async()=>{if(client){const {error}=await client.auth.signOut();if(error){msg(error.message);return}}publish(null);window.location.hash='inicio';});
+window.addEventListener('picgift:update-profile',async e=>{
+ const name=String(e.detail?.display_name||'').trim().slice(0,60);
+ if(!client||!name){window.dispatchEvent(new CustomEvent('picgift:profile-updated',{detail:{error:'Escribe un nombre válido e inicia sesión.'}}));return;}
+ const {data,error}=await client.auth.updateUser({data:{display_name:name}});
+ window.dispatchEvent(new CustomEvent('picgift:profile-updated',{detail:error?{error:'No se pudo guardar el nombre. Inténtalo de nuevo.'}:{user:data.user}}));
+});

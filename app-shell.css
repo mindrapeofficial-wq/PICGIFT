@@ -1,0 +1,371 @@
+/* Shared Halloween composition for the installed app and desktop browser. */
+html[data-campaign="halloween"]{--bg:#090606;--panel:#170c08;--cream:#fff3de;--muted:#cbb49f;--gold:#ffa22f;--line:#8c542f66;color:var(--cream);background:var(--bg)}
+html[data-campaign="halloween"] body{background:#090606;color:#fff3de;font-family:Arial,sans-serif}
+html[data-campaign="halloween"] .app{padding-bottom:0}
+html[data-campaign="halloween"] .main{background:none;min-width:0}
+html[data-campaign="halloween"] .topbar{display:none}
+.app-page-hero{position:relative;padding:0 5px 22px;isolation:isolate}
+.app-page-hero:before{content:'';position:absolute;inset:-16px -16px -12px;z-index:-1;pointer-events:none;background:linear-gradient(0deg,#090606,transparent 48%),url('./assets/halloween/reference/moon-castle.webp') top right/100% auto no-repeat}
+.app-page-hero__bar{height:75px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center}
+.app-wordmark{display:flex;align-items:center;gap:4px;justify-content:center}
+.app-wordmark img{width:80px;height:59px;object-fit:contain;clip-path:inset(0 0 25%);margin-bottom:-13px;margin-right:-5px}
+.app-wordmark span{font:600 24px/1 'Times New Roman',serif;letter-spacing:-.7px;background:linear-gradient(#fff7ce,#fff0bb 28%,#c9802a 64%,#ffdfa0);background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px #000)}
+.app-settings{justify-self:end;width:28px;min-height:36px;border:0;background:none;color:#f5dfba;padding:0}
+.app-settings svg{width:22px;height:22px}
+.back-link{border:0;background:none;color:#f5dfba;display:flex;align-items:center;gap:5px;font:400 28px/1 'Times New Roman',serif;padding:0;justify-self:start}
+.back-link span{font-size:14px}
+.app-page-hero h1{font:600 clamp(29px,7.7vw,39px)/1.1 'Times New Roman',serif;letter-spacing:-.7px;margin:13px 0 6px}
+.app-page-hero h1 em{color:#ffb755;font-weight:500}
+.app-page-hero>p{font:400 clamp(12px,3vw,15px)/1.35 Arial,sans-serif;color:#e2d4bd;max-width:77%;margin:0;min-height:39px}
+.app-section-head{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:17px 0 8px}
+.app-section-head h2,.profile-usage>h2{font:600 clamp(18px,4.3vw,24px)/1.2 'Times New Roman',serif;letter-spacing:-.3px}
+.app-section-head button{border:0;background:none;color:#ffb742;white-space:nowrap;padding:4px 0;font:400 11px/1.2 Arial,sans-serif;min-height:28px}
+.app-tabs{display:flex;width:100%;border:1px solid #714826;border-radius:14px;overflow:hidden;background:#100b09c9;position:relative}
+.app-tabs button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:41px;flex:1;border:0;color:#f9eddc;background:linear-gradient(130deg,#1b100b90,#110c0990);border-radius:13px;padding:7px 4px;font:400 10px/1 Arial,sans-serif;min-width:0}
+.app-tabs svg{width:18px;height:18px;flex:none;color:#eac9a8}
+.app-tabs button[aria-pressed="true"]{color:#fff7e8;background:linear-gradient(120deg,#3e1c0866,#221006);box-shadow:inset 0 0 0 1.5px #ffc76b,0 0 10px #ff7d15}
+.app-tabs button[aria-pressed="true"] svg{color:#ffb83f}
+.inspiration-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.inspiration-card{padding:0;min-width:0;border:1px solid #735132;border-radius:10px;overflow:hidden;background:#0b0805;color:#fff1db}
+.inspiration-card img{width:100%;aspect-ratio:.92;object-fit:cover}
+.inspiration-card>span{display:block;font:400 clamp(9px,2.45vw,13px)/1.25 'Times New Roman',serif;padding:6px 2px 8px;white-space:normal;min-height:29px;background:linear-gradient(#160d07,#090606)}
+.inspiration-section{margin-bottom:19px}
+.inspiration-section[hidden]{display:none}
+.available-catalog{border-top:1px solid #63412655;margin-top:24px;padding-top:12px;font-size:12px;color:#dcb590}
+.available-catalog summary{cursor:pointer;padding:10px 0;color:#ffb944}
+.available-catalog .scene-grid{margin-top:12px}
+.app-note{font-size:11px;color:#b8a18a;margin-top:12px}
+html[data-campaign="halloween"] .page[data-page="mis-fotos"]{position:relative}
+.gallery-create{position:absolute;right:17px;top:125px;border:1px solid #ffb742;background:#241105d9;color:#fff3de;border-radius:20px;display:flex;align-items:center;gap:5px;padding:8px 10px;font-size:10px;min-height:32px}
+.gallery-create svg{width:16px;height:16px;color:#ffb742}
+body[data-app-page="mis-fotos"] .app-page-hero>p{max-width:66%}
+.recent-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.all-photo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.all-photos-heading{margin-top:23px}
+.photo-card{min-width:0;background:linear-gradient(#1d1007,#0e0804);border:1px solid #895427;border-radius:10px;overflow:hidden;color:#fff1df}
+.photo-card-art{position:relative}
+.photo-card-art>img,.photo-pending{width:100%;aspect-ratio:.8;object-fit:cover;object-position:center}
+.photo-pending{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(ellipse,#573010,#130a06);padding:8px;color:#ffc47c;text-align:center;font-size:12px}
+.photo-pending svg{width:35px;height:35px}
+.photo-status{position:absolute;left:6px;bottom:0;border-radius:12px;padding:3px 7px;font-size:9px;color:white;max-width:calc(100% - 12px)}
+.photo-status.ready{background:linear-gradient(#48dc63,#00a23e)}
+.photo-status.processing{background:linear-gradient(#a77cff,#5d43ec)}
+.photo-card-info{padding:8px 7px 6px}
+.photo-card-info h3{font:600 12px/1.2 'Times New Roman',serif;margin:0 0 4px}
+.photo-card-info p{font:400 9px/1.2 Arial,sans-serif;color:#c7b098}
+.photo-actions{display:flex;border-top:1px solid #4d3022;margin:0 6px}
+.photo-actions button,.photo-actions a{flex:1;min-height:34px;display:grid;place-items:center;color:#ebcdb0;border:0;background:none;padding:4px}
+.photo-actions svg{width:19px;height:19px}
+.photo-actions button:disabled{opacity:.3;cursor:default}
+.photo-actions button[aria-pressed="true"] svg,.photo-favorite[aria-pressed="true"] svg{fill:#ffa139;color:#ffa139}
+.photo-menu-toggle,.photo-favorite{position:absolute;right:6px;top:6px;border:1px solid #7f4b26;background:#100904df;color:#fff1db;border-radius:50%;width:25px;height:25px;padding:0;font-size:14px}
+.photo-favorite{display:grid;place-items:center}
+.photo-favorite svg{width:18px;height:18px}
+.photo-menu{position:absolute;right:5px;top:35px;z-index:5;width:calc(100% - 10px);border:1px solid #ae7336;border-radius:8px;background:#20100b;box-shadow:0 10px 30px #000a;overflow:hidden}
+.photo-menu button{display:block;border:0;border-bottom:1px solid #614024;background:none;color:#fff3de;padding:10px;font-size:11px;width:100%;text-align:left}
+.photo-card--small{border:0;background:none;overflow:visible}
+.photo-card--small .photo-card-art{border:1px solid #7a502c;border-radius:9px;overflow:hidden}
+.photo-card--small .photo-card-info{padding:6px 1px}
+.photo-card--small .photo-card-info h3{font-weight:400;font-size:10px}
+.photo-card--small .photo-card-info p{font-size:9px}
+.profile-card{display:flex;align-items:center;gap:13px;border:1px solid #96632f;border-radius:13px;padding:9px 12px;background:linear-gradient(120deg,#201108b0,#0d0806dc);position:relative;min-height:95px}
+.profile-avatar{border:2px solid #ac7b47;border-radius:50%;width:76px;height:76px;flex:none;display:grid;place-items:center;overflow:hidden;background:radial-gradient(#613816,#1b0e07);color:#ffd18b;font:500 32px/1 'Times New Roman',serif}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-identity{min-width:0;flex:1}
+.profile-identity h2{font:600 25px/1.1 'Times New Roman',serif;margin-bottom:5px}
+.profile-identity p{font-size:12px;color:#dfc6a6;overflow-wrap:anywhere;line-height:1.2;margin-bottom:6px}
+.profile-badge{border:1px solid #7c4c1a;border-radius:15px;background:#49230cb0;display:inline-flex;align-items:center;gap:4px;color:#ffd07f;font-size:9px;padding:4px 7px}
+.profile-badge svg{width:15px;height:15px}
+.profile-edit{min-height:28px!important;font-size:10px!important;padding:6px 8px!important;gap:4px!important;border:1px solid #bd792c!important;border-radius:12px!important;flex:none}
+.profile-edit svg{width:14px;height:14px}
+html[data-campaign="halloween"] .account-grid{display:block}
+.profile-menu{margin-top:9px}
+.profile-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid #624326;border-radius:14px;padding:8px 10px;min-height:50px;background:linear-gradient(120deg,#221209a0,#0d0806c0);color:#f8ecd8}
+.profile-row strong{font:600 15px/1.2 'Times New Roman',serif;display:block}
+.profile-row small{display:block;font:400 10px/1.2 Arial,sans-serif;color:#e0d1bc;margin-top:4px}
+.profile-row .row-icon{display:grid;place-items:center;flex:none;width:39px;height:39px;background:#341a0c66;border-radius:50%;color:#ffad59}
+.row-icon svg{width:25px;height:25px}
+.row-chevron{margin-left:auto;font-size:23px;color:#ffc451}
+.profile-usage{margin-top:17px}
+.profile-usage>h2{margin:0 0 6px}
+.usage-grid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #825332;border-radius:14px;background:linear-gradient(120deg,#23130b90,#170e0990);padding:10px 0}
+.usage-grid button{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;border:0;background:none;color:#f9ead4;padding:0 3px}
+.usage-grid button+button{border-left:1px solid #71482966}
+.usage-grid svg{width:20px;height:20px;color:#ffa437}
+.usage-grid strong{font:500 23px/1 'Times New Roman',serif}
+.usage-grid span{font:400 10px/1.2 Arial,sans-serif}
+.logout-row{margin-top:8px;min-height:40px}
+.logout-row .row-icon{height:26px;background:none}
+.account-extra{font-size:11px;margin-top:12px;color:#bca086}
+.account-extra summary{cursor:pointer;padding:10px 0}
+.account-extra .btn,.account-extra .text-btn{display:block;margin-top:10px}
+.premium-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;text-align:center;margin:4px 0 22px}
+.premium-benefits>div>span{width:39px;height:39px;display:grid;place-items:center;margin:0 auto 5px;color:#ffc061;border:1.5px solid #ffad39;border-radius:50%;background:radial-gradient(#47240966,#190d0690);box-shadow:0 0 8px #ff7d1633}
+.premium-benefits svg{width:23px;height:23px}
+.premium-benefits .hd-icon{font:bold 15px/1 Arial,sans-serif}
+.premium-benefits h3{font:600 15px/1.1 'Times New Roman',serif;margin-bottom:4px}
+.premium-benefits p{font:400 10px/1.3 Arial,sans-serif;color:#e2d4c3}
+html[data-campaign="halloween"] .page[data-page="precios"] .pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card{min-height:216px;padding:17px 8px 11px;border:1px solid #8a592b;border-radius:12px;background:linear-gradient(130deg,#1c100980,#100906dc);box-shadow:none;position:relative;display:flex;flex-direction:column;gap:0;overflow:visible}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card.featured{border:1.5px solid #ffd17a;background:linear-gradient(120deg,#3b1c0880,#1c0d06);box-shadow:0 0 0 1px #f48c22,0 0 13px #f77726}
+.page[data-page="precios"] .price-card .eyebrow{font:500 9px/1.3 Arial,sans-serif;letter-spacing:1px;color:#f3dcb5;text-align:center}
+.page[data-page="precios"] .price-card h3{font:600 23px/1.1 'Times New Roman',serif;text-align:center;color:#fff4df;margin:5px 0 10px}
+.page[data-page="precios"] .price-card.featured h3 span{color:#ff9a34}
+.page[data-page="precios"] .price-card ul{list-style:none;padding:0;margin:0 0 8px;font:400 9px/1.3 Arial,sans-serif;color:#e2d2bd}
+.page[data-page="precios"] .price-card li{position:relative;padding-left:12px;margin-bottom:7px}
+.page[data-page="precios"] .price-card li:before{content:'✓';position:absolute;left:0;color:#ffab30}
+.page[data-page="precios"] .price-card .promo-savings{color:#ffb63e;font-size:9px}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-amount{font:600 18px/1.1 'Times New Roman',serif;text-align:center;color:#ffb041;margin:auto 0 12px;white-space:nowrap}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-amount small{font:inherit}
+.page[data-page="precios"] .price-card:first-child .price-amount{color:#fff0d8}
+.page[data-page="precios"] .price-card .promo-previous{display:inline!important;font:400 9px/1 Arial,sans-serif;color:#887764;text-decoration:line-through;margin-right:4px}
+.page[data-page="precios"] .price-card .promo-previous[hidden]{display:none!important}
+.page[data-page="precios"] .price-card .btn{min-height:28px!important;padding:5px 4px!important;font:400 10px/1.2 Arial,sans-serif!important;border-radius:12px!important;border:1px solid #cc8b28!important;white-space:nowrap}
+.page[data-page="precios"] .price-card .btn.primary{background:linear-gradient(120deg,#ffd26b,#ff7612);color:#120800}
+.page[data-page="precios"] .price-card .btn:disabled{opacity:.7;cursor:default}
+.page[data-page="precios"] .price-ribbon{position:absolute;top:-11px;left:50%;transform:translateX(-50%);width:max-content;max-width:100%;font:400 9px/1 Arial,sans-serif;background:#100704;color:#ffbd27;border:1px solid #ffbf28;border-radius:7px;padding:5px 7px;letter-spacing:0}
+.page[data-page="precios"] .promo-pricing-intro,.page[data-page="precios"] .pack-quality-note,.page[data-page="precios"] .promo-discount-badge{display:none!important}
+.premium-collection{display:flex;align-items:center;gap:14px;border:1px solid #754b2a;background:linear-gradient(120deg,#2b15099c,#1b0e0770);padding:9px 12px;border-radius:13px;margin-top:15px}
+.premium-collection>svg{width:26px;height:26px;color:#ffa946;flex:none}
+.premium-collection h3{font:600 14px/1.2 'Times New Roman',serif;margin-bottom:3px}
+.premium-collection p{font:400 10px/1.2 Arial,sans-serif;color:#dcc3a7}
+.premium-collection button{margin-left:auto;border:0;background:none;color:#ffad27;font-size:24px}
+.premium-assurances{margin-top:9px;border:1px solid #754b2a;border-radius:13px;padding:8px 12px;background:#150d0980}
+.premium-assurances>div{display:flex;align-items:center;gap:13px;margin-bottom:9px}
+.premium-assurances>div:last-child{margin-bottom:0}
+.premium-assurances svg{width:21px;height:21px;color:#e9c396;flex:none}
+.premium-assurances strong{font:500 12px/1.1 'Times New Roman',serif;display:block}
+.premium-assurances p span{display:block;font:400 9px/1.2 Arial,sans-serif;color:#cfbca4;margin-top:3px}
+.premium-later{width:100%;min-height:30px!important;margin-top:10px;border:1px solid #8c633d!important;border-radius:16px!important;color:#d7bc9b!important;font:400 10px/1 Arial,sans-serif!important;background:#26160c70!important}
+.page[data-page="precios"] #payment-status,.page[data-page="precios"] .promo-disclosure{font-size:10px;padding:7px 0;background:none;border:0;margin:7px 0;color:#bfa78a;line-height:1.3}
+.creator-detailed-title,.studio-step-heading,.studio-trust{display:none}
+.app-panel{background:linear-gradient(130deg,#30170d,#0f0806);color:#f7e7cd;border:1px solid #c48134;border-radius:20px;max-width:480px;width:calc(100% - 32px);padding:30px 22px;box-shadow:0 0 70px #000}
+.app-panel::backdrop{background:#090503ca;backdrop-filter:blur(5px)}
+.app-panel h2{font:600 28px/1.1 'Times New Roman',serif;padding-right:15px;margin-bottom:18px}
+.app-panel p,.app-panel details{font-size:14px;line-height:1.5;margin:15px 0}
+.app-panel select{width:100%;background:#241409;color:#ffe6ba;border:1px solid #aa7133;padding:12px;border-radius:10px}
+.app-panel .text-btn{display:block;margin-top:12px;color:#ffc36d}
+.panel-close{position:absolute;right:13px;top:9px;font-size:28px;color:#ddbb96;border:0;background:none;padding:4px}
+.panel-guide{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.panel-guide img{border-radius:12px;width:100%;height:200px;object-fit:cover}
+.upload-loaded-prompt{border:0;background:none;color:#f9e6c9;display:flex;flex-direction:column;align-items:center;gap:7px;width:calc(100% - 100px);min-height:95px;padding:8px 0;position:relative;z-index:1}
+#upload-loaded{width:100%}
+.photo-open{padding:0;border:0;background:none;display:block;width:100%;cursor:pointer}
+.photo-open img{width:100%;aspect-ratio:.8;object-fit:cover;object-position:center}
+.upload-loaded-prompt svg{width:35px;height:35px;color:#deb485}
+.upload-loaded-prompt strong{font:600 17px/1.1 'Times New Roman',serif}
+.upload-loaded-prompt small{font:400 10px/1.2 Arial,sans-serif;color:#c9ac89}
+.crop-editor{position:relative;z-index:2;font-size:11px;color:#d0ad7f}
+.crop-editor summary{cursor:pointer;padding:5px;width:fit-content}
+.crop-editor[open] .crop-stage{margin-top:12px}
+.consent-terms{font-size:10px;margin-top:4px;color:#bd9d7c}
+.consent-terms summary{cursor:pointer}
+.consent-terms p{font:400 11px/1.4 Arial,sans-serif;margin-top:6px}
+.studio-consent input{flex:none;accent-color:#ff9a2a}
+@media(max-width:820px){
+ html[data-campaign="halloween"] .page:not([data-page="crear"]){padding:6px 15px calc(99px + env(safe-area-inset-bottom));max-width:490px;margin:0 auto}
+ html[data-campaign="halloween"] .mobile-nav button{font-size:11px}
+ html[data-campaign="halloween"] body:not(.studio-has-photo) .page[data-page="crear"]:not([hidden]){display:flex;flex-direction:column;min-height:calc(100dvh - 76px - env(safe-area-inset-bottom));padding-bottom:0}
+ html[data-campaign="halloween"] body:not(.studio-has-photo) .studio-layout{flex:1;display:flex}
+ html[data-campaign="halloween"] body:not(.studio-has-photo) .studio-main-panel{display:flex;flex-direction:column;width:100%}
+ html[data-campaign="halloween"] body:not(.studio-has-photo) .studio-actionbar{margin-top:auto;padding-top:14px;margin-bottom:18px}
+ html[data-campaign="halloween"] .mobile-app-hero__copy h1{font-family:'Times New Roman',serif;font-weight:600}
+ html[data-campaign="halloween"] .mobile-app-hero__copy p{font-size:16px;max-width:290px}
+ html[data-campaign="halloween"] .upload-zone h3{font-family:'Times New Roman',serif;font-weight:600}
+ html[data-campaign="halloween"] .mobile-scene-selector h2{font-family:'Times New Roman',serif;font-weight:600}
+ html[data-campaign="halloween"] .mobile-scene-option>span:nth-of-type(1){font-family:'Times New Roman',serif}
+ html[data-campaign="halloween"] .studio-actionbar>.btn{font-family:'Times New Roman',serif!important}
+ html[data-campaign="halloween"] body.studio-has-photo .mobile-app-hero__art{height:72px;justify-content:center;align-items:center}
+ html[data-campaign="halloween"] body.studio-has-photo .mobile-app-hero__brand{width:160px;height:65px;object-position:center;object-fit:contain}
+ body.studio-has-photo .mobile-app-hero__settings{position:absolute;right:0;top:12px}
+ body.studio-has-photo .creator-simple-title{display:none}
+ body.studio-has-photo .creator-detailed-title{display:block}
+ html[data-campaign="halloween"] body.studio-has-photo .mobile-app-hero__copy h1{font-size:36px}
+ html[data-campaign="halloween"] body.studio-has-photo .upload-zone{padding:13px 10px;min-height:140px}
+ body.studio-has-photo #upload-loaded{position:relative;min-height:112px}
+ body.studio-has-photo #chosen-photo.hidden{display:block!important;position:absolute;right:0;top:0;width:89px;height:111px;object-fit:contain;background:#cfb799;border:1px solid #e6c8a1;border-radius:9px;z-index:1}
+ body.studio-has-photo .studio-photo-actions{position:absolute;right:2px;top:0;z-index:3}
+ body.studio-has-photo #change-photo{display:none}
+ body.studio-has-photo #remove-photo{font-size:0;padding:0;min-height:22px;min-width:22px;width:22px;height:22px;border-radius:50%;background:#1a0b05b0;color:#f9d9ae}
+ body.studio-has-photo #remove-photo:before{content:'×';font:400 18px/1 Arial,sans-serif}
+ body.studio-has-photo .crop-editor[open]{padding-top:115px}
+ body.studio-has-photo .crop-editor[open]>summary{position:absolute;top:0}
+ html[data-campaign="halloween"] body.studio-has-photo .studio-chosen{padding:6px 0;background:none;border:0;font-size:10px}
+ html[data-campaign="halloween"] body.studio-has-photo .studio-consent{font-size:10px;line-height:1.35;margin-top:4px;align-items:flex-start}
+ html[data-campaign="halloween"] body.studio-has-photo .studio-email{font-size:10px;margin-top:7px}
+ body.studio-has-photo .studio-step-heading{display:flex;align-items:center;gap:13px;position:relative;margin:17px 0 11px}
+ .studio-step-heading>span{display:grid;place-items:center;width:34px;height:34px;flex:none;border:1.5px solid #ffc570;border-radius:50%;font:400 24px/1 'Times New Roman',serif;color:#ffd5a1;box-shadow:0 0 12px #ff6c1e60;background:#391a0560}
+ .studio-step-heading h2{font:600 20px/1.1 'Times New Roman',serif}
+ .studio-step-heading p{font:400 12px/1.3 'Times New Roman',serif;color:#dfceb7;margin:3px 0 0}
+ .studio-step-heading button{border:0;background:none;color:#ffb445;font-size:10px;position:absolute;right:0;top:7px;padding:4px 0}
+ .photo-step-heading h2{padding-right:66px}
+ body.studio-has-photo .photo-step-heading p{padding-right:20px}
+ body.studio-has-photo .mobile-scene-selector .studio-section-title{display:none!important}
+ body.studio-has-photo .mobile-scene-selector .mobile-app-all-scenes{top:10px}
+ html[data-campaign="halloween"] body.studio-has-photo .mobile-scene-option{flex-basis:26%}
+ body.studio-has-photo .studio-trust{display:flex;justify-content:space-between;gap:10px;margin:16px 0}
+ .studio-trust>span{font:400 9px/1.2 Arial,sans-serif;display:flex;gap:8px;align-items:center;flex:1}
+ .studio-trust svg{width:20px;height:20px;flex:none;color:#ed994c}
+ body.studio-has-photo .studio-advanced,body.studio-has-photo .studio-references{order:initial}
+ html[data-campaign="halloween"] .mobile-nav{max-width:490px;margin:0 auto}
+ html[data-campaign="halloween"] body[data-app-page] footer{display:none}
+}
+@media(min-width:821px){
+ html[data-campaign="halloween"] .app{max-width:1600px;grid-template-columns:205px minmax(0,1fr)}
+ html[data-campaign="halloween"] .sidebar{background:linear-gradient(180deg,#1b0d07,#0b0705);border-right:1px solid #7a4a2440;padding:26px 15px}
+ .sidebar .brand{display:block;text-align:center}
+ .sidebar .brand img{width:155px;height:115px;margin:auto;object-fit:contain}
+ .sidebar .brand div{display:none}
+ .sidebar .nav{margin-top:30px;gap:8px}
+ html[data-campaign="halloween"] .sidebar .nav-link{color:#c7b198;font-size:13px;padding:14px 10px;border:1px solid transparent;border-radius:12px}
+ html[data-campaign="halloween"] .sidebar .nav-link:hover,html[data-campaign="halloween"] .sidebar .nav-link.active{background:linear-gradient(130deg,#62310d66,#29150a);color:#ffb34b;border-color:#ad6c2350}
+ .sidebar-promo{background:none;border:0;font-size:12px;color:#b29b80}
+ .sidebar-promo h3{font-family:'Times New Roman',serif;font-size:22px}
+ html[data-campaign="halloween"] .page{padding:24px 42px 50px;max-width:1160px;margin:0 auto}
+ html[data-campaign="halloween"] .app-page-hero{padding:0 0 30px}
+ .app-page-hero:before{inset:-24px -42px -20px;background:linear-gradient(0deg,#090606,transparent 60%),url('./assets/halloween/reference/moon-castle.webp') right top/950px auto no-repeat;opacity:.9}
+ .app-page-hero__bar{height:90px}
+ .app-wordmark img{width:85px;height:75px}
+ .app-wordmark span{font-size:33px}
+ .app-settings{width:40px}
+ .app-settings svg{width:28px;height:28px}
+ .app-page-hero h1{font-size:57px;margin-top:17px}
+ .app-page-hero>p{font-size:18px;max-width:600px;min-height:48px}
+ .app-tabs{border-radius:19px;margin-bottom:28px;max-width:100%;min-height:62px}
+ .app-tabs button{font-size:16px;min-height:62px;gap:10px;border-radius:18px}
+ .app-tabs svg{width:24px;height:24px}
+ .app-section-head{margin:25px 0 13px}
+ .app-section-head h2,.profile-usage>h2{font-size:32px}
+ .app-section-head button{font-size:15px}
+ .inspiration-grid{gap:16px}
+ .inspiration-card{border-radius:16px}
+ .inspiration-card>span{font-size:18px;padding:12px 5px}
+ .inspiration-card img{aspect-ratio:1.05}
+ .inspiration-section{margin-bottom:35px}
+ .gallery-create{top:159px;right:42px;padding:12px 18px;font-size:15px;min-height:45px;border-radius:25px}
+ .gallery-create svg{width:22px;height:22px}
+ .recent-photo-grid,.all-photo-grid{gap:18px}
+ .photo-card{border-radius:17px}
+ .photo-card-art>img,.photo-pending{aspect-ratio:.9}
+ .photo-card-info{padding:12px 13px}
+ .photo-card-info h3{font-size:22px;margin-bottom:7px}
+ .photo-card-info p{font-size:13px}
+ .photo-actions button,.photo-actions a{min-height:48px}
+ .photo-actions svg{width:25px;height:25px}
+ .photo-status{font-size:13px;left:12px;padding:5px 12px}
+ .photo-menu-toggle,.photo-favorite{width:36px;height:36px;top:11px;right:11px}
+ .photo-favorite svg{width:25px;height:25px}
+ .photo-menu{top:52px;width:180px}
+ .photo-card--small .photo-card-info h3{font-size:18px}
+ .photo-card--small .photo-card-info p{font-size:13px}
+ html[data-campaign="halloween"] .account-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;align-items:start}
+ .profile-card{grid-column:1/-1;padding:19px 26px;min-height:160px;border-radius:22px;gap:25px}
+ .profile-avatar{width:115px;height:115px;font-size:50px}
+ .profile-identity h2{font-size:38px}
+ .profile-identity p{font-size:18px;margin:8px 0}
+ .profile-badge{font-size:13px;padding:6px 11px}
+ .profile-edit{font-size:14px!important;padding:11px 18px!important;min-height:44px!important;gap:8px!important}
+ .profile-edit svg{width:22px;height:22px}
+ .profile-menu{margin:0}
+ .profile-row{padding:13px 15px;min-height:86px;border-radius:20px;gap:18px}
+ .profile-row .row-icon{width:53px;height:53px}
+ .profile-row strong{font-size:23px}
+ .profile-row small{font-size:14px}
+ .row-icon svg{width:32px;height:32px}
+ .profile-usage{margin:0}
+ .profile-usage>h2{margin-bottom:15px}
+ .usage-grid{padding:22px 0;border-radius:20px}
+ .usage-grid svg{width:28px;height:28px}
+ .usage-grid strong{font-size:35px}
+ .usage-grid span{font-size:13px}
+ .account-extra{margin:0;grid-column:2;font-size:13px}
+ .premium-benefits{max-width:830px;margin:10px auto 35px;gap:40px}
+ .premium-benefits>div>span{width:65px;height:65px;margin-bottom:13px}
+ .premium-benefits svg{width:36px;height:36px}
+ .premium-benefits .hd-icon{font-size:25px}
+ .premium-benefits h3{font-size:24px}
+ .premium-benefits p{font-size:15px;max-width:200px;margin:auto}
+ html[data-campaign="halloween"] .page[data-page="precios"] .pricing-grid{gap:20px}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card{padding:29px 20px 22px;min-height:340px;border-radius:20px}
+ .page[data-page="precios"] .price-card .eyebrow{font-size:14px}
+ .page[data-page="precios"] .price-card h3{font-size:38px;margin:12px 0 21px}
+ .page[data-page="precios"] .price-card ul{font-size:14px}
+ .page[data-page="precios"] .price-card li{padding-left:20px;margin-bottom:13px}
+ .page[data-page="precios"] .price-card .promo-savings{font-size:13px}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-amount{font-size:30px}
+ .page[data-page="precios"] .price-card .promo-previous{font-size:16px}
+ .page[data-page="precios"] .price-card .btn{min-height:46px!important;font-size:15px!important;border-radius:18px!important}
+ .page[data-page="precios"] .price-ribbon{font-size:13px;padding:9px 14px;top:-18px}
+ .premium-collection{padding:19px 24px;margin-top:27px;gap:24px}
+ .premium-collection>svg{width:37px;height:37px}
+ .premium-collection h3{font-size:23px}
+ .premium-collection p{font-size:15px}
+ .premium-assurances{display:flex;gap:25px;padding:20px 24px}
+ .premium-assurances>div{flex:1;margin:0}
+ .premium-assurances strong{font-size:17px}
+ .premium-assurances p span{font-size:12px}
+ .premium-later{min-height:44px!important;font-size:15px!important}
+ .page[data-page="precios"] #payment-status,.page[data-page="precios"] .promo-disclosure{font-size:12px}
+ html[data-campaign="halloween"] .mobile-app-hero{display:block;position:relative;padding:14px 0 25px;margin:0;isolation:isolate}
+ .mobile-app-hero:before{content:'';position:absolute;z-index:-2;inset:-24px -42px -60px;background:linear-gradient(0deg,#090606,transparent 60%),url('./assets/halloween/reference/moon-castle.webp') right top/950px auto no-repeat;opacity:.95}
+ .mobile-app-hero__art{display:flex;justify-content:space-between;height:145px;align-items:flex-start;position:relative}
+ .mobile-app-hero__brand{width:240px;height:155px;object-fit:contain;object-position:left top;display:block}
+ .mobile-app-hero__settings{color:#f5dfbd;border:0;background:none;margin-top:10px}
+ .mobile-app-hero__settings svg{width:28px;height:28px}
+ .mobile-app-hero__copy{margin:16px 0 0}
+ .mobile-app-hero__season{display:none}
+ .mobile-app-hero__copy h1{font:600 57px/1.1 'Times New Roman',serif;letter-spacing:-1px}
+ .mobile-app-hero__copy h1 em{color:#ffaf42}
+ .mobile-app-hero__copy p{font:400 18px/1.4 Arial,sans-serif;max-width:600px;color:#e1cab0;margin-top:9px}
+ .studio-session,.studio-steps,.photo-guide{display:none!important}
+ html[data-campaign="halloween"] .studio-layout{display:block;max-width:950px}
+ html[data-campaign="halloween"] .studio-main-panel{background:none;border:0;box-shadow:none;padding:0}
+ html[data-campaign="halloween"] .studio-scene-aside{display:none}
+ html[data-campaign="halloween"] .upload-zone{min-height:210px;border:1px solid #a8702c;border-radius:24px;background:radial-gradient(ellipse at center,#49261060,#110a06);position:relative;overflow:hidden;padding:40px 30px}
+ .upload-zone:before{content:'';position:absolute;inset:12px;border:1px dashed #a66826;border-radius:18px;pointer-events:none}
+ .upload-zone #upload-empty>svg{width:70px;height:70px;padding:20px;border:1px solid #ffad39;border-radius:50%;color:#fff0dc;box-shadow:0 0 20px #ff760f70;margin:0 auto 8px}
+ .upload-zone h3{font:600 29px/1.1 'Times New Roman',serif;margin:10px 0}
+ .upload-zone p{font-size:14px;color:#cbb18d}
+ .upload-zone #choose-photo{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:3}
+ .upload-zone:focus-within{outline:2px solid #ffcc71;outline-offset:4px}
+ .upload-art{display:block;position:absolute;right:10%;top:40px;width:150px;height:150px;opacity:.25;pointer-events:none;background:linear-gradient(120deg,#b87b4b50,#402a1940);border:4px solid #8c5730;border-radius:8px;transform:rotate(15deg)}
+ html[data-campaign="halloween"] .mobile-scene-selector{display:block;position:relative;margin-top:25px}
+ .mobile-scene-selector .eyebrow{display:none}
+ .mobile-scene-selector h2{font:600 32px/1.1 'Times New Roman',serif}
+ .mobile-app-all-scenes{display:flex;position:absolute;right:0;top:0;background:none;border:0;color:#ffb644;font-size:13px;align-items:center;gap:8px}
+ .mobile-app-all-scenes svg{width:20px;height:20px}
+ .mobile-scene-grid{display:flex;gap:14px;overflow-x:auto;padding:4px 3px 12px;scrollbar-width:thin;scrollbar-color:#72421a #130a06}
+ .mobile-scene-option{flex:0 0 23%;min-width:150px;padding:0;display:flex;flex-direction:column;position:relative;border:1px solid #8e5a28;border-radius:17px;background:#110a06;overflow:hidden;color:#fff0d8}
+ html[data-campaign="halloween"] .mobile-scene-option img{width:100%;height:auto;aspect-ratio:1.05;object-fit:cover}
+ .mobile-scene-option>span:nth-of-type(1){font:500 18px/1.2 'Times New Roman',serif;padding:12px 5px;display:block}
+ .mobile-scene-option.is-selected{border-color:#ffd178;box-shadow:0 0 0 1px #ff8c22,0 0 12px #ff7428}
+ .mobile-scene-check{position:absolute;top:10px;right:10px;width:28px;height:28px;background:#ffa333;border-radius:50%;color:#1c0901;display:none;place-items:center}
+ .mobile-scene-option.is-selected .mobile-scene-check{display:grid}
+ html[data-campaign="halloween"] .studio-actionbar{position:static;padding:0;margin:25px 0 15px;border:0;box-shadow:none;background:none;display:block}
+ html[data-campaign="halloween"] .studio-actionbar>.btn{width:100%;min-height:64px;border:1px solid #ffce64;border-radius:24px;background:linear-gradient(110deg,#ffd269,#ff931f 50%,#f76508);color:#100600;font:600 28px/1 'Times New Roman',serif;box-shadow:0 0 30px #ff760f35;gap:20px}
+ .studio-readiness{font-size:12px;color:#c1a27c;text-align:center;margin-top:8px}
+ body:not(.studio-has-photo) .studio-references,body:not(.studio-has-photo) .studio-advanced,body:not(.studio-has-photo) .studio-confirm,body:not(.studio-has-photo) .studio-main-panel>.notice{display:none}
+ .studio-confirm{background:#1b1009c0;border:1px solid #75451e;border-radius:15px;padding:16px}
+ body.studio-has-photo #upload-loaded{position:relative}
+ body.studio-has-photo #chosen-photo.hidden{display:block!important;position:absolute;right:0;top:0;width:140px;height:165px;object-fit:contain;background:#bba586;border:1px solid #d9b686;border-radius:12px}
+ body.studio-has-photo .upload-loaded-prompt{width:calc(100% - 160px);min-height:130px;font-size:18px}
+ body.studio-has-photo .upload-loaded-prompt strong{font-size:26px}
+ body.studio-has-photo .upload-loaded-prompt small{font-size:13px}
+ body.studio-has-photo .crop-editor[open]{padding-top:40px}
+ body.studio-has-photo .studio-photo-actions{display:flex;gap:10px;margin-top:12px}
+ .studio-consent{font-size:12px;line-height:1.4;color:#dbc5a7}
+ .studio-email{font-size:12px;margin-top:12px}
+ body[data-app-page] footer{display:none}
+}
+@media(max-width:360px){
+ .app-page-hero h1{font-size:28px}
+ .app-wordmark img{width:58px;height:53px}
+ .app-wordmark span{font-size:21px}
+ .app-tabs button{font-size:9px;gap:4px}
+ .app-tabs svg{width:15px;height:15px}
+ .profile-edit{position:absolute;right:9px;bottom:9px;font-size:9px!important;padding:4px 6px!important}
+ .profile-identity{padding-bottom:15px}
+ .gallery-create{top:128px;font-size:8px;padding:6px 7px}
+ .page[data-page="precios"] .price-card .price-amount{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

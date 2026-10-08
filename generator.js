@@ -257,7 +257,9 @@ async function refreshGallery(){
   const {data,error}=await client.from('picgift_photo_jobs').select('id,scene_id,result_path,status,created_at,updated_at,email_status,failure_message,failure_code,failure_stage,result_quality').order('created_at',{ascending:false}).limit(30);
  if(error)throw error;lastJobs=data||[];
  const withLinks=await Promise.all(lastJobs.map(async j=>({job:j,href:j.status==='completed'?await signed(j.result_path):null,download:j.status==='completed'?await signed(j.result_path,true):null})));
- $('photo-library').innerHTML=withLinks.length?'<div class="scene-grid">'+withLinks.map(o=>plainCard(o.job,o.href,o.download)).join('')+'</div>':'<div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Cuando generes tu primera imagen, aparecerá aquí de forma privada.</p><button class="btn outline" data-route="crear">Crear una foto</button></div>';
+ window.picgiftGallery=withLinks.map(o=>({...o,name:labels[o.job.scene_id]||'PICGIFT',statusLabel:statuses[o.job.status]||o.job.status}));
+ if(window.picgiftRenderGallery)window.picgiftRenderGallery(window.picgiftGallery);
+ else $('photo-library').innerHTML=withLinks.length?'<div class="scene-grid">'+withLinks.map(o=>plainCard(o.job,o.href,o.download)).join('')+'</div>':'<div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Cuando generes tu primera imagen, aparecerá aquí de forma privada.</p><button class="btn outline" data-route="crear">Crear una foto</button></div>';
  const job=lastJobs.find(j=>j.id===activeId)||lastJobs[0];
  if(job){
   $('result-empty').classList.add('hidden');
@@ -322,7 +324,7 @@ function init(){
     $('progress-warning').classList.remove('hidden');
   }finally{btn.disabled=false;btn.textContent='Comprobar estado'}
  });
- window.addEventListener('picgift:auth',async e=>{if(e.detail.user){await health();const jobs=await refreshGallery();if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{stopPolling();activeId=null;currentJob=null;lastJobs=[];$('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');controlAi(false);status('Inicia sesión para acceder a la creación de retratos.');}});
+ window.addEventListener('picgift:auth',async e=>{if(e.detail.user){await health();const jobs=await refreshGallery();if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];$('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');controlAi(false);status('Inicia sesión para acceder a la creación de retratos.');}});
  $('photo-library').addEventListener('click',async e=>{
   const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;
   if(id){await removePhoto(id);return}
