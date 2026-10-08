@@ -5,6 +5,9 @@ on:
     paths:
       - 'admin.html'
       - 'admin.js'
+      - 'auth.js'
+      - 'index.html'
+      - 'tests/admin-auth.test.cjs'
       - 'admin.css'
       - 'supabase/functions/picgift-admin/index.ts'
       - '.github/workflows/admin-access.yml'
@@ -12,6 +15,9 @@ on:
     paths:
       - 'admin.html'
       - 'admin.js'
+      - 'auth.js'
+      - 'index.html'
+      - 'tests/admin-auth.test.cjs'
       - 'admin.css'
       - 'supabase/functions/picgift-admin/index.ts'
       - '.github/workflows/admin-access.yml'
@@ -29,7 +35,10 @@ jobs:
         with:
           node-version: '22'
       - name: Validate admin JavaScript syntax
-        run: node --input-type=module --check < admin.js
+        run: |
+          node --input-type=module --check < admin.js
+          node --input-type=module --check < auth.js
+          node --test tests/admin-auth.test.cjs
       - name: Validate safe login and recovery wiring
         run: |
           node <<'NODE'
@@ -38,16 +47,21 @@ jobs:
           const js=readFileSync('admin.js','utf8');
           const html=readFileSync('admin.html','utf8');
           const backend=readFileSync('supabase/functions/picgift-admin/index.ts','utf8');
+          const auth=readFileSync('auth.js','utf8');
+          const index=readFileSync('index.html','utf8');
           assert.match(js,/loginMethods/);
           assert.match(js,/last_sign_in_at/);
           assert.match(js,/resetPasswordForEmail\(user\.email/);
-          assert.match(js,/user\.confirmed&&user\.email&&methods\.includes\('email'\)/);
+          assert.match(js,/const canReset=Boolean\(user\.confirmed&&user\.email\)/);
           assert.match(js,/window\.confirm/);
-          assert.match(html,/account-access-20261009-v1/);
+          assert.match(html,/account-recovery-google-20261009-v2/);
           assert.match(backend,/db\.auth\.getUser\(bearer\)/);
           assert.match(backend,/picgift_admin_users/);
           assert.ok(backend.indexOf('picgift_admin_users')<backend.indexOf('if(action==="list")'));
           assert.match(backend,/app_metadata\?\.providers/);
+          assert.match(auth,/\$\('auth-email'\)\.required=false/);
+          assert.match(auth,/!error&&!recovery/);
+          assert.match(index,/google-password-recovery-20261009-v2/);
           assert.doesNotMatch(backend,/(encrypted_password|password_hash|raw_user_meta_data)/);
           console.log('Admin access and recovery checks passed');
           NODE
