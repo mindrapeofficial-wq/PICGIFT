@@ -43,6 +43,24 @@ window.addEventListener("online",updateConnectivity);
 window.addEventListener("offline",updateConnectivity);
 updateConnectivity();showInstall();
 if("serviceWorker" in navigator&&location.protocol==="https:"){
- window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(()=>{}),{once:true});
+ let wasControlled=Boolean(navigator.serviceWorker.controller),reloading=false;
+ const banner=document.getElementById("update-banner");
+ const btn=document.getElementById("update-picgift");
+ const showUpdate=()=>banner?.classList.remove("hidden");
+ if(btn)btn.addEventListener("click",()=>location.reload());
+ navigator.serviceWorker.addEventListener("controllerchange",()=>{
+   if(!wasControlled||reloading)return;
+   if(document.getElementById("photo")?.files?.length){showUpdate();return}
+   reloading=true;location.reload();
+ });
+ window.addEventListener("load",async()=>{
+  try{
+   const reg=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
+   if(wasControlled)reg.update().catch(()=>{});
+  }catch{}
+ },{once:true});
+ window.addEventListener("pageshow",()=>{
+  navigator.serviceWorker.getRegistration("./").then(r=>r?.update()).catch(()=>{});
+ });
 }
 })();
