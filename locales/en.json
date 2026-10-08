@@ -546,5 +546,13 @@
   "El servidor no ha podido establecer la conexión de red con Cloudflare.": "The server could not establish a network connection to Cloudflare.",
   "Cloudflare no ha validado el token. Revisa sus permisos y vigencia.": "Cloudflare could not validate the token. Check its permissions and expiry.",
   "Supabase no puede conectarse a servicios externos. El fallo no es necesariamente del token de Cloudflare.": "Supabase cannot connect to external services. The Cloudflare token is not necessarily the problem.",
-  "La red de Supabase funciona, pero no consigue conectar con la API de Cloudflare.": "Supabase networking works, but it cannot reach the Cloudflare API."
+  "La red de Supabase funciona, pero no consigue conectar con la API de Cloudflare.": "Supabase networking works, but it cannot reach the Cloudflare API.",
+  "Probar generación con FLUX.2 Klein": "Test generation with FLUX.2 Klein",
+  "Prueba técnica limitada a una imagen ficticia. No utiliza fotografías privadas.": "Technical test limited to a fictional image. No private photos are used.",
+  "Se han agotado las pruebas técnicas de esta cuenta.": "This account has used all technical test attempts.",
+  "Generando una imagen de prueba con FLUX.2 Klein. Puede tardar un poco…": "Generating a test image with FLUX.2 Klein. This may take a moment…",
+  "No se pudo realizar la prueba.": "Could not run the test.",
+  "Respuesta de imagen no válida.": "Invalid image response.",
+  "Imagen técnica creada correctamente. La edición de retratos personales todavía no está activada.": "Test image generated successfully. Personal portrait editing is not enabled yet.",
+  "Falló la prueba: ": "Test failed: "
 }
