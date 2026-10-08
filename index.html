@@ -97,6 +97,11 @@
             <label class="check"><input id="photo-ai-consent" type="checkbox">Autorizo expresamente que PICGIFT procese esta fotografía, incluida su transferencia al proveedor de IA para crear el retrato. Confirmo tener autorización para utilizar la imagen de todas las personas que aparecen.</label>
             <label class="check"><input id="photo-email-delivery" type="checkbox">Enviarme un enlace privado a mi correo cuando termine (opcional).</label>
             <div class="notice" id="generator-status" role="status" aria-live="polite">El motor de IA se encuentra en preparación. No se enviarán fotos a terceros hasta activarlo.</div>
+            <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <button class="btn outline" type="button" id="api-diagnose" disabled>Comprobar conexión con OpenAI</button>
+              <span class="tiny">Comprueba la clave y el acceso a los modelos sin generar ninguna foto.</span>
+            </div>
+            <div id="api-diagnose-result" class="notice hidden" role="status" aria-live="polite" style="margin-top:12px"></div>
             <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:19px"><button class="btn primary" type="button" id="demo-preview">Ver demostración <svg><use href="#i-arrow"/></svg></button><button class="btn outline" type="button" id="generate" disabled>Generar con IA (pendiente)</button></div><p class="cta-note">La demostración es local: no envía fotografías, no crea archivos nuevos ni consume créditos de IA. La generación real se activará más adelante.</p>
           </div>
           <aside class="panel"><div class="section-head"><div><span class="eyebrow">Paso 02</span><h2>Tu escenario</h2></div></div><div class="detail-pic" id="selected-scene-pic"><img id="selected-scene-image" alt="Escenario de inspiración"><div class="overlay"><strong id="selected-scene-title">Trineo rústico</strong><p class="tiny">Fotografía provisional de inspiración</p></div></div><div class="summary-line"><span>Temática</span><strong id="selected-theme">Navidad rústica</strong></div><div class="summary-line"><span>Edad orientativa</span><strong id="selected-ages">1–4 años</strong></div><div class="summary-line"><span>Tu selección</span><strong id="selected-status">Escenario elegido</strong></div><button type="button" class="btn outline wide" data-route="escenarios" style="margin-top:19px">Cambiar de escenario <svg><use href="#i-arrow"/></svg></button><p class="foot-note">Los JSON maestros, parámetros y reglas profesionales permanecen fuera del catálogo público.</p></aside>
@@ -198,5 +203,5 @@
  </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script defer src="./app.js?v=picgift-progress-2026-2"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-billing-fix-2026-1"></script>
+<script defer src="./app.js?v=picgift-progress-2026-2"></script><script type="module" src="./auth.js?v=picgift-mobile-2026-1"></script><script type="module" src="./generator.js?v=picgift-api-check-2026-1"></script>
 <script type="module" src="./payments.js?v=picgift-sales-2026-2"></script><script defer src="./install.js?v=picgift-pwa-2026-2"></script></body></html>
