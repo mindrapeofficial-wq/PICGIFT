@@ -33,7 +33,7 @@ test('The browser displays the real preflight reason, explains no credit was spe
 
 test('Conservative model policy only rejects serious flaws without discriminating by age or pose',()=>{
  const policy=read('supabase/functions/_shared/photo-preflight.ts');
- assert.match(policy,/Full-body shot is preferable but NOT mandatory/);
+ assert.match(policy,/full-body shot is preferable but NOT mandatory/i);
  assert.match(policy,/children and adults/);
  assert.match(policy,/Do not identify/);
  assert.match(policy,/store:false/);
