@@ -31,6 +31,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.android.billingclient.api.BillingClient
@@ -251,6 +253,7 @@ class MainActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 // Route-aware Back: close sheets, return to Studio, then exit.
+                if (cropOpen) { if (!cropSaving.value) finishNativeCrop(null); return }
                 if (failure.visibility == android.view.View.VISIBLE) { finish(); return }
                 web.evaluateJavascript(
                     "(function(){if(typeof window.picgiftNativeBack!=='function')return 'fallback';return window.picgiftNativeBack()?'handled':'root';})()"
@@ -282,7 +285,10 @@ class MainActivity : AppCompatActivity() {
                         "account" -> {
                             val user = req.optString("user_id")
                             runOnUiThread {
-                                currentAccount = user.takeIf { Regex("^[0-9a-f-]{36}$").matches(it) }
+                                val previousAccount = currentAccount
+                                currentAccount = user.takeIf { PicgiftGalleryValidator.uuid(it) }
+                                if (currentAccount != previousAccount) clearNativeGallery()
+                                updateNativeChrome()
                                 pageReady = true
                                 restorePurchases()
                                 queryPrices()
@@ -290,6 +296,34 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "gallery-sync" -> {
+                            if ((message.data?.length ?: 0) > 95000) return@addWebMessageListener
+                            val owner = req.optString("user_id")
+                            if (!PicgiftGalleryValidator.uuid(owner)) return@addWebMessageListener
+                            val raw = req.optJSONArray("items") ?: return@addWebMessageListener
+                            if (raw.length() > 30) return@addWebMessageListener
+                            val items = (0 until raw.length()).mapNotNull { index ->
+                                raw.optJSONObject(index)?.let(PicgiftGalleryValidator::parse)
+                            }
+                            val favoriteArray = req.optJSONArray("favorites") ?: JSONArray()
+                            val favorites = (0 until minOf(favoriteArray.length(), 30)).mapNotNull { index ->
+                                favoriteArray.optString(index).takeIf(PicgiftGalleryValidator::uuid)
+                            }.toSet()
+                            runOnUiThread {
+                                if (nativeTrustedPage && pageReady && currentAccount == owner) {
+                                    galleryItems.value = items
+                                    galleryFavorites.value = favorites
+                                    galleryOwner = owner
+                                    gallerySynced = true
+                                    updateNativeChrome()
+                                }
+                            }
+                            return@addWebMessageListener
+                        }
+                        "gallery-clear" -> {
+                            runOnUiThread { clearNativeGallery(); updateNativeChrome() }
+                            return@addWebMessageListener
+                        }
                         "route" -> {
                             val next = req.optString("name")
                             if (next in PicgiftChrome.pageRoutes) {
@@ -332,6 +366,7 @@ class MainActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 pageReady = false
                 currentAccount = null
+                clearNativeGallery()
                 nativeTrustedPage = false
                 nativeRoute.value = "crear"
                 updateNativeChrome()
@@ -442,13 +477,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateNativeChrome() {
         if (!::web.isInitialized || !::nativeTabs.isInitialized || !::nativeHeader.isInitialized) return
-        val showTabs = nativeTrustedPage && !keyboardVisible
-        val showHeader = nativeTrustedPage && nativeRoute.value != "crear"
+        val showTabs = nativeTrustedPage && !keyboardVisible && !cropOpen
+        val showHeader = nativeTrustedPage && nativeRoute.value != "crear" && !cropOpen
+        val showGallery = nativeTrustedPage && !cropOpen && !keyboardVisible &&
+            nativeRoute.value == "mis-fotos" && gallerySynced && galleryOwner == currentAccount &&
+            currentAccount != null
+        if (::nativeGallery.isInitialized) nativeGallery.visibility = if (showGallery) View.VISIBLE else View.GONE
+        if (::nativeCrop.isInitialized) nativeCrop.visibility = if (cropOpen) View.VISIBLE else View.GONE
         nativeTabs.visibility = if (showTabs) View.VISIBLE else View.GONE
         nativeHeader.visibility = if (showHeader) View.VISIBLE else View.GONE
         val layout = web.layoutParams as? FrameLayout.LayoutParams ?: return
         val bottom = if (showTabs) dp(PicgiftChrome.tabHeightDp) else 0
         val top = if (showHeader) dp(PicgiftChrome.headerHeightDp) else 0
+        if (::nativeGallery.isInitialized) {
+            val params = nativeGallery.layoutParams as FrameLayout.LayoutParams
+            if (params.topMargin != top || params.bottomMargin != bottom) {
+                params.topMargin = top
+                params.bottomMargin = bottom
+                nativeGallery.layoutParams = params
+            }
+        }
         if (layout.bottomMargin != bottom || layout.topMargin != top) {
             layout.bottomMargin = bottom
             layout.topMargin = top
