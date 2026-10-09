@@ -38,6 +38,22 @@
  <div id="flux-review-status" class="status" role="status">Esperando comprobación de acceso…</div>
  <div id="flux-review-list" class="user-list"></div>
 </section>
+<section class="card" id="notification-section" style="margin-top:22px" aria-labelledby="notification-title">
+ <div class="heading"><span class="eyebrow">COMUNICACIÓN CON USUARIOS</span><h2 id="notification-title">Notificaciones de la app</h2></div>
+ <p>Envía avisos a los dispositivos Android que hayan autorizado las notificaciones. El envío se realiza desde un servicio privado y solo con permisos de administrador.</p>
+ <div id="notification-health" class="status" role="status">Comprobando Firebase y dispositivos…</div>
+ <form id="notification-form">
+  <label>Título (máximo 80 caracteres)<input id="notification-title-input" maxlength="80" required placeholder="Novedades de PICGIFT"></label>
+  <label>Mensaje (máximo 300 caracteres)<textarea id="notification-body-input" maxlength="300" rows="3" required placeholder="Tenemos una sorpresa preparada para ti…"></textarea></label>
+  <label>Destinatarios<select id="notification-audience"><option value="self">Solo mi dispositivo (prueba)</option><option value="user">Un usuario concreto</option><option value="all">Todos los dispositivos registrados</option></select></label>
+  <label id="notification-user-label" hidden>Usuario destinatario<select id="notification-user"></select></label>
+  <label>Destino al abrir<select id="notification-route"><option value="cuenta">Mi perfil</option><option value="crear">Crear mi foto</option><option value="mis-fotos">Mis fotos</option><option value="inspiracion">Mi inspiración</option><option value="precios">Planes</option></select></label>
+  <button class="button primary" type="submit" id="notification-send">Enviar notificación</button>
+ </form>
+ <div id="notification-status" class="status" role="status" aria-live="polite">Envía una prueba a tu dispositivo antes de utilizar «Todos».</div>
+ <div class="heading"><h3>Historial de envíos</h3><button class="button" type="button" id="notification-refresh">Actualizar historial</button></div>
+ <div id="notification-history" class="user-list"></div>
+</section>
 </div></main>
 <script type="module" src="./admin.js?v=account-recovery-google-20261009-v2"></script>
-<script type="module" src="./flux-review-admin.js?v=20261008-v1"></script></body></html>
+<script type="module" src="./flux-review-admin.js?v=20261008-v1"></script><script type="module" src="./notifications-admin.js?v=20261009"></script></body></html>
