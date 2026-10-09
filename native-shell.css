@@ -124,3 +124,26 @@
   html.picgift-native .page:not([hidden]) { animation: none; }
   html.picgift-native .mobile-nav button { transition: none; }
 }
+
+/* Compose tab bar owns the physical bottom edge in new Android builds.
+   Older Play APKs and mobile browsers still get the original HTML tabs. */
+@media(max-width:820px) {
+  html.picgift-native.picgift-compose-shell .mobile-nav,
+  html.picgift-native.picgift-compose-shell .topbar,
+  html.picgift-native.picgift-compose-shell .app-page-hero__bar {
+    display: none !important;
+  }
+  html.picgift-native.picgift-compose-shell .page:not([data-page="crear"]) {
+    padding-bottom: 24px !important;
+  }
+  html.picgift-native.picgift-compose-shell .page[data-page="crear"] {
+    padding-bottom: 26px !important;
+  }
+  html.picgift-native.picgift-compose-shell body:not(.studio-has-photo) .page[data-page="crear"]:not([hidden]) {
+    min-height: 100dvh !important;
+    padding-bottom: 0 !important;
+  }
+  html.picgift-native.picgift-compose-shell .studio-actionbar {
+    bottom: 0;
+  }
+}
