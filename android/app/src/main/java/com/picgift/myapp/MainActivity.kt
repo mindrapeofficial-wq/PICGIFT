@@ -8,10 +8,12 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.graphics.Color
 import android.view.Gravity
+import android.view.View
+import android.view.HapticFeedbackConstants
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.FrameLayout
-import android.widget.ProgressBar
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -24,6 +26,11 @@ import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.material3.MaterialTheme
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.android.billingclient.api.BillingClient
@@ -42,15 +49,23 @@ class MainActivity : AppCompatActivity() {
     private var currentAccount: String? = null
     private var pageReady = false
     private val googleSignIn by lazy { GoogleCredentialSignIn(this, ::deliverGoogleToken, ::googleSignInError) }
-    private lateinit var loading: ProgressBar
+    private lateinit var launchCover: FrameLayout
+    private lateinit var nativeTabs: ComposeView
+    private lateinit var nativeHeader: ComposeView
+    private val nativeRoute = mutableStateOf("crear")
+    private var nativeTrustedPage = false
+    private var keyboardVisible = false
     private lateinit var failure: LinearLayout
     private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
     private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
-    private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val value = if (result.resultCode == Activity.RESULT_OK) {
-            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-        } else null
-        pendingFileUpload?.onReceiveValue(value)
+    // Android Photo Picker supports scoped gallery access without storage permissions.
+    private val photoPicker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        val mime = uri?.let { contentResolver.getType(it) }
+        val accepted = uri?.takeIf { mime in setOf("image/jpeg", "image/png", "image/webp") }
+        if (uri != null && accepted == null) {
+            android.widget.Toast.makeText(this, R.string.photo_format_not_supported, android.widget.Toast.LENGTH_SHORT).show()
+        }
+        pendingFileUpload?.onReceiveValue(accepted?.let { arrayOf(it) })
         pendingFileUpload = null
     }
     private val products = mapOf(
@@ -77,8 +92,7 @@ class MainActivity : AppCompatActivity() {
         web = WebView(this)
         val root = FrameLayout(this).apply { setBackgroundColor(Color.rgb(22,17,16)) }
         root.addView(web, FrameLayout.LayoutParams(-1,-1))
-        loading = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
-        root.addView(loading, FrameLayout.LayoutParams(-1, 6, Gravity.TOP))
+
         failure = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -93,18 +107,68 @@ class MainActivity : AppCompatActivity() {
             })
             addView(Button(this@MainActivity).apply {
                 text = getString(R.string.retry)
-                setOnClickListener { failure.visibility = android.view.View.GONE; web.loadUrl(homeUrl) }
+                setOnClickListener {
+                    failure.visibility = android.view.View.GONE
+                    launchCover.animate().cancel()
+                    launchCover.alpha = 1f
+                    launchCover.visibility = android.view.View.VISIBLE
+                    web.loadUrl(homeUrl)
+                }
             })
         }
         root.addView(failure, FrameLayout.LayoutParams(-1,-1))
+        nativeHeader = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    PicgiftNativeHeader(
+                        selectedRoute = nativeRoute.value,
+                        onBack = { navigateFromNative("crear") },
+                        onAccount = { navigateFromNative("cuenta") }
+                    )
+                }
+            }
+            visibility = View.GONE
+        }
+        root.addView(nativeHeader, FrameLayout.LayoutParams(-1, dp(PicgiftChrome.headerHeightDp), Gravity.TOP))
+        nativeTabs = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    PicgiftNativeTabs(
+                        selectedRoute = nativeRoute.value,
+                        onTabSelected = { navigateFromNative(it) }
+                    )
+                }
+            }
+            visibility = View.GONE
+        }
+        root.addView(nativeTabs, FrameLayout.LayoutParams(-1, dp(PicgiftChrome.tabHeightDp), Gravity.BOTTOM))
+        // A native launch surface masks web initialization and avoids a browser-style progress bar.
+        launchCover = FrameLayout(this).apply {
+            setBackgroundColor(Color.rgb(22,17,16))
+            val logo = ImageView(this@MainActivity).apply {
+                setImageResource(R.drawable.ic_launcher_official)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                contentDescription = "PICGIFT"
+            }
+            val side = (resources.displayMetrics.density * 192).toInt()
+            addView(logo, FrameLayout.LayoutParams(side, side, Gravity.CENTER))
+        }
+        root.addView(launchCover, FrameLayout.LayoutParams(-1,-1))
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime())
             view.setPadding(bars.left,bars.top,bars.right,bars.bottom)
+            keyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+            updateNativeChrome()
             insets
         }
         setContentView(root)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
+        web.isVerticalScrollBarEnabled = false
+        web.isHorizontalScrollBarEnabled = false
+        web.overScrollMode = android.view.View.OVER_SCROLL_NEVER
         web.settings.allowFileAccess = false
         web.settings.allowContentAccess = true
         web.settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
@@ -115,10 +179,6 @@ class MainActivity : AppCompatActivity() {
         // Android WebView does not provide a file picker by default.
         // Allow the customer to select a photo from the device without camera/storage permissions.
         web.webChromeClient = object : WebChromeClient() {
-            override fun onProgressChanged(view: WebView?, progress: Int) {
-                loading.progress = progress
-                loading.visibility = if (progress < 100) android.view.View.VISIBLE else android.view.View.GONE
-            }
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
@@ -126,13 +186,8 @@ class MainActivity : AppCompatActivity() {
             ): Boolean {
                 pendingFileUpload?.onReceiveValue(null)
                 pendingFileUpload = filePathCallback
-                val pick = Intent(Intent.ACTION_GET_CONTENT).apply {
-                    type = "image/*"
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
-                }
                 return try {
-                    filePicker.launch(Intent.createChooser(pick, getString(R.string.choose_photo)))
+                    photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     true
                 } catch (_: Exception) {
                     pendingFileUpload?.onReceiveValue(null)
@@ -144,7 +199,17 @@ class MainActivity : AppCompatActivity() {
         // The app must handle Android's Back button instead of quitting on every inner route.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (web.canGoBack()) web.goBack() else finish()
+                // Route-aware Back: close sheets, return to Studio, then exit.
+                if (failure.visibility == android.view.View.VISIBLE) { finish(); return }
+                web.evaluateJavascript(
+                    "(function(){if(typeof window.picgiftNativeBack!=='function')return 'fallback';return window.picgiftNativeBack()?'handled':'root';})()"
+                ) { result ->
+                    when (result.trim('"')) {
+                        "handled" -> Unit
+                        "root" -> finish()
+                        else -> if (web.canGoBack()) web.goBack() else finish()
+                    }
+                }
             }
         })
         // Images are available through short-lived signed links. Open downloads in the browser.
@@ -174,6 +239,22 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "route" -> {
+                            val next = req.optString("name")
+                            if (next in PicgiftChrome.pageRoutes) {
+                                runOnUiThread {
+                                    nativeRoute.value = next
+                                    updateNativeChrome()
+                                }
+                            }
+                            return@addWebMessageListener
+                        }
+                        "haptic" -> {
+                            runOnUiThread {
+                                if (::web.isInitialized) web.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                            }
+                            return@addWebMessageListener
+                        }
                         "google-native" -> {
                             val automatic = req.optString("mode") == "auto"
                             runOnUiThread { googleSignIn.signIn(automatic) }
@@ -200,16 +281,32 @@ class MainActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 pageReady = false
                 currentAccount = null
+                nativeTrustedPage = false
+                nativeRoute.value = "crear"
+                updateNativeChrome()
             }
             override fun onPageFinished(view: WebView?, url: String?) {
-                val supported = googleSignIn.isConfigured
-                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                val current = url?.let { Uri.parse(it) }
+                if (current?.scheme == "https" && current.host == "picgift.onrender.com") {
+                    nativeTrustedPage = true
+                    updateNativeChrome()
+                    val supported = googleSignIn.isConfigured
+                    web.evaluateJavascript("window.picgiftNativeApp=true;window.picgiftNativeComposeShell=true;window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;document.querySelector('.mobile-nav')?.style.setProperty('display','none','important');window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                    if (launchCover.visibility == android.view.View.VISIBLE) {
+                        launchCover.animate().alpha(0f).setDuration(210).withEndAction {
+                            launchCover.visibility = android.view.View.GONE
+                        }.start()
+                    }
+                }
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
                     pageReady = false
+                    nativeTrustedPage = false
+                    updateNativeChrome()
                     failure.visibility = android.view.View.VISIBLE
-                    loading.visibility = android.view.View.GONE
+                    launchCover.animate().cancel()
+                    launchCover.visibility = android.view.View.GONE
                 }
             }
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -288,6 +385,35 @@ class MainActivity : AppCompatActivity() {
         incoming.data = null
         // Supabase exchanges this one-time code against the original WebView's PKCE verifier.
         web.loadUrl(Uri.parse(homeUrl).buildUpon().appendQueryParameter("code", code).build().toString())
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
+
+    private fun updateNativeChrome() {
+        if (!::web.isInitialized || !::nativeTabs.isInitialized || !::nativeHeader.isInitialized) return
+        val showTabs = nativeTrustedPage && !keyboardVisible
+        val showHeader = nativeTrustedPage && nativeRoute.value != "crear"
+        nativeTabs.visibility = if (showTabs) View.VISIBLE else View.GONE
+        nativeHeader.visibility = if (showHeader) View.VISIBLE else View.GONE
+        val layout = web.layoutParams as? FrameLayout.LayoutParams ?: return
+        val bottom = if (showTabs) dp(PicgiftChrome.tabHeightDp) else 0
+        val top = if (showHeader) dp(PicgiftChrome.headerHeightDp) else 0
+        if (layout.bottomMargin != bottom || layout.topMargin != top) {
+            layout.bottomMargin = bottom
+            layout.topMargin = top
+            web.layoutParams = layout
+        }
+    }
+
+    private fun navigateFromNative(route: String) {
+        if (!nativeTrustedPage || route !in PicgiftChrome.tabRoutes) return
+        nativeTabs.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        // No custom JS interface, URL navigation or credentials; reuse the
+        // authenticated existing router and its login guards.
+        val message = JSONObject.quote(route)
+        web.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('picgift:route',{detail:{name:$message}}));", null
+        )
     }
 
     private fun connectBilling() {
