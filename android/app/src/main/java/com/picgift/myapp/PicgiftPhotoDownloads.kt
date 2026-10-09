@@ -39,21 +39,22 @@ internal object PicgiftPhotoDownloads {
             var connection: HttpsURLConnection? = null
             var completed = false
             try {
-                connection = URL(uri.toString()).openConnection() as HttpsURLConnection
-                connection.instanceFollowRedirects = false
-                connection.connectTimeout = 15000
-                connection.readTimeout = 40000
-                connection.requestMethod = "GET"
-                val status = connection.responseCode
-                if (status != HttpsURLConnection.HTTP_OK) throw IllegalStateException("Download unavailable")
-                if (connection.contentLengthLong > MAX_BYTES) throw IllegalStateException("Image too large")
+                val http = URL(uri.toString()).openConnection() as HttpsURLConnection
+                connection = http
+                http.instanceFollowRedirects = false
+                http.connectTimeout = 15000
+                http.readTimeout = 40000
+                http.requestMethod = "GET"
+                val status = http.responseCode
+                if (status != java.net.HttpURLConnection.HTTP_OK) throw IllegalStateException("Download unavailable")
+                if (http.contentLengthLong > MAX_BYTES) throw IllegalStateException("Image too large")
                 val extension = uri.lastPathSegment?.substringAfterLast('.')?.lowercase() ?: "jpg"
                 val mime = when (extension) {
                     "png" -> "image/png"
                     "webp" -> "image/webp"
                     else -> "image/jpeg"
                 }
-                val receivedMime = connection.contentType?.substringBefore(';')?.lowercase()
+                val receivedMime = http.contentType?.substringBefore(';')?.lowercase()
                 if (receivedMime !in setOf(mime, "application/octet-stream")) {
                     throw IllegalStateException("Unexpected file type")
                 }
@@ -66,7 +67,7 @@ internal object PicgiftPhotoDownloads {
                 photoUri = activity.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
                     ?: throw IllegalStateException("Could not create picture")
                 activity.contentResolver.openOutputStream(photoUri!!)?.use { output ->
-                    connection.inputStream.use { input ->
+                    http.inputStream.use { input ->
                         val buffer = ByteArray(8192)
                         var bytesRead = 0L
                         while (true) {
