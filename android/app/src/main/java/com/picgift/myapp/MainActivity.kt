@@ -8,6 +8,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.graphics.Color
 import android.view.Gravity
+import android.view.View
 import android.view.HapticFeedbackConstants
 import android.widget.Button
 import android.widget.LinearLayout
@@ -25,6 +26,11 @@ import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.material3.MaterialTheme
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.android.billingclient.api.BillingClient
@@ -43,14 +49,22 @@ class MainActivity : AppCompatActivity() {
     private var currentAccount: String? = null
     private var pageReady = false
     private lateinit var launchCover: FrameLayout
+    private lateinit var nativeTabs: ComposeView
+    private lateinit var nativeHeader: ComposeView
+    private val nativeRoute = mutableStateOf("crear")
+    private var nativeTrustedPage = false
+    private var keyboardVisible = false
     private lateinit var failure: LinearLayout
     private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
     private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
-    private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val value = if (result.resultCode == Activity.RESULT_OK) {
-            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-        } else null
-        pendingFileUpload?.onReceiveValue(value)
+    // Android Photo Picker supports scoped gallery access without storage permissions.
+    private val photoPicker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        val mime = uri?.let { contentResolver.getType(it) }
+        val accepted = uri?.takeIf { mime in setOf("image/jpeg", "image/png", "image/webp") }
+        if (uri != null && accepted == null) {
+            android.widget.Toast.makeText(this, R.string.photo_format_not_supported, android.widget.Toast.LENGTH_SHORT).show()
+        }
+        pendingFileUpload?.onReceiveValue(accepted?.let { arrayOf(it) })
         pendingFileUpload = null
     }
     private val products = mapOf(
@@ -102,6 +116,33 @@ class MainActivity : AppCompatActivity() {
             })
         }
         root.addView(failure, FrameLayout.LayoutParams(-1,-1))
+        nativeHeader = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    PicgiftNativeHeader(
+                        selectedRoute = nativeRoute.value,
+                        onBack = { navigateFromNative("crear") },
+                        onAccount = { navigateFromNative("cuenta") }
+                    )
+                }
+            }
+            visibility = View.GONE
+        }
+        root.addView(nativeHeader, FrameLayout.LayoutParams(-1, dp(PicgiftChrome.headerHeightDp), Gravity.TOP))
+        nativeTabs = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    PicgiftNativeTabs(
+                        selectedRoute = nativeRoute.value,
+                        onTabSelected = { navigateFromNative(it) }
+                    )
+                }
+            }
+            visibility = View.GONE
+        }
+        root.addView(nativeTabs, FrameLayout.LayoutParams(-1, dp(PicgiftChrome.tabHeightDp), Gravity.BOTTOM))
         // A native launch surface masks web initialization and avoids a browser-style progress bar.
         launchCover = FrameLayout(this).apply {
             setBackgroundColor(Color.rgb(22,17,16))
@@ -117,6 +158,8 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime())
             view.setPadding(bars.left,bars.top,bars.right,bars.bottom)
+            keyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+            updateNativeChrome()
             insets
         }
         setContentView(root)
@@ -142,13 +185,8 @@ class MainActivity : AppCompatActivity() {
             ): Boolean {
                 pendingFileUpload?.onReceiveValue(null)
                 pendingFileUpload = filePathCallback
-                val pick = Intent(Intent.ACTION_GET_CONTENT).apply {
-                    type = "image/*"
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
-                }
                 return try {
-                    filePicker.launch(Intent.createChooser(pick, getString(R.string.choose_photo)))
+                    photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     true
                 } catch (_: Exception) {
                     pendingFileUpload?.onReceiveValue(null)
@@ -200,6 +238,16 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "route" -> {
+                            val next = req.optString("name")
+                            if (next in PicgiftChrome.pageRoutes) {
+                                runOnUiThread {
+                                    nativeRoute.value = next
+                                    updateNativeChrome()
+                                }
+                            }
+                            return@addWebMessageListener
+                        }
                         "haptic" -> {
                             runOnUiThread {
                                 if (::web.isInitialized) web.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -227,11 +275,16 @@ class MainActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 pageReady = false
                 currentAccount = null
+                nativeTrustedPage = false
+                nativeRoute.value = "crear"
+                updateNativeChrome()
             }
             override fun onPageFinished(view: WebView?, url: String?) {
                 val current = url?.let { Uri.parse(it) }
                 if (current?.scheme == "https" && current.host == "picgift.onrender.com") {
-                    web.evaluateJavascript("window.picgiftNativeApp=true;window.picgiftNativeGoogleSupported=true;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                    nativeTrustedPage = true
+                    updateNativeChrome()
+                    web.evaluateJavascript("window.picgiftNativeApp=true;window.picgiftNativeComposeShell=true;window.picgiftNativeGoogleSupported=true;document.querySelector('.mobile-nav')?.style.setProperty('display','none','important');window.dispatchEvent(new Event('picgift:native-ready'));", null)
                     if (launchCover.visibility == android.view.View.VISIBLE) {
                         launchCover.animate().alpha(0f).setDuration(210).withEndAction {
                             launchCover.visibility = android.view.View.GONE
@@ -242,6 +295,8 @@ class MainActivity : AppCompatActivity() {
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
                     pageReady = false
+                    nativeTrustedPage = false
+                    updateNativeChrome()
                     failure.visibility = android.view.View.VISIBLE
                     launchCover.animate().cancel()
                     launchCover.visibility = android.view.View.GONE
@@ -303,6 +358,35 @@ class MainActivity : AppCompatActivity() {
         incoming.data = null
         // Supabase exchanges this one-time code against the original WebView's PKCE verifier.
         web.loadUrl(Uri.parse(homeUrl).buildUpon().appendQueryParameter("code", code).build().toString())
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
+
+    private fun updateNativeChrome() {
+        if (!::web.isInitialized || !::nativeTabs.isInitialized || !::nativeHeader.isInitialized) return
+        val showTabs = nativeTrustedPage && !keyboardVisible
+        val showHeader = nativeTrustedPage && nativeRoute.value != "crear"
+        nativeTabs.visibility = if (showTabs) View.VISIBLE else View.GONE
+        nativeHeader.visibility = if (showHeader) View.VISIBLE else View.GONE
+        val layout = web.layoutParams as? FrameLayout.LayoutParams ?: return
+        val bottom = if (showTabs) dp(PicgiftChrome.tabHeightDp) else 0
+        val top = if (showHeader) dp(PicgiftChrome.headerHeightDp) else 0
+        if (layout.bottomMargin != bottom || layout.topMargin != top) {
+            layout.bottomMargin = bottom
+            layout.topMargin = top
+            web.layoutParams = layout
+        }
+    }
+
+    private fun navigateFromNative(route: String) {
+        if (!nativeTrustedPage || route !in PicgiftChrome.tabRoutes) return
+        nativeTabs.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        // No custom JS interface, URL navigation or credentials; reuse the
+        // authenticated existing router and its login guards.
+        val message = JSONObject.quote(route)
+        web.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('picgift:route',{detail:{name:$message}}));", null
+        )
     }
 
     private fun connectBilling() {
