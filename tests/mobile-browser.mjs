@@ -42,6 +42,8 @@ try{
  await chooser.setFiles({name:'picgift-test.png',mimeType:'image/png',buffer:pixel});
  await page.waitForSelector('#upload-loaded:not(.hidden)',{timeout:10000});
  assert.equal(await page.locator('#upload-empty').isVisible(),false);
+ // Inspiration-only concepts cannot be generated. Choose an actual published set.
+ await page.locator('.mobile-scene-option[data-select="halloween-pumpkin-bench"]').click();
  await page.locator('#generate').click();
  await page.waitForSelector('#auth.show',{timeout:8000});
  await page.locator('#close').click();
