@@ -22,7 +22,7 @@ function openAuth(next='login'){
  $('auth-password').value='';$('auth-password-confirm').value='';$('auth-password-confirm').setCustomValidity('');
  $('terms').closest('label').classList.toggle('hidden',!signup);$('terms').required=signup;
  // Google is an alternative link here; opening the installed app goes directly to Google.
- $('google').classList.toggle('hidden',passwordMode||forgot||!!window.PicgiftNative&&!window.picgiftNativeGoogleSupported);
+ $('google').classList.toggle('hidden',passwordMode||forgot);
  document.querySelector('.auth-divider').classList.toggle('hidden',passwordMode||forgot);
  $('reset-pass').classList.toggle('hidden',passwordMode||forgot||signup);
  $('auth-back').classList.toggle('hidden',!forgot);
@@ -44,14 +44,18 @@ function publish(user){activeUser=user||null;const id=user?.id||null;
  if(id!==previous){previous=id;window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:activeUser}}));}
  if(user){try{sessionStorage.removeItem(attemptedKey)}catch{};setTimeout(()=>offerPasswordBackup(user),0)}
 }
-async function startGoogle(){
+async function startGoogle(automatic=false){
  if(!client||googleBusy)return;
  if(mode==='register'&&!$('terms').checked){msg('Confirma primero la autorización para utilizar las fotografías.');return}
- if(window.PicgiftNative&&!window.picgiftNativeGoogleSupported){openAuth();msg('Actualiza la app Android para entrar con Google, o utiliza tu correo y contraseña.');return}
  googleBusy=true;$('google').disabled=true;
  try{
   try{sessionStorage.setItem(attemptedKey,'yes')}catch{}
   const native=!!window.PicgiftNative;
+  if(native&&window.picgiftNativeGoogleSupported===true){
+   window.PicgiftNative.postMessage(JSON.stringify({action:'google-native',mode:automatic?'auto':'manual'}));
+   return;
+  }
+  // Legacy Android builds and devices without native credentials retain external-browser OAuth.
   const {data,error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/',skipBrowserRedirect:native,queryParams:{prompt:'select_account'}}});
   if(error)throw error;
   if(native){
@@ -66,14 +70,39 @@ async function startGoogle(){
 }
 async function offerInstalledSignIn(){
  if(!client||askedToSignIn||recovery||window.picgiftNativeReturn)return;
- const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||window.picgiftNativeGoogleSupported===true;
+ const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||!!window.PicgiftNative;
  if(!installed||/[?&]code=/.test(location.search)||/access_token=|type=recovery/.test(location.hash))return;
  try{const {data,error}=await client.auth.getSession();if(error||data.session)return;askedToSignIn=true;
   let attempted=false;try{attempted=sessionStorage.getItem(attemptedKey)==='yes'}catch{}
   if(attempted||/error=|error_description=/.test(location.hash)){openAuth();msg('Puedes reintentar Google o entrar con tu correo y contraseña.');return}
-  await startGoogle();
+  await startGoogle(true);
  }catch{openAuth();msg('Comprueba tu conexión para iniciar sesión.');}
 }
+// Android's Credential Manager returns a Google ID token + raw nonce. Supabase validates
+// the signature, audience and hashed nonce before creating any PICGIFT session.
+window.picgiftReceiveGoogleIdToken=async detail=>{
+ if(!window.PicgiftNative||!client)return;
+ const token=detail?.token,nonce=detail?.nonce;
+ if(typeof token!=='string'||!(/^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/).test(token)||
+    typeof nonce!=='string'||!(/^[a-f0-9]{64}$/).test(nonce)){
+  openAuth();msg('Respuesta de Google no válida. Vuelve a intentarlo.');return;
+ }
+ try{
+  msg('Verificando tu cuenta de Google…');
+  const {data,error}=await client.auth.signInWithIdToken({provider:'google',token,nonce});
+  if(error)throw error;
+  if(!data?.user&&!data?.session?.user)throw new Error('Sesión vacía');
+  $('auth').classList.remove('show');
+  publish(data.user||data.session.user);
+ }catch{
+  openAuth();msg('No se pudo verificar la cuenta Google. Comprueba la configuración e inténtalo de nuevo.');
+ }
+};
+window.addEventListener('picgift:native-google-error',event=>{
+ openAuth();
+ const cancelled=event.detail?.reason==='cancelled';
+ msg(cancelled?'Acceso cancelado. Puedes volver a elegir Google o entrar con contraseña.':'No se pudo abrir el selector de Google. Inténtalo de nuevo o utiliza tu contraseña.');
+});
 window.addEventListener('picgift:native-ready',offerInstalledSignIn);
 window.addEventListener('picgift:native-auth-error',()=>{openAuth();msg('No se pudo abrir el navegador. Entra con tu correo y contraseña.');});
 window.addEventListener('pageshow',event=>{if(event.persisted&&!activeUser&&!recovery){googleBusy=false;$('google').disabled=false;openAuth();}});
@@ -108,7 +137,7 @@ $('auth-form').addEventListener('submit',async event=>{
  }catch{msg(currentMode==='forgot'?'No se pudo enviar el enlace. Comprueba el correo e inténtalo de nuevo dentro de unos minutos.':passwordMode?'No se pudo guardar la contraseña. Usa al menos 8 caracteres y vuelve a intentarlo; si tu sesión ha caducado, solicita un enlace de recuperación.':'No se pudo iniciar sesión. Comprueba tu correo y contraseña, o utiliza la recuperación.');}
  finally{submit.disabled=false;}
 });
-$('google').addEventListener('click',startGoogle);
+$('google').addEventListener('click',()=>startGoogle(false));
 document.addEventListener('click',event=>{
  if(event.target.closest('[data-google-login]'))startGoogle();
  if(event.target.closest('[data-password-setup]')){document.getElementById('app-panel')?.close();if(activeUser)openAuth('backup');else openAuth();}
