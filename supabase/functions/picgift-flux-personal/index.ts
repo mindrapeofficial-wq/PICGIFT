@@ -172,6 +172,9 @@ Deno.serve(async request=>{
  if(existing)return reply({id:existing.id,status:existing.status,already_submitted:true},200);
  const {data:ongoing}=await db.from("picgift_photo_jobs").select("id").eq("user_id",user.id).in("status",["queued","analyzing","generating","reviewing"]).limit(1);
  if(ongoing?.length)return reply({error:"Espera a que termine tu retrato anterior."},429);
+ // Verify all private FLUX reference images are decodable and within model limits before reserving an attempt.
+ try{for(const value of Object.values(refs))if(value)await preview(String(value))}
+ catch{return reply({code:"photo_reference_invalid",error:"Una referencia no se pudo leer. Prueba otra foto antes de generar.",credit_spent:false},422)}
  // Refuse unusable photos before the free quota is claimed or any image model is called.
  const {data:sourcePhoto,error:sourceError}=await db.storage.from("picgift-uploads").download(source);
  if(sourceError||!sourcePhoto)return reply({code:"photo_source_unavailable",error:"No se pudo leer la fotografía. Selecciona otra y vuelve a intentarlo."},422);
