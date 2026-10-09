@@ -2,4 +2,27 @@
     <string name="choose_photo">Seleccionar fotografía</string>
     <string name="connection_error">PICGIFT no ha podido conectar. Revisa tu conexión a internet y vuelve a intentarlo.</string>
     <string name="retry">Volver a intentar</string>
+    <string name="photo_format_not_supported">Selecciona una foto JPG, PNG o WEBP.</string>
+    <string name="native_nav_create">Crear</string>
+    <string name="native_nav_photos">Mis fotos</string>
+    <string name="native_nav_inspiration">Inspiración</string>
+    <string name="native_nav_profile">Perfil</string>
+    <string name="native_header_profile">Mi perfil</string>
+    <string name="native_header_credits">Packs y créditos</string>
+    <string name="native_header_result">Tu retrato</string>
+    <string name="native_back_studio">Volver al estudio</string>
+    <string name="native_open_profile">Abrir mi perfil</string>
+    <string name="native_gallery_title">Mis retratos</string>
+    <string name="native_gallery_description">Tus creaciones privadas de PICGIFT</string>
+    <string name="native_gallery_refresh">Actualizar retratos</string>
+    <string name="native_gallery_empty">Todavía no hay retratos</string>
+    <string name="native_gallery_favorite">Marcar o quitar favorito</string>
+    <string name="native_gallery_ready">Lista</string>
+    <string name="native_crop_title">Ajusta tu fotografía</string>
+    <string name="native_crop_help">Amplía con dos dedos y arrastra para encuadrar</string>
+    <string name="native_crop_original">Original</string>
+    <string name="native_crop_cancel">Cancelar</string>
+    <string name="native_crop_apply">Usar fotografía</string>
+    <string name="native_crop_loading">Preparando foto…</string>
+    <string name="native_crop_error">No se pudo procesar la foto. Prueba con otra imagen.</string>
 </resources>

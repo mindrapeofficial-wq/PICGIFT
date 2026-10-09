@@ -19,16 +19,40 @@ const galleryCard=(o,small=false)=>{const j=o.job,name=o.name||'PICGIFT',favorit
  return '<article class="photo-card'+(small?' photo-card--small':'')+'" data-gallery-job="'+esc(j.id)+'"><div class="photo-card-art">'+(ready?'<button class="photo-open" type="button" data-view-job="'+esc(j.id)+'" aria-label="Ver '+esc(name)+'"><img src="'+esc(o.href)+'" alt="Tu retrato '+esc(name)+'" loading="lazy"></button>':'<div class="photo-pending">'+icon('spark')+'<span>'+esc(o.statusLabel||j.status)+'</span></div>')+(!small?'<button class="photo-menu-toggle" type="button" data-photo-menu="'+esc(j.id)+'" aria-expanded="false" aria-label="Opciones del retrato">•••</button><div class="photo-menu" data-menu-for="'+esc(j.id)+'" hidden><button type="button" data-view-job="'+esc(j.id)+'">Ver estado y detalles</button><button type="button" data-report-job="'+esc(j.id)+'">Informar de un problema</button><button type="button" data-delete-job="'+esc(j.id)+'">Eliminar fotografía</button></div><span class="photo-status '+(ready?'ready':'processing')+'">'+(ready?'Lista':esc(o.statusLabel||'En proceso'))+'</span>':'<button class="photo-favorite" type="button" data-favorite-job="'+esc(j.id)+'" aria-pressed="'+favorite+'" aria-label="'+(favorite?'Quitar de favoritas':'Añadir a favoritas')+'">'+icon('heart')+'</button>')+'</div><div class="photo-card-info"><h3>'+esc(name)+'</h3><p>'+esc(new Date(j.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'}))+'</p></div>'+(!small?'<div class="photo-actions">'+(ready?'<a href="'+esc(o.download||o.href)+'" rel="noopener noreferrer" aria-label="Descargar retrato">'+icon('download')+'</a><button type="button" data-share-job="'+esc(j.id)+'" aria-label="Compartir retrato">'+icon('share')+'</button>':'<button type="button" disabled aria-label="Descarga todavía no disponible">'+icon('download')+'</button><button type="button" disabled aria-label="Compartir todavía no disponible">'+icon('share')+'</button>')+'<button type="button" data-favorite-job="'+esc(j.id)+'" aria-pressed="'+favorite+'" aria-label="'+(favorite?'Quitar de favoritas':'Añadir a favoritas')+'">'+icon('heart')+'</button></div>':'')+'</article>';
 };
 function stats(){const favorites=read('favorites',[]);$('profile-photo-count').textContent=gallery.filter(o=>o.job.status==='completed').length;$('profile-favorite-count').textContent=gallery.filter(o=>favorites.includes(o.job.id)).length;$('profile-scene-count').textContent=read('explored',[]).length;}
+function emitNativeGallery(){
+ if(!user?.id)return;
+ window.dispatchEvent(new CustomEvent('picgift:gallery', { detail: {
+  user_id:user.id,
+  items:gallery.slice(0,30).map(o=>({
+    id:o.job.id,name:(o.name||'PICGIFT').slice(0,80),status:o.job.status,
+    created_at:o.job.created_at,preview:o.job.status==='completed'?o.href||null:null
+  })),
+  favorites:read('favorites',[])
+ } }));
+}
+window.picgiftNativeGallerySnapshot=emitNativeGallery;
+window.picgiftNativeGalleryAction=(action,id)=>{
+ if(!user?.id || !gallery.some(x=>x.job.id===id))return;
+ if(action==='favorite'){
+  const current=read('favorites',[]);
+  write('favorites',current.includes(id)?current.filter(v=>v!==id):[...current,id]);
+  renderGallery();
+ } else if(action==='open'){
+  const button=[...document.querySelectorAll('[data-view-job]')].find(el=>el.dataset.viewJob===id);
+  button?.click();
+ }
+};
 function renderGallery(){
  if(!user)return;
  const list=filter==='favorites'?gallery.filter(o=>read('favorites',[]).includes(o.job.id)):filter==='deleted'?[]:gallery;
  const empty=filter==='deleted'?'Las fotografías eliminadas se borran definitivamente de tu espacio privado.':filter==='favorites'?'Marca el corazón de un retrato para guardarlo aquí.':'Tu primera fotografía aparecerá aquí después de generarla.';
  $('photo-library').innerHTML=list.length?'<div class="app-section-head"><h2>Fotos recientes</h2><button type="button" data-all-photos>Ver todas ›</button></div><div class="recent-photo-grid">'+list.slice(0,3).map(o=>galleryCard(o)).join('')+'</div><div class="app-section-head all-photos-heading"><h2>Todas mis fotos</h2><button type="button" data-sort-photos>Ordenar ⌄</button></div><div class="all-photo-grid">'+list.map(o=>galleryCard(o,true)).join('')+'</div>':'<div class="panel empty"><div class="large">'+icon('gallery')+'</div><h3>'+(filter==='deleted'?'No conservamos fotos eliminadas':filter==='favorites'?'Tus favoritas':'Todavía no hay fotografías')+'</h3><p>'+empty+'</p><button class="btn outline" type="button" data-route="crear">Crear nueva foto</button></div>';
  stats();
+ emitNativeGallery();
 }
 window.picgiftRenderGallery=items=>{gallery=items;renderGallery()};
 function profile(){const preferences=read('preferences',{});$('photo-email-delivery').checked=!!preferences.email;if(preferences.outfit)$('outfit').value=preferences.outfit;const name=user?.user_metadata?.display_name||user?.user_metadata?.full_name||user?.email?.split('@')[0]||'Mi cuenta';$('profile-name').textContent=name;const avatar=$('account-avatar');avatar.textContent=name.slice(0,1).toUpperCase();const url=user?.user_metadata?.avatar_url;if(url){try{const parsed=new URL(url);if(parsed.protocol==='https:'){const img=new Image();img.src=parsed.href;img.alt='Foto de perfil';img.referrerPolicy='no-referrer';avatar.replaceChildren(img)}}catch{}}stats();}
-window.addEventListener('picgift:auth',e=>{user=e.detail.user||null;gallery=[];filter='all';profile();if(!user)return;renderGallery();});
+window.addEventListener('picgift:auth',e=>{user=e.detail.user||null;gallery=[];filter='all';profile();if(!user){window.dispatchEvent(new Event('picgift:gallery-clear'));return}renderGallery();});
 window.addEventListener('picgift:profile-updated',e=>{if(e.detail.user){user=e.detail.user;profile()}if(e.detail.error){$('profile-save-status').textContent=e.detail.error;return}if(e.detail.user){$('app-panel').close();notice('Perfil actualizado.')}});
 const dialog=$('app-panel');
 function panel(key){
