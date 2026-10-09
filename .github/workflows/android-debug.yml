@@ -7,6 +7,14 @@ on:
     paths:
       - 'android/**'
       - 'auth.js'
+      - 'index.html'
+      - 'app-shell.js'
+      - 'native-shell.js'
+      - 'native-shell.css'
+      - 'native-auth-return.js'
+      - 'native-notifications.js'
+      - 'payments.js'
+      - 'generator.js'
       - 'tests/**'
       - '.github/workflows/android-debug.yml'
   push:
@@ -14,6 +22,14 @@ on:
     paths:
       - 'android/**'
       - 'auth.js'
+      - 'index.html'
+      - 'app-shell.js'
+      - 'native-shell.js'
+      - 'native-shell.css'
+      - 'native-auth-return.js'
+      - 'native-notifications.js'
+      - 'payments.js'
+      - 'generator.js'
       - 'tests/**'
       - '.github/workflows/android-debug.yml'
 
