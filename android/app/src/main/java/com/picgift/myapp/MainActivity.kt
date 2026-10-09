@@ -113,6 +113,8 @@ class MainActivity : AppCompatActivity() {
         web.settings.javaScriptCanOpenWindowsAutomatically = false
 
         // Android WebView does not provide a file picker by default.
+        // Storage Access Framework lets users choose a photo from Drive or local files
+        // without Drive-wide permissions. Only the selected document is read.
         // Allow the customer to select a photo from the device without camera/storage permissions.
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, progress: Int) {
@@ -126,13 +128,14 @@ class MainActivity : AppCompatActivity() {
             ): Boolean {
                 pendingFileUpload?.onReceiveValue(null)
                 pendingFileUpload = filePathCallback
-                val pick = Intent(Intent.ACTION_GET_CONTENT).apply {
+                val pick = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                     type = "image/*"
                     addCategory(Intent.CATEGORY_OPENABLE)
                     putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 return try {
-                    filePicker.launch(Intent.createChooser(pick, getString(R.string.choose_photo)))
+                    filePicker.launch(pick)
                     true
                 } catch (_: Exception) {
                     pendingFileUpload?.onReceiveValue(null)
