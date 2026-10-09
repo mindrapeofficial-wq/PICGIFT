@@ -1,6 +1,13 @@
 package com.picgift.myapp
 
+import android.Manifest
 import android.app.Activity
+import android.os.Build
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
+import java.util.UUID
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -38,6 +45,12 @@ import java.security.MessageDigest
 
 class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
+    private val notificationDestinations = setOf("crear", "mis-fotos", "inspiracion", "cuenta", "precios")
+    private var pendingNotificationRoute: String? = null
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) completePushEnable() else notifyPushState("permission_denied")
+    }
+
     private lateinit var billing: BillingClient
     private var currentAccount: String? = null
     private var pageReady = false
@@ -173,6 +186,9 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "notifications-enable" -> { runOnUiThread { enablePush() }; return@addWebMessageListener }
+                        "notifications-status" -> { runOnUiThread { checkPush() }; return@addWebMessageListener }
+                        "notifications-disable" -> { runOnUiThread { disablePush() }; return@addWebMessageListener }
                         "google-auth" -> {
                             val target = req.optString("url")
                             val state = req.optString("state")
@@ -196,6 +212,7 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onPageFinished(view: WebView?, url: String?) {
                 web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                deliverNotificationRoute()
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
@@ -219,12 +236,105 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) web.loadUrl(homeUrl)
         else if (web.restoreState(savedInstanceState) == null) web.loadUrl(homeUrl)
         handleGoogleReturn(intent)
+        collectNotificationRoute(intent)
+        deliverNotificationRoute()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleGoogleReturn(intent)
+        collectNotificationRoute(intent)
+        deliverNotificationRoute()
+    }
+
+
+    private fun collectNotificationRoute(incoming: Intent?) {
+        val route = incoming?.getStringExtra("picgift_route")
+        if (route in notificationDestinations) {
+            pendingNotificationRoute = route
+            incoming?.removeExtra("picgift_route")
+        }
+    }
+
+    private fun deliverNotificationRoute() {
+        val target = pendingNotificationRoute ?: return
+        if (!::web.isInitialized || web.url?.let { Uri.parse(it).host } != "picgift.onrender.com") return
+        pendingNotificationRoute = null
+        web.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('picgift:route',{detail:{name:'" + target + "'}}));", null
+        )
+    }
+
+    private fun pushPrefs() = getSharedPreferences("picgift_push", MODE_PRIVATE)
+
+    private fun installationId(): String {
+        val prefs = pushPrefs()
+        return prefs.getString("installation_id", null)
+            ?: UUID.randomUUID().toString().also {
+                prefs.edit().putString("installation_id", it).apply()
+            }
+    }
+
+    private fun hasPushPermission(): Boolean =
+        Build.VERSION.SDK_INT < 33 ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+    private fun pushConfigured(): Boolean =
+        BuildConfig.PICGIFT_FIREBASE_CONFIGURED && FirebaseApp.getApps(this).isNotEmpty()
+
+    private fun enablePush() {
+        if (!pushConfigured()) { notifyPushState("not_configured"); return }
+        if (!hasPushPermission()) {
+            if (Build.VERSION.SDK_INT >= 33) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            else notifyPushState("permission_denied")
+            return
+        }
+        completePushEnable()
+    }
+
+    private fun completePushEnable() {
+        if (!hasPushPermission()) { notifyPushState("permission_denied"); return }
+        pushPrefs().edit().putBoolean("enabled", true).apply()
+        FirebaseMessaging.getInstance().isAutoInitEnabled = true
+        requestPushToken()
+    }
+
+    private fun disablePush() {
+        pushPrefs().edit().putBoolean("enabled", false).apply()
+        if (pushConfigured()) FirebaseMessaging.getInstance().isAutoInitEnabled = false
+        notifyPushState("disabled")
+    }
+
+    private fun checkPush() {
+        if (!pushConfigured()) { notifyPushState("not_configured"); return }
+        if (!pushPrefs().getBoolean("enabled", false)) { notifyPushState("disabled"); return }
+        if (!hasPushPermission()) { notifyPushState("permission_denied"); return }
+        requestPushToken()
+    }
+
+    private fun requestPushToken() {
+        if (!pushConfigured() || !hasPushPermission()) return
+        try {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful && !task.result.isNullOrBlank()) {
+                    pushPrefs().edit().putString("token", task.result).apply()
+                    notifyPushState("ready", task.result)
+                } else notifyPushState("token_error")
+            }
+        } catch (_: Exception) { notifyPushState("token_error") }
+    }
+
+    private fun notifyPushState(status: String, token: String? = null) {
+        val data = JSONObject().put("status", status).put("installation_id", installationId())
+        if (token != null) data.put("token", token)
+        if (::web.isInitialized) web.post {
+            if (web.url?.let { Uri.parse(it).host } == "picgift.onrender.com") {
+                web.evaluateJavascript(
+                    "window.dispatchEvent(new CustomEvent('picgift:native-push',{detail:" + data.toString() + "}));", null
+                )
+            }
+        }
     }
 
     private fun startGoogleAuth(link: String, state: String) {
