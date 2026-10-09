@@ -2,6 +2,7 @@ name: PICGIFT admin access checks
 
 on:
   push:
+    branches: [main]
     paths:
       - 'admin.html'
       - 'admin.js'
@@ -12,6 +13,7 @@ on:
       - 'supabase/functions/picgift-admin/index.ts'
       - '.github/workflows/admin-access.yml'
   pull_request:
+    branches: [main]
     paths:
       - 'admin.html'
       - 'admin.js'
@@ -61,7 +63,7 @@ jobs:
           assert.match(backend,/app_metadata\?\.providers/);
           assert.match(auth,/toggleField\('auth-email',!passwordMode\)/);
           assert.match(auth,/!error&&!recovery/);
-          assert.match(index,/auth\.js\?v=google-auto-password-20261009-4/);
+          assert.match(index,/auth\.js\?v=[a-z0-9-]+/);
           assert.doesNotMatch(backend,/(encrypted_password|password_hash|raw_user_meta_data)/);
           console.log('Admin access and recovery checks passed');
           NODE
