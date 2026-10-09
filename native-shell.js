@@ -20,6 +20,28 @@
     catch (_) { /* Native chrome never prevents editing. */ }
   }
   window.addEventListener('picgift:navigated', (event) => sendRoute(event.detail?.name));
+  // The web session remains the source of truth. Never forward access tokens,
+  // original files, profile metadata, or private storage paths to Android.
+  function syncGallery(detail) {
+    if (!isNative() || window.picgiftNativeComposeShell !== true ||
+        !detail || typeof detail.user_id !== 'string' ||
+        !Array.isArray(detail.items)) return;
+    const items = detail.items.slice(0,30).map(item => ({
+      id:item.id, name:item.name, status:item.status,
+      created_at:item.created_at, preview:item.preview||null
+    }));
+    try { window.PicgiftNative?.postMessage(JSON.stringify({
+      action:'gallery-sync',user_id:detail.user_id,
+      items,favorites:Array.isArray(detail.favorites)?detail.favorites.slice(0,30):[]
+    })); } catch (_) { /* The web gallery stays available on unsupported devices. */ }
+  }
+  window.addEventListener('picgift:gallery',event => syncGallery(event.detail));
+  window.addEventListener('picgift:gallery-clear',() => {
+    try { window.PicgiftNative?.postMessage(JSON.stringify({action:'gallery-clear'})); } catch (_) {}
+  });
+  window.addEventListener('picgift:native-ready',() => {
+    if (window.picgiftNativeComposeShell === true) window.picgiftNativeGallerySnapshot?.();
+  });
   window.addEventListener('picgift:native-ready', enableNative);
   enableNative();
 
