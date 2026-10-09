@@ -12,7 +12,7 @@ test('Compose compiler plugin matches Kotlin version', () => {
   assert.match(gradle, /id\("org\.jetbrains\.kotlin\.plugin\.compose"\) version "2\.0\.21"/);
   assert.match(app, /id\("org\.jetbrains\.kotlin\.plugin\.compose"\)/);
   assert.match(app, /compose = true/);
-  assert.match(app, /versionCode = 9/);
+  assert.match(app, /versionCode = 10/);
   assert.match(app, /androidx\.compose\.material3:material3/);
 });
 
