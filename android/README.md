@@ -42,3 +42,12 @@ NOTA: La carpeta es código fuente para el proyecto de Android Studio; no contie
 - El workflow de Play exige explícitamente la variable `PICGIFT_GOOGLE_WEB_CLIENT_ID` y las credenciales privadas existentes de firma `PICGIFT_UPLOAD_*`; así no se distribuye otra versión sin selector configurado. Con instalaciones antiguas o ausencia de Credential Manager se conserva el OAuth mediante navegador externo y el acceso por contraseña.
 - Tras generar el AAB **v1.7.0 / código 8**, subirlo al canal cerrado de Google Play y **actualizar desde Play**. Modificar solo la web de Render no actualiza la versión nativa ya instalada.
 - Verificar en móvil físico con Google Play Services: primera instalación con varias cuentas, cuenta previamente autorizada, cancelar selector, login/registro con el botón, app reiniciada con sesión y sesión cerrada, volver a abrir, fallo de red y cuenta sin permisos.
+
+## 1.8.0 Compose + Google preview (staged)
+- Kotlin Compose compiler 2.0.21 with Material 3; native Android navigation and a section header are attached around the persistent WebView.
+- Tabs route via the existing authenticated SPA and never send account secrets to Compose. Route notifications are accepted only from `https://picgift.onrender.com` main frame. The HTML tab bar is hidden only when the new Android Compose shell announces itself; older Android builds and the web keep their navigation.
+- Android's Photo Picker replaces the generic Android content chooser, returning JPG/PNG/WEBP to the existing web cropping editor. Cancelling returns a null result without discarding the studio image.
+- Credential Manager Google sign-in added on main is preserved **unchanged**: `GoogleCredentialSignIn.kt`, native ID token callback, nonce, build-time web client ID validation and the PKCE fallback.
+- VersionCode 9 avoids collision with the separate 1.7.0 native Google build (versionCode 8).
+- Gradle CI and real Android license-tester checks are required. Do not distribute or merge before confirming Google login, billing, gallery, photo upload and rotation.
+- Still to migrate: native gallery data layer and image grid, native crop/editing, native account profile forms and offline generation states.
