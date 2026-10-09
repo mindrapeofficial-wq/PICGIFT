@@ -19,8 +19,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.8.0-compose-google-preview"
+        versionCode = 10
+        versionName = "1.9.0-compose-gallery-crop-preview"
     }
     buildFeatures { buildConfig = true; compose = true }
     defaultConfig {
@@ -56,6 +56,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("com.android.billingclient:billing:9.1.0")
     implementation("androidx.credentials:credentials:1.6.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
