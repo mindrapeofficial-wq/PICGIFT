@@ -48,7 +48,7 @@ test('catalogue and offline shell reference existing public assets only',()=>{
  assert.ok(!shell.some(path=>/picgift-uploads|picgift-generated|token|signed/i.test(path)));
 });
 
-test('Halloween expansion remains preview-only and excludes private portrait references from public scenes',()=>{
+test('Halloween scenes remain previews and authorized portrait examples are public catalogue metadata',()=>{
  const pack=JSON.parse(fs.readFileSync('assets/halloween/expansion-2026.json','utf8'));
  assert.equal(pack.scenes.length,7);
  assert.equal(pack.portraitExamples.length,3);
