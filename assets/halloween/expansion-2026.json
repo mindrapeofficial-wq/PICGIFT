@@ -1,0 +1,157 @@
+{
+  "version": "halloween-2026-expansion-1",
+  "publication": "staged",
+  "notes": "Public image catalogue metadata only. Images are delivered in a separate asset pack; not every asset is in GitHub. Only reveal a preview when its same-origin public WebP exists. This does not enable generation. Real scene recipes and approval live server-side.",
+  "scenes": [
+    {
+      "id": "halloween-calabaza-village",
+      "name": "Villa de las calabazas",
+      "description": "Una aldea iluminada con casas de calabaza y un castillo al fondo.",
+      "category": "Fantasía",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "De pie"
+      ],
+      "source": "concept",
+      "status": "coming-soon",
+      "previewOnly": true,
+      "image": "./assets/halloween/backdrops/calabaza-village.webp",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado",
+        "url": null
+      }
+    },
+    {
+      "id": "halloween-senda-calabazas",
+      "name": "El sendero de las calabazas",
+      "description": "Un camino de otoño entre faroles, murciélagos y calabazas bajo la luna.",
+      "category": "Bosques",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "De pie"
+      ],
+      "source": "concept",
+      "status": "coming-soon",
+      "previewOnly": true,
+      "image": "./assets/halloween/backdrops/senda-calabazas.webp",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado",
+        "url": null
+      }
+    },
+    {
+      "id": "halloween-castillo-luna",
+      "name": "El castillo bajo la luna",
+      "description": "Una entrada de cuento a un castillo gótico iluminado.",
+      "category": "Fantasía",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "De pie"
+      ],
+      "source": "concept",
+      "status": "coming-soon",
+      "previewOnly": true,
+      "image": "./assets/halloween/backdrops/castillo-luna.webp",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado",
+        "url": null
+      }
+    },
+    {
+      "id": "halloween-salon-victoriano",
+      "name": "El salón victoriano",
+      "description": "Terciopelo rojo, retratos antiguos, chimenea y velas.",
+      "category": "Clásicos",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "Sentado en sillón"
+      ],
+      "source": "concept",
+      "status": "coming-soon",
+      "previewOnly": true,
+      "image": "./assets/halloween/backdrops/salon-victoriano.webp",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado",
+        "url": null
+      }
+    },
+    {
+      "id": "halloween-tienda-caramelos",
+      "name": "La tienda de caramelos",
+      "description": "Una confitería mágica con piruletas, calabazas y luces cálidas.",
+      "category": "Clásicos",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "De pie"
+      ],
+      "source": "concept",
+      "status": "coming-soon",
+      "previewOnly": true,
+      "image": "./assets/halloween/backdrops/tienda-caramelos.webp",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado",
+        "url": null
+      }
+    },
+    {
+      "id": "halloween-portones-castillo",
+      "name": "Las puertas del castillo",
+      "description": "Faroles y hojas otoñales ante unas verjas que conducen a un castillo.",
+      "category": "Fantasía",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "De pie"
+      ],
+      "source": "concept",
+      "status": "coming-soon",
+      "previewOnly": true,
+      "image": "./assets/halloween/backdrops/portones-castillo.webp",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado",
+        "url": null
+      }
+    },
+    {
+      "id": "halloween-escalinata-encantada",
+      "name": "La gran escalinata encantada",
+      "description": "Un gran vestíbulo gótico con alfombra roja y candelabros.",
+      "category": "Clásicos",
+      "badge": "Colección Halloween",
+      "ages": "Retratos infantiles y familiares",
+      "poses": [
+        "De pie"
+      ],
+      "source": "concept",
+      "status": "coming-soon",
+      "previewOnly": true,
+      "image": "./assets/halloween/backdrops/escalinata-encantada.webp",
+      "credit": {
+        "author": "PICGIFT · Fondo aportado",
+        "url": null
+      }
+    }
+  ],
+  "portraitExamples": [
+    {
+      "id": "brujita-bosque",
+      "role": "private-style-reference",
+      "visualNotes": "Retrato de cuerpo entero, sombrero y vestido negro/naranja, farol, setas luminosas, luz ambiental azul y ámbar."
+    },
+    {
+      "id": "brujita-pociones",
+      "role": "private-style-reference",
+      "visualNotes": "Retrato de cuerpo entero, caldero verde, varita y vestido verde/negro, biblioteca de pócimas, luz de velas."
+    },
+    {
+      "id": "brujita-biblioteca",
+      "role": "private-style-reference",
+      "visualNotes": "Retrato de cuerpo entero, libro en las manos, vestido burdeos/negro, biblioteca victoriana, velas y cortinas rojas."
+    }
+  ]
+}
