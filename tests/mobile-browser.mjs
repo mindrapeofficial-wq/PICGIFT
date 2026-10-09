@@ -24,8 +24,10 @@ try{
  assert.equal(await page.locator('.mobile-scene-option').nth(1).getAttribute('aria-pressed'),'true');
  fs.mkdirSync('artifacts',{recursive:true});
  await page.screenshot({path:'artifacts/picgift-mobile-halloween.png',fullPage:true});
+ // Choose a photo through the visible upload surface, not through the final
+ // generate action. This mirrors the normal mobile onboarding path.
  const chooserPromise=page.waitForEvent('filechooser',{timeout:8000});
- await page.locator('#generate').click();
+ await page.locator('#choose-photo').click();
  const chooser=await chooserPromise;
  const pixel=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==','base64');
  await chooser.setFiles({name:'picgift-test.png',mimeType:'image/png',buffer:pixel});
