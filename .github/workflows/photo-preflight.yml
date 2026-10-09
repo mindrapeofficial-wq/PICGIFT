@@ -1,0 +1,33 @@
+name: PICGIFT photo preflight checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'supabase/functions/_shared/photo-preflight.ts'
+      - 'supabase/functions/picgift-generate/index.ts'
+      - 'supabase/functions/picgift-flux-personal/index.ts'
+      - 'generator.js'
+      - 'tests/photo-preflight.test.cjs'
+      - '.github/workflows/photo-preflight.yml'
+  pull_request:
+    paths:
+      - 'supabase/functions/_shared/photo-preflight.ts'
+      - 'supabase/functions/picgift-generate/index.ts'
+      - 'supabase/functions/picgift-flux-personal/index.ts'
+      - 'generator.js'
+      - 'tests/photo-preflight.test.cjs'
+permissions:
+  contents: read
+jobs:
+  validate-photo-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Browser syntax check
+        run: node --check generator.js
+      - name: Photo suitability tests
+        run: node --test tests/photo-preflight.test.cjs
