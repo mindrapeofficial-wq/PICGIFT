@@ -26,7 +26,18 @@ try{
  await page.screenshot({path:'artifacts/picgift-mobile-halloween.png',fullPage:true});
  const chooserPromise=page.waitForEvent('filechooser',{timeout:8000});
  await page.locator('#choose-photo').click();
- const chooser=await chooserPromise;
+ let chooser;
+ try { chooser=await chooserPromise; }
+ catch (error) {
+   console.error('PICGIFT_PICKER_DIAGNOSTIC',JSON.stringify(await page.evaluate(()=>{
+     const photo=document.getElementById('photo'),button=document.getElementById('choose-photo'),generate=document.getElementById('generate');
+     return {ready:document.readyState,button:button?.outerHTML,buttonVisible:button?.getBoundingClientRect().width,
+       input:photo?.outerHTML,inputDisabled:photo?.disabled,inputVisible:photo?.getBoundingClientRect().width,
+       generatedDisabled:generate?.disabled,hasNative:!!window.PicgiftNative,stage:document.querySelector('#upload-empty')?.className};
+   })), 'JS_ERRORS',errors);
+   throw error;
+ }
+
  const pixel=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==','base64');
  await chooser.setFiles({name:'picgift-test.png',mimeType:'image/png',buffer:pixel});
  await page.waitForSelector('#upload-loaded:not(.hidden)',{timeout:10000});
