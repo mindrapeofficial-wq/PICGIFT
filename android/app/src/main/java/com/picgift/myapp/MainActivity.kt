@@ -203,7 +203,7 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onPageFinished(view: WebView?, url: String?) {
                 val supported = googleSignIn.isConfigured
-                web.evaluateJavascript("window.picgiftNativeGoogleSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
