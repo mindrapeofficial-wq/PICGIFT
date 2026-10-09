@@ -178,14 +178,23 @@ function clearPhoto(){
  $('upload-empty').classList.remove('hidden');$('upload-loaded').classList.add('hidden');
  $('result-empty').classList.remove('hidden');updateStudio();
 }
+// Drive source is selected via Android's system document picker, not a Drive-wide OAuth grant.
+function syncGoogleDriveImport(){
+ const available=!!window.PicgiftNative;
+ for(const id of ['choose-drive-photo','change-drive-photo','picgift-drive-hint']){
+  const element=$(id);if(element)element.hidden=!available;
+ }
+}
 function init(){
+ syncGoogleDriveImport();
+ window.addEventListener('picgift:native-ready',syncGoogleDriveImport);
 window.addEventListener('picgift:show-auth',()=>{if(!user&&!$('auth').classList.contains('show'))openAuth('login')});
 document.addEventListener('click',e=>{if(e.target.closest('[data-open-auth]'))openAuth('login')});
 $('signin').addEventListener('click',()=>openAuth('login'));$('signup').addEventListener('click',()=>openAuth('register'));$('close').addEventListener('click',()=>$('auth').classList.remove('show'));$('auth').addEventListener('click',e=>{if(e.target===$('auth'))$('auth').classList.remove('show')});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('auth').classList.remove('show')});
 document.addEventListener('click',e=>{const select=e.target.closest('[data-select]');if(select){selectScene(select.dataset.select);return}const routeButton=e.target.closest('[data-route]');if(routeButton){e.preventDefault();navigate(routeButton.dataset.route)}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.scene-card[data-select]')){e.preventDefault();selectScene(e.target.dataset.select)} });
 $('filters').addEventListener('click',e=>{const el=e.target.closest('[data-filter]');if(!el)return;filter=el.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));renderCatalog()});
-$('choose-photo').addEventListener('click',()=>$('photo').click());$('change-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));$('remove-photo').addEventListener('click',clearPhoto);
+$('choose-photo').addEventListener('click',()=>$('photo').click());$('change-photo').addEventListener('click',()=>$('photo').click());$('choose-drive-photo').addEventListener('click',()=>$('photo').click());$('change-drive-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));$('remove-photo').addEventListener('click',clearPhoto);
 $('studio-login').addEventListener('click',()=>openAuth('login'));
 $('photo-ai-consent').addEventListener('change',updateStudio);
 $('studio-advanced').open=!window.matchMedia('(max-width:960px)').matches;
