@@ -41,10 +41,11 @@ test('Native destinations mirror the authenticated SPA router without reloading'
 
 test('Android system photo picker preserves WebView file chooser callback', () => {
   const activity = get('android/app/src/main/java/com/picgift/myapp/MainActivity.kt');
+  const crop = get('android/app/src/main/java/com/picgift/myapp/PicgiftNativeCrop.kt');
   assert.match(activity, /ActivityResultContracts\.PickVisualMedia/);
   assert.match(activity, /pendingFileUpload\?\.onReceiveValue/);
-  assert.match(activity, /image\/jpeg/);
-  assert.match(activity, /image\/png/);
-  assert.match(activity, /image\/webp/);
+  assert.match(crop, /image\/jpeg/);
+  assert.match(crop, /image\/png/);
+  assert.match(crop, /image\/webp/);
   assert.doesNotMatch(activity, /READ_EXTERNAL_STORAGE/);
 });
