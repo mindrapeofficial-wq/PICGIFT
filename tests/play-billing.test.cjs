@@ -5,7 +5,7 @@ const vm=require('node:vm');
 
 function mockStore() {
  const listeners={},ids=['esencial','magico','familiar'],sent=[];
- const amounts=new Map(ids.map(id=>[id,{children:[],replaceChildren(...v){this.children=v}}]));
+ const amounts=new Map(ids.map(id=>[id,{children:[],replaceChildren(...v){this.children=v},append(...v){this.children.push(...v)}}]));
  const buttons=ids.map(id=>({
   dataset:{buy:id},disabled:false,textContent:'',closest:()=>({querySelector:()=>amounts.get(id)})
  }));
