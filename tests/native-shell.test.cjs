@@ -11,6 +11,7 @@ test('Android bridge announces native mode without removing Google support', () 
   assert.match(activity, /window\.picgiftNativeGoogleSupported=true/);
   assert.match(activity, /"haptic"\s*->/);
   assert.match(activity, /picgiftNativeBack/);
+  assert.match(activity, /launchCover/);
   assert.match(activity, /isForMainFrame/);
 });
 
