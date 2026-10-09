@@ -106,8 +106,7 @@
   html.picgift-native :where(input, textarea, select) {
     font-size: max(16px, 1em);
   }
-  html.picgift-native #install-picgift,
-  html.picgift-native #update-banner {
+  html.picgift-native #install-picgift {
     display: none !important;
   }
 }
