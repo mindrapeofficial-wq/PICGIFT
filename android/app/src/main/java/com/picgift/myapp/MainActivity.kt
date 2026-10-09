@@ -12,7 +12,7 @@ import android.view.HapticFeedbackConstants
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.FrameLayout
-import android.widget.ProgressBar
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var billing: BillingClient
     private var currentAccount: String? = null
     private var pageReady = false
-    private lateinit var loading: ProgressBar
+    private lateinit var launchCover: FrameLayout
     private lateinit var failure: LinearLayout
     private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
     private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
@@ -77,8 +77,7 @@ class MainActivity : AppCompatActivity() {
         web = WebView(this)
         val root = FrameLayout(this).apply { setBackgroundColor(Color.rgb(22,17,16)) }
         root.addView(web, FrameLayout.LayoutParams(-1,-1))
-        loading = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
-        root.addView(loading, FrameLayout.LayoutParams(-1, 6, Gravity.TOP))
+
         failure = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -93,10 +92,28 @@ class MainActivity : AppCompatActivity() {
             })
             addView(Button(this@MainActivity).apply {
                 text = getString(R.string.retry)
-                setOnClickListener { failure.visibility = android.view.View.GONE; web.loadUrl(homeUrl) }
+                setOnClickListener {
+                    failure.visibility = android.view.View.GONE
+                    launchCover.animate().cancel()
+                    launchCover.alpha = 1f
+                    launchCover.visibility = android.view.View.VISIBLE
+                    web.loadUrl(homeUrl)
+                }
             })
         }
         root.addView(failure, FrameLayout.LayoutParams(-1,-1))
+        // A native launch surface masks web initialization and avoids a browser-style progress bar.
+        launchCover = FrameLayout(this).apply {
+            setBackgroundColor(Color.rgb(22,17,16))
+            val logo = ImageView(this@MainActivity).apply {
+                setImageResource(R.drawable.ic_launcher_official)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                contentDescription = getString(R.string.app_name)
+            }
+            val side = (resources.displayMetrics.density * 192).toInt()
+            addView(logo, FrameLayout.LayoutParams(side, side, Gravity.CENTER))
+        }
+        root.addView(launchCover, FrameLayout.LayoutParams(-1,-1))
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime())
             view.setPadding(bars.left,bars.top,bars.right,bars.bottom)
@@ -118,10 +135,6 @@ class MainActivity : AppCompatActivity() {
         // Android WebView does not provide a file picker by default.
         // Allow the customer to select a photo from the device without camera/storage permissions.
         web.webChromeClient = object : WebChromeClient() {
-            override fun onProgressChanged(view: WebView?, progress: Int) {
-                loading.progress = progress
-                loading.visibility = if (progress < 100) android.view.View.VISIBLE else android.view.View.GONE
-            }
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
@@ -219,13 +232,19 @@ class MainActivity : AppCompatActivity() {
                 val current = url?.let { Uri.parse(it) }
                 if (current?.scheme == "https" && current.host == "picgift.onrender.com") {
                     web.evaluateJavascript("window.picgiftNativeApp=true;window.picgiftNativeGoogleSupported=true;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                    if (launchCover.visibility == android.view.View.VISIBLE) {
+                        launchCover.animate().alpha(0f).setDuration(210).withEndAction {
+                            launchCover.visibility = android.view.View.GONE
+                        }.start()
+                    }
                 }
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
                     pageReady = false
                     failure.visibility = android.view.View.VISIBLE
-                    loading.visibility = android.view.View.GONE
+                    launchCover.animate().cancel()
+                    launchCover.visibility = android.view.View.GONE
                 }
             }
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
