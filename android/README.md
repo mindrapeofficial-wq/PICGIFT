@@ -50,3 +50,21 @@ NOTA: La carpeta es código fuente para el proyecto de Android Studio; no contie
 - No confundir este selector con el acceso de PICGIFT mediante Google ni con una sincronización del Drive completo. El navegador web de escritorio no recibe un botón Drive ficticio: un Google Picker web real necesita habilitar Picker API, crear cliente OAuth 2.0 web y clave API restringida por dominio; es una integración separada.
 - Verificar en Android físico con Drive instalado y sesión iniciada: foto JPG/PNG/WEBP, cargar archivo en la nube no descargado, cancelar, archivo corrupto, archivo superior a 15 MB, referencias opcionales, reiniciar la app y cambiar la foto. No hace falta permiso de almacenamiento ni pedir autorización a todas las carpetas de Drive.
 - Los cambios en el WebView nativo requieren una **nueva actualización de Google Play**. Los archivos web y CSS se sirven directamente desde Render, pero Android instalado conserva su versión del selector hasta actualizar.
+
+
+## Android nativo v1.8.0 (versionCode 9)
+
+PICGIFT sigue siendo una arquitectura híbrida con interfaz web alojada en Render y funciones Android nativas dentro de `MainActivity`. No se ha sustituido toda la interfaz por Jetpack Compose.
+
+- **Fotografías:** el selector seguro de Android permite galería, archivos, Google Drive y cámara nativa. `ACTION_IMAGE_CAPTURE` escribe una foto temporal mediante `FileProvider` restringido a `cache/camera/`; `ACTION_OPEN_DOCUMENT` limita los archivos externos a imágenes. La app no solicita acceso masivo a fotos ni permiso de cámara para lanzar una aplicación externa.
+- **Descargas:** los retratos privados firmados se descargan por HTTPS directamente en `Imágenes/PICGIFT` usando MediaStore en Android 10+; límite 25 MB, sin redirecciones a otros dominios, sin registrar URL privada en logs y sin permisos de almacenamiento. Android 8 y 9 conservan el navegador para descargar.
+- **Notificaciones:** las notificaciones de Firebase abren el apartado indicado al pulsarlas, con rutas permitidas y traducción `inspiracion → escenarios`, conservando la autenticación PICGIFT.
+- **Google:** continúa Credential Manager con validación de token Google vía Supabase, y su alternativa OAuth/contraseña.
+- **Compras:** Google Play Billing conserva la comprobación de compra en el servidor; no se expone ninguna clave privada en el móvil.
+- **Seguridad:** WebView confía únicamente en `https://picgift.onrender.com`, no permite acceso genérico a ficheros y conserva el cierre de sesión y almacenamiento privado.
+
+### Pruebas antes de Play Store
+
+El workflow `android-debug.yml` ejecuta pruebas Node, compilación Android, Lint y crea un APK de diagnóstico y AAB sin firma de subida. En un Android real deben probarse: selección Drive y galería, captura con cámara, cancelar el selector, abrir notificación con la app cerrada y abierta, recibir una actualización del token FCM, guardar JPG/PNG en Galería, red lenta y sin conexión, cuenta Google y compras de prueba.
+
+**El código compilado no equivale a una publicación en Google Play.** La actualización requiere `app-release.aab` firmado con la clave de subida registrada de PICGIFT y las credenciales privadas en GitHub Actions. No sustituir con otra clave desconocida. El artefacto de la nueva versión se llama `picgift-v1.8.0-code9-android-native-play-signed` solo cuando el workflow de firma termina correctamente.
