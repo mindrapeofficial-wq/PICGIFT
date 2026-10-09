@@ -44,6 +44,7 @@ function renderProposal(item){
   row.append(img);
  }
  if(item.description)row.append(info('Descripción',item.description));
+ if(item.review_summary)row.append(info('Análisis creativo de la IA gratuita',item.review_summary));
  if(item.category)row.append(info('Categoría',item.category));
  if(item.message)row.append(info('Mensaje propuesto',item.message));
  if(item.error_message)row.append(info('Incidencia',item.error_message));
@@ -82,7 +83,7 @@ function renderProposal(item){
      ...(categoryInput?{category:categoryValue}:{})});
     status('Decisión guardada. La publicación y los avisos se registran en el historial.');
     await refresh();
-   }catch(e){status('No se pudo '+result+': '+e.message,true);for(const control of actions.querySelectorAll('button'))control.disabled=false}
+   }catch(e){status('No se pudo '+result+': '+(e.message==='approve_scene_first'?'Primero aprueba el escenario de este día. La publicidad solo puede anunciar una imagen publicada.':e.message),true);for(const control of actions.querySelectorAll('button'))control.disabled=false}
   }
   actions.append(makeButton('Aprobar y publicar',()=>decide('approve'),true),
    makeButton('Rechazar',()=>decide('reject')));
@@ -97,6 +98,9 @@ async function refresh(){
  try{
   const data=await api({action:'dashboard'});
   $('ai-director-count').textContent=data.pending?'('+data.pending+' pendientes)':'(sin pendientes)';
+  const providers=data.providers||{};
+  const health=$('ai-director-providers');
+  if(health)health.textContent='IA Premium: '+(providers.premium_configured?'configurada':'sin configurar')+' · IA gratuita: '+(providers.free_configured?'configurada':'sin configurar')+'. La prueba de conexión se realiza por separado.';
   const list=$('ai-director-list');list.replaceChildren();
   if(!data.proposals?.length)list.textContent='Aún no hay propuestas generadas. La planificación diaria está programada en el servidor.';
   for(const item of data.proposals||[])list.append(renderProposal(item));
@@ -116,6 +120,13 @@ async function refresh(){
  finally{refreshing=false}
 }
 $('ai-director-refresh')?.addEventListener('click',()=>void refresh());
+$('ai-director-check')?.addEventListener('click',async()=>{
+ const button=$('ai-director-check');button.disabled=true;status('Comprobando ambas IA sin generar imágenes ni consumir créditos de los usuarios…');
+ try{const data=await api({action:'check_providers'});
+  status(data.free==='ready'&&data.premium==='ready'?'Conexión verificada: IA gratuita y Premium responden correctamente.':'No se pudieron verificar ambos servicios.',data.free!=='ready'||data.premium!=='ready');
+ }catch(e){status('No se pudo verificar la conexión: '+e.message,true)}
+ finally{button.disabled=false}
+});
 $('ai-director-dispatch')?.addEventListener('click',async()=>{
  if(!confirm('¿Reintentar notificaciones fallidas? No se generará contenido nuevo.'))return;
  try{status('Revisando la cola…');const res=await api({action:'dispatch',retry_failed:true});
