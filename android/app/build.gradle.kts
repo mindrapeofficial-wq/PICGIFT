@@ -2,6 +2,9 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+// Include Google Services only when the matching Firebase Android config is supplied.
+val firebaseConfigPresent = file("google-services.json").isFile
+if (firebaseConfigPresent) apply(plugin = "com.google.gms.google-services")
 android {
     namespace = "com.picgift.myapp"
     compileSdk = 36
@@ -9,11 +12,15 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.5.0-google-login"
+        versionCode = 7
+        versionName = "1.6.0-notifications"
     }
     buildFeatures { buildConfig = true }
+    defaultConfig { buildConfigField("boolean", "PICGIFT_FIREBASE_CONFIGURED", firebaseConfigPresent.toString()) }
     val uploadStore = System.getenv("PICGIFT_UPLOAD_STORE")
+    if (!uploadStore.isNullOrBlank() && !firebaseConfigPresent) {
+        throw GradleException("Firebase Android configuration is required for signed PICGIFT releases.")
+    }
     signingConfigs {
         if (!uploadStore.isNullOrBlank()) create("upload") {
             storeFile = file(uploadStore)
@@ -35,4 +42,6 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.webkit:webkit:1.13.0")
     implementation("com.android.billingclient:billing:9.1.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-messaging")
 }
