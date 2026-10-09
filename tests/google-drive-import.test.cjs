@@ -12,7 +12,7 @@ test('Android uses system documents picker to include installed Google Drive pro
  assert.match(native,/Intent\(Intent\.ACTION_OPEN_DOCUMENT\)/);
  assert.match(native,/Intent\.CATEGORY_OPENABLE/);
  assert.match(native,/Intent\.FLAG_GRANT_READ_URI_PERMISSION/);
- assert.match(native,/filePicker\.launch\(pick\)/);
+ assert.match(native,/filePicker\.launch\(chooser\)/);
  assert.doesNotMatch(native,/Intent\(Intent\.ACTION_GET_CONTENT\)/);
  for(const type of ['image/jpeg','image/png','image/webp'])assert.ok(native.includes(type));
 });
@@ -21,7 +21,7 @@ test('Drive never requests unrestricted Google Drive data or new Android storage
  const manifest=read('android/app/src/main/AndroidManifest.xml');
  assert.doesNotMatch(native,/drive\.googleapis\.com|https:\/\/www\.googleapis\.com\/drive/i);
  assert.doesNotMatch(manifest,/MANAGE_EXTERNAL_STORAGE|READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE/);
- assert.match(native,/filePicker\.launch\(pick\)/);
+ assert.match(native,/filePicker\.launch\(chooser\)/);
 });
 
 test('Drive picker is offered only in the native app and reuses the safe image selection path',()=>{
