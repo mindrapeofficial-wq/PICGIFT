@@ -84,6 +84,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Purge private crop output from a previously killed process.
+        runCatching { java.io.File(cacheDir, "picgift-prepared").listFiles()?.forEach { it.delete() } }
         billing = BillingClient.newBuilder(this)
             .setListener { result, purchases ->
                 if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
