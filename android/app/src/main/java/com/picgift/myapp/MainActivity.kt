@@ -8,6 +8,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.graphics.Color
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.FrameLayout
@@ -104,6 +105,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(root)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
+        web.isVerticalScrollBarEnabled = false
+        web.isHorizontalScrollBarEnabled = false
+        web.overScrollMode = android.view.View.OVER_SCROLL_NEVER
         web.settings.allowFileAccess = false
         web.settings.allowContentAccess = true
         web.settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
@@ -143,7 +147,17 @@ class MainActivity : AppCompatActivity() {
         // The app must handle Android's Back button instead of quitting on every inner route.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (web.canGoBack()) web.goBack() else finish()
+                // Route-aware Back: close sheets, return to Studio, then exit.
+                if (failure.visibility == android.view.View.VISIBLE) { finish(); return }
+                web.evaluateJavascript(
+                    "(function(){if(typeof window.picgiftNativeBack!=='function')return 'fallback';return window.picgiftNativeBack()?'handled':'root';})()"
+                ) { result ->
+                    when (result.trim('"')) {
+                        "handled" -> Unit
+                        "root" -> finish()
+                        else -> if (web.canGoBack()) web.goBack() else finish()
+                    }
+                }
             }
         })
         // Images are available through short-lived signed links. Open downloads in the browser.
@@ -173,6 +187,12 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "haptic" -> {
+                            runOnUiThread {
+                                if (::web.isInitialized) web.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                            }
+                            return@addWebMessageListener
+                        }
                         "google-auth" -> {
                             val target = req.optString("url")
                             val state = req.optString("state")
@@ -196,7 +216,10 @@ class MainActivity : AppCompatActivity() {
                 currentAccount = null
             }
             override fun onPageFinished(view: WebView?, url: String?) {
-                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                val current = url?.let { Uri.parse(it) }
+                if (current?.scheme == "https" && current.host == "picgift.onrender.com") {
+                    web.evaluateJavascript("window.picgiftNativeApp=true;window.picgiftNativeGoogleSupported=true;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                }
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
