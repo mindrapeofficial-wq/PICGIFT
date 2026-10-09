@@ -313,6 +313,7 @@ async function removePhoto(id){
 }
 function init(){
  window.addEventListener('picgift:generate',create);
+ window.addEventListener('picgift:gallery-refresh',()=>{if(window.picgiftCurrentUser)refreshGallery();});
 
  $('refresh-job').addEventListener('click',async()=>{
   const btn=$('refresh-job');btn.disabled=true;btn.textContent='Comprobando…';
