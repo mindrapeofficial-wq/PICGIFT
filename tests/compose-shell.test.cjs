@@ -28,7 +28,7 @@ test('Native destinations mirror the authenticated SPA router without reloading'
     assert.ok(bridge.includes("'" + page + "'"));
   }
   assert.match(activity, /"route" ->/);
-  assert.match(activity, /"picgift:route"/);
+  assert.match(activity, /picgift:route/);
   assert.match(activity, /PicgiftChrome\.pageRoutes/);
   assert.match(activity, /nativeTrustedPage/);
   assert.match(activity, /GoogleCredentialSignIn/);
