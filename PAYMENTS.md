@@ -42,3 +42,17 @@ Supabase PICGIFT: https://supabase.com/dashboard/project/uimrvgrpenccijumyiek/fu
 5. Solo entonces establecer PICGIFT_SALES_ENABLED=true en Supabase (preferiblemente primero con Stripe en test mode).
 
 Hasta ese momento **no hay sistema de cobro real habilitado** y no se entregará ninguna prestación de pago.
+
+
+## Activación independiente de Google Play (9 de octubre de 2026)
+
+`PICGIFT_GOOGLE_PLAY_ENABLED` se configura **solo en Supabase** para abrir compras Android sin abrir Stripe. `PICGIFT_SALES_ENABLED` controla Stripe, no debe utilizarse para activar Google Play. Por defecto, ambos siguen desactivados.
+
+- `GOOGLE_PLAY_PACKAGE_NAME=com.picgift.myapp`
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`: credenciales **privadas** de una cuenta de servicio con Android Publisher API habilitada y permisos financieros/de gestión de pedidos en Play Console.
+- `PICGIFT_GOOGLE_PLAY_ENABLED=false` hasta terminar compra de licencia de prueba en canal interno, validación de créditos y consumo, reinicio, cancelación, pendiente y reembolso.
+- `PICGIFT_GOOGLE_PLAY_PROMO_READY=false` hasta confirmar en Play Console precios correctos de la campaña (7,90 €, 19,92 € y 31,92 € en la zona euro). Durante Halloween el backend sigue cerrado para Play si este valor es distinto de true. Los importes visibles de Android proceden de Play Billing, no de precios calculados en la web.
+
+Crear tres **productos de compra única consumibles** en Google Play Console con IDs exactos `picgift_esencial_1`, `picgift_magico_5`, `picgift_familiar_10`, cada uno con opción de compra **activa**. Configurar perfil de pagos de Google, servicio, app `com.picgift.myapp` y publicación en prueba interna. Instalar desde el enlace de Google Play con una cuenta de tester con licencia.
+
+Después de verificar una compra real/de prueba en el canal de Play y su entrega y consumo sin duplicados, cambiar `PICGIFT_GOOGLE_PLAY_ENABLED=true`. No subir ni compartir claves ni JSON privados en GitHub, ChatGPT, correo o código. Comprobar que las opciones de compra de Halloween muestran precios coincidentes con la campaña antes de marcar `PICGIFT_GOOGLE_PLAY_PROMO_READY=true`.
