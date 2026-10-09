@@ -2,4 +2,6 @@
     <string name="choose_photo">Choose a photo</string>
     <string name="connection_error">PICGIFT could not connect. Check your internet connection and try again.</string>
     <string name="retry">Try again</string>
+    <string name="photo_saved">Photo saved to Pictures / PICGIFT.</string>
+    <string name="photo_save_failed">Could not save the portrait. Please try downloading again.</string>
 </resources>
