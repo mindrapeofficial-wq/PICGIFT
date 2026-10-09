@@ -1,4 +1,80 @@
 /* Shared Halloween composition for the installed app and desktop browser. */
+html[data-campaign="halloween"] #auth{
+ background:rgba(7,3,2,.84);backdrop-filter:blur(12px);padding:24px 16px;
+ align-items:center;overflow-y:auto;overscroll-behavior:contain;
+}
+html[data-campaign="halloween"] #auth .dialog{
+ width:min(100%,460px);max-height:calc(100dvh - 48px);padding:30px 32px 24px;
+ border:1px solid #a7642d;border-radius:26px;isolation:isolate;
+ background:linear-gradient(145deg,#180d08,#090606 65%);
+ box-shadow:0 0 0 1px #ffb45112,0 28px 90px #000c,0 0 50px #ff7b0812;
+ scrollbar-width:thin;scrollbar-color:#7c4b27 #110906;
+}
+html[data-campaign="halloween"] #auth .dialog:before{
+ content:'';position:absolute;inset:0 0 auto;height:245px;z-index:-1;
+ border-radius:25px 25px 0 0;pointer-events:none;opacity:.65;
+ background:linear-gradient(0deg,#100906,transparent 90%),linear-gradient(90deg,#10090655,#10090688),url('./assets/halloween/reference/moon-castle.webp') right top/cover no-repeat;
+}
+html[data-campaign="halloween"] #auth .auth-logo{
+ width:132px;height:105px;object-fit:contain;margin:0 auto 12px;
+ filter:drop-shadow(0 3px 14px #ff800744);
+}
+html[data-campaign="halloween"] #auth .eyebrow{color:#ffb651;font-size:10px;letter-spacing:.22em}
+html[data-campaign="halloween"] #auth h2{
+ font:600 clamp(30px,8vw,36px)/1.15 'Times New Roman',serif;
+ letter-spacing:-.6px;color:#fff3de;margin-top:7px;
+}
+html[data-campaign="halloween"] #auth .auth-caption{
+ color:#d8c3aa;font:400 14px/1.5 Arial,sans-serif;margin:10px 0 22px;
+}
+html[data-campaign="halloween"] #auth .close{
+ top:13px;right:13px;width:40px;height:40px;display:grid;place-items:center;
+ padding:0;border:1px solid #b4793d55;border-radius:50%;background:#10090599;
+ color:#f7d5a9;line-height:1;
+}
+html[data-campaign="halloween"] #auth .field{margin-top:16px;color:#e8d4bc;font-size:13px}
+html[data-campaign="halloween"] #auth .field span{font-weight:500;margin-bottom:8px}
+html[data-campaign="halloween"] #auth .field input{
+ height:52px;border-radius:13px;background:#100a07cc;border:1px solid #86522e;
+ color:#fff3de;font-size:16px;padding:0 15px;transition:border-color .2s,box-shadow .2s;
+}
+html[data-campaign="halloween"] #auth .field input::placeholder{color:#b09b87;opacity:1;font-size:14px}
+html[data-campaign="halloween"] #auth .field input:focus{
+ border-color:#ffb347;box-shadow:0 0 0 3px #ff962417;outline:none;
+}
+html[data-campaign="halloween"] #auth .btn{min-height:52px;border-radius:14px;font-size:14px;margin-top:14px}
+html[data-campaign="halloween"] #auth .btn.primary{
+ background:linear-gradient(110deg,#ffd465,#ff9526 55%,#f45b08);
+ border-color:#ffc166;color:#180900;box-shadow:0 0 24px #ff7d182b;
+}
+html[data-campaign="halloween"] #auth #google{
+ border:1px solid #ffc166;background:linear-gradient(110deg,#ffd465,#ff9526 55%,#f45b08);color:#180900;box-shadow:0 0 24px #ff7d182b;
+}
+html[data-campaign="halloween"] #auth #auth-submit{background:linear-gradient(125deg,#2c170b88,#140b0788);border-color:#a76b33;color:#fff1db;box-shadow:none}
+.auth-divider{display:flex;align-items:center;gap:12px;color:#bba58e;font:400 12px/1.4 Arial,sans-serif;margin:20px 0 3px}
+.auth-divider:before,.auth-divider:after{content:'';height:1px;background:#83512c55;flex:1}
+.mobile-signin{display:flex;align-items:center;gap:12px;margin:0 0 18px}
+.mobile-signin .btn{min-height:42px;border-radius:12px;font-size:12px;border-color:#a76b33;background:#20100699;color:#ffce8a}
+.mobile-signin>span{font:400 11px/1.4 Arial,sans-serif;color:#cbb49f;max-width:140px}
+html[data-campaign="halloween"] #auth #reset-pass{
+ background:none;border:0;box-shadow:none;color:#ffbd6c;min-height:44px;
+ margin-top:5px;font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:4px;
+}
+html[data-campaign="halloween"] #auth .notice{
+ background:none;border:0;border-top:1px solid #83512c55;border-radius:0;
+ padding:14px 0 0;margin-top:2px;text-align:center;color:#d8c3aa;font:400 12px/1.5 Arial,sans-serif;
+}
+html[data-campaign="halloween"] #auth .tiny{
+ margin-top:14px;font:400 11px/1.6 Arial,sans-serif;color:#bba58e;
+}
+html[data-campaign="halloween"] #auth .tiny a{color:#ffbf77;text-decoration:underline;text-underline-offset:2px}
+html[data-campaign="halloween"] #auth .check{color:#dbc5aa;accent-color:#ffac38}
+@media(max-width:520px){
+ html[data-campaign="halloween"] #auth{padding:12px}
+ html[data-campaign="halloween"] #auth .dialog{padding:24px 22px 22px;max-height:calc(100dvh - 24px);border-radius:23px}
+ html[data-campaign="halloween"] #auth .dialog:before{border-radius:22px 22px 0 0}
+ html[data-campaign="halloween"] #auth .auth-logo{width:120px;height:92px}
+}
 html[data-campaign="halloween"]{--bg:#090606;--panel:#170c08;--cream:#fff3de;--muted:#cbb49f;--gold:#ffa22f;--line:#8c542f66;color:var(--cream);background:var(--bg)}
 html[data-campaign="halloween"] body{background:#090606;color:#fff3de;font-family:Arial,sans-serif}
 html[data-campaign="halloween"] .app{padding-bottom:0}

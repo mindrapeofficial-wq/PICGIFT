@@ -9,8 +9,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.4.0-official-logo"
+        versionCode = 6
+        versionName = "1.5.0-google-login"
     }
     buildFeatures { buildConfig = true }
     val uploadStore = System.getenv("PICGIFT_UPLOAD_STORE")

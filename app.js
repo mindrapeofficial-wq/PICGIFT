@@ -31,6 +31,7 @@ function updateStudio(){
  const hasPhoto=!!file,hasScene=!!selected&&selected.source==='picgift',hasConsent=$('photo-ai-consent').checked;
  document.body.classList.toggle('studio-has-photo',hasPhoto);
  const signedIn=!!user,ready=signedIn&&hasPhoto&&hasScene&&hasConsent&&window.picgiftAiReady===true&&!window.picgiftGenerating;
+ $('mobile-signin').classList.toggle('hidden',signedIn);
  $('studio-account').textContent=signedIn?'Sesión activa: '+user.email:'Sin iniciar sesión';
  login.classList.add('hidden');
  generate.classList.remove('hidden');
@@ -77,6 +78,8 @@ function clearPhoto(){
  $('result-empty').classList.remove('hidden');updateStudio();
 }
 function init(){
+window.addEventListener('picgift:show-auth',()=>{if(!user&&!$('auth').classList.contains('show'))openAuth('login')});
+document.addEventListener('click',e=>{if(e.target.closest('[data-open-auth]'))openAuth('login')});
 $('signin').addEventListener('click',()=>openAuth('login'));$('signup').addEventListener('click',()=>openAuth('register'));$('close').addEventListener('click',()=>$('auth').classList.remove('show'));$('auth').addEventListener('click',e=>{if(e.target===$('auth'))$('auth').classList.remove('show')});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('auth').classList.remove('show')});
 document.addEventListener('click',e=>{const select=e.target.closest('[data-select]');if(select){selectScene(select.dataset.select);return}const routeButton=e.target.closest('[data-route]');if(routeButton){e.preventDefault();navigate(routeButton.dataset.route)}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.scene-card[data-select]')){e.preventDefault();selectScene(e.target.dataset.select)} });
@@ -104,7 +107,8 @@ $('workspace').classList.remove('hidden');
 updateStudio();loadCatalog();
  const mobileEntry=window.matchMedia('(max-width:820px)').matches;
  const requested=location.hash.slice(1)||'crear';
- const opening=mobileEntry&&requested==='inicio'?'crear':requested;
+ const authReturn=/access_token=|error_description=|type=recovery/.test(location.hash)||new URLSearchParams(location.search).has('code');
+ const opening=authReturn||(mobileEntry&&requested==='inicio')?'crear':requested;
  if(mobileEntry&&requested==='inicio')history.replaceState({page:'crear'},'','#crear');
  navigate(opening,true);
  const splash=$('splash');if(splash){let seen=false;try{seen=sessionStorage.getItem('picgift_intro_2026')==='seen';sessionStorage.setItem('picgift_intro_2026','seen')}catch(e){}

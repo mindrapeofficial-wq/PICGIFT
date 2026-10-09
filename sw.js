@@ -1,8 +1,9 @@
 /* PICGIFT Halloween 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-reference-shell-20261009-v1";
+const VERSION="picgift-reference-shell-20261009-google-v3";
 const SHELL=[
+ "/native-auth-return.js","/native-auth.css",
  "/app-shell.css","/app-shell.js","/assets/halloween/reference/enchanted-city.webp",
  "/assets/halloween/reference/moon-castle.webp","/assets/halloween/reference/pumpkin-forest.webp","/assets/halloween/reference/haunted-castle.webp","/assets/halloween/reference/portrait-hall.webp",
  "/","/index.html","/styles.css","/mobile-app.css","/app.js","/auth.js","/generator.js",
@@ -27,7 +28,7 @@ self.addEventListener("install",event=>{
 self.addEventListener("activate",event=>{
   event.waitUntil((async()=>{
     const names=await caches.keys();
-    await Promise.all(names.filter(name=>name.startsWith("picgift-shell-")&&name!==VERSION).map(name=>caches.delete(name)));
+    await Promise.all(names.filter(name=>(name.startsWith("picgift-shell-")||name.startsWith("picgift-reference-shell-"))&&name!==VERSION).map(name=>caches.delete(name)));
     await self.clients.claim();
   })());
 });

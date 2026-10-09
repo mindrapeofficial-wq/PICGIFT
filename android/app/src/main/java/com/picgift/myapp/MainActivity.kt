@@ -173,6 +173,12 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "google-auth" -> {
+                            val target = req.optString("url")
+                            val state = req.optString("state")
+                            runOnUiThread { startGoogleAuth(target, state) }
+                            return@addWebMessageListener
+                        }
                         "purchase" -> Unit
                         else -> return@addWebMessageListener
                     }
@@ -189,7 +195,7 @@ class MainActivity : AppCompatActivity() {
                 currentAccount = null
             }
             override fun onPageFinished(view: WebView?, url: String?) {
-                web.evaluateJavascript("window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.dispatchEvent(new Event('picgift:native-ready'));", null)
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
@@ -212,6 +218,48 @@ class MainActivity : AppCompatActivity() {
         }
         if (savedInstanceState == null) web.loadUrl(homeUrl)
         else if (web.restoreState(savedInstanceState) == null) web.loadUrl(homeUrl)
+        handleGoogleReturn(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleGoogleReturn(intent)
+    }
+
+    private fun startGoogleAuth(link: String, state: String) {
+        val target = Uri.parse(link)
+        if (target.scheme != "https" || target.host != "uimrvgrpenccijumyiek.supabase.co" ||
+            target.path != "/auth/v1/authorize" || target.getQueryParameter("provider") != "google" ||
+            target.getQueryParameter("redirect_to") != "https://picgift.onrender.com/" ||
+            !target.getQueryParameter("code_challenge_method").equals("s256", ignoreCase = true) ||
+            !Regex("^[A-Za-z0-9_-]{43}$").matches(target.getQueryParameter("code_challenge") ?: "") ||
+            !Regex("^[a-f0-9]{64}$").matches(state)) return
+        // Persist only request state. The PKCE verifier stays in this WebView's private storage.
+        getSharedPreferences("google_auth", MODE_PRIVATE).edit()
+            .putString("state", state).putLong("created", System.currentTimeMillis()).apply()
+        val browserEntry = Uri.parse("https://picgift.onrender.com/android-login.html").buildUpon()
+            .appendQueryParameter("authorize", link).appendQueryParameter("state", state).build()
+        try { startActivity(Intent(Intent.ACTION_VIEW, browserEntry)) }
+        catch (_: android.content.ActivityNotFoundException) {
+            getSharedPreferences("google_auth", MODE_PRIVATE).edit().clear().apply()
+            web.evaluateJavascript("window.dispatchEvent(new Event('picgift:native-auth-error'));", null)
+        }
+    }
+
+    private fun handleGoogleReturn(incoming: Intent?) {
+        val target = incoming?.data ?: return
+        if (target.scheme != "com.picgift.myapp" || target.host != "auth") return
+        val prefs = getSharedPreferences("google_auth", MODE_PRIVATE)
+        val state = target.getQueryParameter("state") ?: return
+        val code = target.getQueryParameter("code") ?: return
+        val age = System.currentTimeMillis() - prefs.getLong("created", 0)
+        if (age !in 0..600000 || state != prefs.getString("state", null) ||
+            !Regex("^[A-Za-z0-9_-]{20,512}$").matches(code)) return
+        prefs.edit().clear().apply()
+        incoming.data = null
+        // Supabase exchanges this one-time code against the original WebView's PKCE verifier.
+        web.loadUrl(Uri.parse(homeUrl).buildUpon().appendQueryParameter("code", code).build().toString())
     }
 
     private fun connectBilling() {

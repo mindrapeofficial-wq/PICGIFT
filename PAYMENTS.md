@@ -24,7 +24,7 @@ Supabase PICGIFT: https://supabase.com/dashboard/project/uimrvgrpenccijumyiek/fu
 - Supabase Edge Function picgift-google-play valida la compra contra Google Play Android Publisher API v2, estado PURCHASED, producto y huella SHA256 de la cuenta PICGIFT; rechaza el token ya asociado a otra cuenta; acredita una sola vez y consume el token.
 - Secretos adicionales requeridos: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON (cuenta de servicio con Android Publisher API) y GOOGLE_PLAY_PACKAGE_NAME (mismo applicationId de la app). No incluir el JSON de cuenta de servicio en Android, repositorio ni frontend.
 - Las compras desde apps publicadas en Google Play que venden bienes digitales utilizan Google Play Billing salvo excepciones/políticas específicas.
-- Google OAuth dentro de WebView necesita una adaptación segura con navegador externo/App Links o login nativo; el proyecto Android actual es fuente de arranque y requiere esta prueba, además de compilarse en Android Studio.
+- Desde Android 1.5.0, Google OAuth utiliza navegador externo y regreso por un código de un solo uso con PKCE; el verificador permanece en el WebView. La validación completa con una cuenta Google en un dispositivo real sigue siendo necesaria antes de distribuir en producción.
 - Si se distribuye una APK fuera de Play Store, el esquema de pagos debe revisarse por separado; el código actual de la app apunta a Google Play.
 
 ## Crédito por fotografía
