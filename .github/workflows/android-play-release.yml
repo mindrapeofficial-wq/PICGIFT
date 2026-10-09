@@ -2,9 +2,6 @@ name: PICGIFT · Google Play signed AAB
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/android-play-release.yml'
 
 permissions:
   contents: read
