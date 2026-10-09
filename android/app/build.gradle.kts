@@ -13,8 +13,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.6.0-notifications"
+        versionCode = 8
+        versionName = "1.7.0-compose-preview"
     }
     buildFeatures { buildConfig = true; compose = true }
     defaultConfig { buildConfigField("boolean", "PICGIFT_FIREBASE_CONFIGURED", firebaseConfigPresent.toString()) }
