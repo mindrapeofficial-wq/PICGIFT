@@ -110,6 +110,25 @@ async function createDaily(){
    recipe,status:"pending",route:"inspiracion"
  });
  if(sceneError)throw Error("proposal_save_failed");
+
+ // Suggest an original category only when it is not yet present or awaiting review.
+ if(!["Fantasía","Bosques","Clásicos"].includes(category)){
+  const [{data:existingCategory},{data:existingProposal}]=await Promise.all([
+   db.from("picgift_catalog_categories").select("name").eq("name",category).maybeSingle(),
+   db.from("picgift_ai_proposals").select("id").eq("kind","category").eq("title",category)
+    .in("status",["pending","processing","approved"]).limit(1)
+  ]);
+  if(!existingCategory&&!existingProposal?.length){
+   const {data:suggested}=await db.from("picgift_ai_proposals").insert({
+    kind:"category",day_key:day,title:category,description:"Nueva categoría temática sugerida por IA para ordenar el catálogo.",
+    status:"pending",route:"inspiracion"
+   }).select("id").single();
+   if(suggested)await db.from("picgift_ai_notifications_outbox").insert({
+    proposal_id:suggested.id,target:"admin",title:"PICGIFT · Nueva categoría sugerida",
+    body:"Revisa la categoría «"+category+"»",route:"cuenta"
+   });
+  }
+ }
  const notices=[
   {kind:"notification",title:safe(idea.notification_title,80)||"Un poco de magia en PICGIFT",
    message:safe(idea.notification_body,280)||"Descubre nuestras escenas de Halloween.",route:"inspiracion"},
