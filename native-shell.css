@@ -1,0 +1,149 @@
+/* PICGIFT Android native-feel layer.
+   Loaded on every platform but ONLY enabled by the trusted Android host.
+   The browser/PWA presentation remains unchanged. */
+@media (max-width: 820px) {
+  html.picgift-native {
+    scroll-behavior: auto;
+    overscroll-behavior-y: contain;
+    background: #090606;
+  }
+  html.picgift-native body {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
+    background: #090606;
+  }
+  html.picgift-native .main {
+    overflow-x: clip;
+  }
+  html.picgift-native :where(button, a, summary, select, [role="tab"]) {
+    touch-action: manipulation;
+  }
+  html.picgift-native :where(button, a, select):focus-visible {
+    outline: 2px solid #ffd49a;
+    outline-offset: 3px;
+  }
+
+  /* Tab bar is part of the app surface, not a floating website menu. */
+  html.picgift-native .mobile-nav {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    min-height: 74px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 6px 8px 10px;
+    background: linear-gradient(180deg, #21130fee 0%, #120a09fb 100%);
+    border-top: 1px solid #a46c433d;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -9px 36px #0008;
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+    isolation: isolate;
+  }
+  html.picgift-native .mobile-nav button {
+    min-height: 57px;
+    border-radius: 15px;
+    gap: 5px;
+    color: #c3a998;
+    font: 500 11px/1.2 system-ui, sans-serif;
+    transition: color .15s ease, background-color .15s ease, transform .12s ease;
+  }
+  html.picgift-native .mobile-nav button + button:after { display: none; }
+  html.picgift-native .mobile-nav button svg {
+    width: 24px;
+    height: 24px;
+    filter: none;
+  }
+  html.picgift-native .mobile-nav button.active {
+    color: #ffd2a0;
+    font-weight: 650;
+    background: #f88c2420;
+  }
+  html.picgift-native .mobile-nav button.active:before {
+    top: 0;
+    left: 27%;
+    right: 27%;
+    height: 3px;
+    border-radius: 0 0 5px 5px;
+    background: #ffad51;
+    box-shadow: 0 0 12px #ff8b3180;
+  }
+  html.picgift-native .mobile-nav button:active {
+    transform: scale(.96);
+    background: #f88c2430;
+  }
+
+  /* Keep content clear of the tab bar and remove browser-like scroll artifacts. */
+  html.picgift-native .page:not([data-page="crear"]) {
+    padding-bottom: 114px;
+  }
+  html.picgift-native .page[data-page="crear"] {
+    padding-bottom: 112px;
+  }
+  html.picgift-native body:not(.studio-has-photo) .page[data-page="crear"]:not([hidden]) {
+    padding-bottom: 0;
+  }
+  html.picgift-native .mobile-scene-grid {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  html.picgift-native .topbar {
+    background: #120a09ef;
+    border-bottom: 1px solid #ff9d3b1b;
+  }
+  html.picgift-native .mobile-app-hero__settings {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Short screen transitions; never animate the scroll position itself. */
+  html.picgift-native .page:not([hidden]) {
+    animation: picgift-native-enter .18s cubic-bezier(.22,.75,.32,1) both;
+  }
+  html.picgift-native #toast {
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+  html.picgift-native :where(input, textarea, select) {
+    font-size: max(16px, 1em);
+  }
+  /* Android shows its own logo while this document initializes. */
+  html.picgift-native #splash {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  html.picgift-native #install-picgift {
+    display: none !important;
+  }
+}
+@keyframes picgift-native-enter {
+  from { opacity: .7; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 820px) and (prefers-reduced-motion: reduce) {
+  html.picgift-native .page:not([hidden]) { animation: none; }
+  html.picgift-native .mobile-nav button { transition: none; }
+}
+
+/* Compose tab bar owns the physical bottom edge in new Android builds.
+   Older Play APKs and mobile browsers still get the original HTML tabs. */
+@media(max-width:820px) {
+  html.picgift-native.picgift-compose-shell .mobile-nav,
+  html.picgift-native.picgift-compose-shell .topbar,
+  html.picgift-native.picgift-compose-shell .app-page-hero__bar {
+    display: none !important;
+  }
+  html.picgift-native.picgift-compose-shell .page:not([data-page="crear"]) {
+    padding-bottom: 24px !important;
+  }
+  html.picgift-native.picgift-compose-shell .page[data-page="crear"] {
+    padding-bottom: 26px !important;
+  }
+  html.picgift-native.picgift-compose-shell body:not(.studio-has-photo) .page[data-page="crear"]:not([hidden]) {
+    min-height: 100dvh !important;
+    padding-bottom: 0 !important;
+  }
+  html.picgift-native.picgift-compose-shell .studio-actionbar {
+    bottom: 0;
+  }
+}
