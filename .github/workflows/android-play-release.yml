@@ -1,0 +1,129 @@
+name: PICGIFT · Google Play signed AAB
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/android-play-release.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: picgift-android-play-release
+  cancel-in-progress: false
+
+jobs:
+  signed-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Obtain PICGIFT source
+        uses: actions/checkout@v4
+
+      - name: Verify private release credentials exist
+        env:
+          FIREBASE: ${{ secrets.PICGIFT_FIREBASE_ANDROID_JSON_B64 }}
+          KEYSTORE: ${{ secrets.PICGIFT_UPLOAD_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PICGIFT_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_KEY_PASSWORD }}
+        run: |
+          missing=0
+          for key in FIREBASE KEYSTORE STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!key}" ]; then
+              case "$key" in
+                FIREBASE) echo "::error::Missing PICGIFT_FIREBASE_ANDROID_JSON_B64" ;;
+                KEYSTORE) echo "::error::Missing PICGIFT_UPLOAD_KEYSTORE_B64 (original Google Play upload keystore)" ;;
+                STORE_PASSWORD) echo "::error::Missing PICGIFT_UPLOAD_STORE_PASSWORD" ;;
+                KEY_ALIAS) echo "::error::Missing PICGIFT_UPLOAD_KEY_ALIAS" ;;
+                KEY_PASSWORD) echo "::error::Missing PICGIFT_UPLOAD_KEY_PASSWORD" ;;
+              esac
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then exit 1; fi
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android API 36
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)"
+          test -n "$SDKMANAGER"
+          "$SDKMANAGER" --install "platforms;android-36" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Decode original upload keystore and Firebase configuration
+        env:
+          FIREBASE: ${{ secrets.PICGIFT_FIREBASE_ANDROID_JSON_B64 }}
+          KEYSTORE: ${{ secrets.PICGIFT_UPLOAD_KEYSTORE_B64 }}
+        run: |
+          umask 077
+          printf '%s' "$FIREBASE" | base64 --decode > android/app/google-services.json
+          printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/picgift-upload.jks"
+          test -s android/app/google-services.json
+          test -s "$RUNNER_TEMP/picgift-upload.jks"
+          python3 -c 'import json; c=json.load(open("android/app/google-services.json")); assert c["project_info"]["project_id"] == "picgift-a7fda"; assert any(x.get("client_info",{}).get("android_client_info",{}).get("package_name") == "com.picgift.myapp" for x in c["client"])'
+
+      - name: Validate client scripts
+        run: |
+          node --check native-notifications.js
+          node --check app-shell.js
+          node --check auth.js
+
+      - name: Build signed Android App Bundle
+        env:
+          PICGIFT_UPLOAD_STORE: ${{ runner.temp }}/picgift-upload.jks
+          PICGIFT_UPLOAD_STORE_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_STORE_PASSWORD }}
+          PICGIFT_UPLOAD_KEY_ALIAS: ${{ secrets.PICGIFT_UPLOAD_KEY_ALIAS }}
+          PICGIFT_UPLOAD_KEY_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_KEY_PASSWORD }}
+        run: gradle -p android --no-daemon :app:lintRelease :app:bundleRelease
+
+      - name: Verify bundle signature and optional expected Google Play certificate
+        env:
+          EXPECTED_UPLOAD_SHA256: ${{ vars.PICGIFT_UPLOAD_CERT_SHA256 }}
+        run: |
+          bundle=android/app/build/outputs/bundle/release/app-release.aab
+          test -s "$bundle"
+          verification="$(jarsigner -verify -verbose "$bundle" 2>&1)" || {
+            echo "::error::Android App Bundle signature verification failed"
+            exit 1
+          }
+          if ! grep -q 'jar verified.' <<< "$verification"; then
+            echo "::error::Android App Bundle is unsigned"
+            exit 1
+          fi
+          certificate="$(keytool -printcert -jarfile "$bundle" | grep -m1 'SHA256:' | sed 's/^.*SHA256: *//')"
+          test -n "$certificate"
+          echo "Upload certificate SHA-256: $certificate"
+          if [ -n "$EXPECTED_UPLOAD_SHA256" ]; then
+            actual="$(printf '%s' "$certificate" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
+            expected="$(printf '%s' "$EXPECTED_UPLOAD_SHA256" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
+            if [ "$actual" != "$expected" ]; then
+              echo "::error::Upload certificate does not match the one configured for Google Play"
+              exit 1
+            fi
+          else
+            echo "::warning::Upload certificate matches a signing key, but has not been compared against Google Play. Set repository variable PICGIFT_UPLOAD_CERT_SHA256 for automatic comparison."
+          fi
+
+      - name: Upload signed Google Play AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: picgift-v1.6.0-code7-google-play-signed
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Clean up private signing files
+        if: always()
+        run: |
+          rm -f android/app/google-services.json "$RUNNER_TEMP/picgift-upload.jks"
