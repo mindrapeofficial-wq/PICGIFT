@@ -1,0 +1,37 @@
+name: PICGIFT Google Drive photo import
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'android/app/src/main/java/com/picgift/myapp/MainActivity.kt'
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'tests/google-drive-import.test.cjs'
+      - '.github/workflows/google-drive-import.yml'
+  push:
+    paths:
+      - 'android/app/src/main/java/com/picgift/myapp/MainActivity.kt'
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'tests/google-drive-import.test.cjs'
+      - '.github/workflows/google-drive-import.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-drive-picker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: node --check app.js
+      - name: Verify Drive photo import, permissions and UI
+        run: node --test tests/google-drive-import.test.cjs
