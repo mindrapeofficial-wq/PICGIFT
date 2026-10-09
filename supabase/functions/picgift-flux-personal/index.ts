@@ -1,4 +1,5 @@
 import { buildPortraitPrompt } from "../_shared/portrait-prompt.ts";
+import { assessPhoto } from "../_shared/photo-preflight.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "npm:@supabase/supabase-js@2.57.4";
 
@@ -171,6 +172,13 @@ Deno.serve(async request=>{
  if(existing)return reply({id:existing.id,status:existing.status,already_submitted:true},200);
  const {data:ongoing}=await db.from("picgift_photo_jobs").select("id").eq("user_id",user.id).in("status",["queued","analyzing","generating","reviewing"]).limit(1);
  if(ongoing?.length)return reply({error:"Espera a que termine tu retrato anterior."},429);
+ // Refuse unusable photos before the free quota is claimed or any image model is called.
+ const {data:sourcePhoto,error:sourceError}=await db.storage.from("picgift-uploads").download(source);
+ if(sourceError||!sourcePhoto)return reply({code:"photo_source_unavailable",error:"No se pudo leer la fotografía. Selecciona otra y vuelve a intentarlo."},422);
+ let photoCheck;
+ try{photoCheck=await assessPhoto(sourcePhoto,Deno.env.get("OPENAI_API_KEY")||"")}
+ catch{return reply({code:"photo_preflight_unavailable",error:"No hemos podido revisar la fotografía. No se ha consumido ningún intento; vuelve a probar más tarde."},503)}
+ if(!photoCheck.approved)return reply({code:"photo_not_suitable",reason:photoCheck.code,issues:photoCheck.issues,error:photoCheck.message,credit_spent:false},422);
  const {data:job,error:insertError}=await db.from("picgift_photo_jobs").insert({
    user_id:user.id,scene_id:scene,source_path:source,reference_paths:refs,
    requested_format:format,requested_pose:pose,requested_outfit:outfit,
