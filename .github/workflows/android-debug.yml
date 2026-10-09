@@ -35,7 +35,7 @@ jobs:
         run: |
           if [ -n "$FIREBASE_ANDROID_CONFIG_B64" ]; then
             printf "%s" "$FIREBASE_ANDROID_CONFIG_B64" | base64 --decode > android/app/google-services.json
-            python3 - <<\'PY\'
+            python3 - <<'PY'
           import json
           c=json.load(open("android/app/google-services.json",encoding="utf-8"))
           assert c["project_info"]["project_id"] == "picgift-a7fda", "Unexpected Firebase project"
