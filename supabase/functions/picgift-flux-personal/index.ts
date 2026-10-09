@@ -148,7 +148,7 @@ Deno.serve(async request=>{
  const {data:campaign}=await db.from("picgift_campaign_state").select("active_campaign").eq("singleton",true).single();
  const {count:scenesCount}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true}).eq("enabled",true).in("scene_id",SCENES);
  const account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")||"";
- const available=!configError&&config?.enabled===true&&campaign?.active_campaign==="halloween"&&scenesCount===4&&/^[a-f0-9]{32}$/i.test(account)&&!!Deno.env.get("CLOUDFLARE_API_TOKEN");
+ const available=!configError&&config?.enabled===true&&campaign?.active_campaign==="halloween"&&scenesCount===4&&/^[a-f0-9]{32}$/i.test(account)&&!!Deno.env.get("CLOUDFLARE_API_TOKEN")&&!!Deno.env.get("OPENAI_API_KEY");
  if(action==="health")return reply({available,pilot:true,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,email_available:false,quality_review:false,remaining_daily_limit:config?.per_tester_daily_limit||0});
  if(action!=="start")return reply({error:"unknown_action"},400);
  if(!available)return reply({error:"La prueba de retratos aún no está activada. No se ha procesado ninguna fotografía."},503);
