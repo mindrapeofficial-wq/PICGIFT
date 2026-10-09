@@ -211,12 +211,18 @@ $('generate').addEventListener('click',async()=>{
 });
 // Premium controls are hidden during the private AI test; no payments are offered.
 window.addEventListener('picgift:route',e=>navigate(e.detail.name));
+window.addEventListener('picgift:native-route',e=>{
+ const route=e.detail?.route;
+ if(['crear','mis-fotos','escenarios','cuenta','precios'].includes(route))navigate(route);
+ window.picgiftPendingNativeRoute=null;
+});
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'inicio',true));
 window.addEventListener('popstate',()=>navigate(location.hash.slice(1)||'inicio',true));
 $('workspace').classList.remove('hidden');
 updateStudio();loadCatalog();
  const mobileEntry=window.matchMedia('(max-width:820px)').matches;
- const requested=location.hash.slice(1)||'crear';
+ const requested=window.picgiftPendingNativeRoute||location.hash.slice(1)||'crear';
+ window.picgiftPendingNativeRoute=null;
  const authReturn=/access_token=|error_description=|type=recovery/.test(location.hash)||new URLSearchParams(location.search).has('code');
  const opening=authReturn||(mobileEntry&&requested==='inicio')?'crear':requested;
  if(mobileEntry&&requested==='inicio')history.replaceState({page:'crear'},'','#crear');
