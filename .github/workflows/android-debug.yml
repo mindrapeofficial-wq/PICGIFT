@@ -29,6 +29,19 @@ jobs:
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)"
           test -n "$SDKMANAGER"
           "$SDKMANAGER" --install "platforms;android-36" "build-tools;35.0.0"
+      - name: Inyectar Firebase Android (si está configurado)
+        env:
+          FIREBASE_ANDROID_CONFIG_B64: ${{ secrets.PICGIFT_FIREBASE_ANDROID_JSON_B64 }}
+        run: |
+          if [ -n "$FIREBASE_ANDROID_CONFIG_B64" ]; then
+            printf "%s" "$FIREBASE_ANDROID_CONFIG_B64" | base64 --decode > android/app/google-services.json
+            python3 - <<\'PY\'
+          import json
+          c=json.load(open("android/app/google-services.json",encoding="utf-8"))
+          assert c["project_info"]["project_id"] == "picgift-a7fda", "Unexpected Firebase project"
+          assert any(v.get("client_info",{}).get("android_client_info",{}).get("package_name") == "com.picgift.myapp" for v in c["client"]), "Wrong Firebase package"
+          PY
+          fi
       - name: Preparar Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
