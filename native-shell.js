@@ -6,7 +6,20 @@
   const enableNative = () => {
     if (!isNative()) return;
     root.classList.add('picgift-native');
+    if (window.picgiftNativeComposeShell === true) {
+      root.classList.add('picgift-compose-shell');
+      sendRoute(document.body?.dataset.appPage || 'crear');
+    }
   };
+  // Web route changes are mirrored in Compose. The native host accepts only
+  // known route names, the trusted app origin and the main frame.
+  const allowedRoutes = new Set(['inicio', 'crear', 'mis-fotos', 'escenarios', 'cuenta', 'precios', 'resultado', 'creditos']);
+  function sendRoute(name) {
+    if (window.picgiftNativeComposeShell !== true || !allowedRoutes.has(name)) return;
+    try { window.PicgiftNative?.postMessage(JSON.stringify({action: 'route', name})); }
+    catch (_) { /* Native chrome never prevents editing. */ }
+  }
+  window.addEventListener('picgift:navigated', (event) => sendRoute(event.detail?.name));
   window.addEventListener('picgift:native-ready', enableNative);
   enableNative();
 
