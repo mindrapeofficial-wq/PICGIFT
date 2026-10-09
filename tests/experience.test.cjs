@@ -47,3 +47,23 @@ test('catalogue and offline shell reference existing public assets only',()=>{
  shell.forEach(path=>assert.ok(path==='/'||fs.existsSync('.'+path),path));
  assert.ok(!shell.some(path=>/picgift-uploads|picgift-generated|token|signed/i.test(path)));
 });
+
+test('Halloween expansion remains preview-only and excludes private portrait references from public scenes',()=>{
+ const pack=JSON.parse(fs.readFileSync('assets/halloween/expansion-2026.json','utf8'));
+ assert.equal(pack.scenes.length,7);
+ assert.equal(pack.portraitExamples.length,3);
+ const ids=new Set(),paths=new Set();
+ for(const item of pack.scenes){
+  assert.match(item.id,/^halloween-[a-z0-9-]+$/);
+  assert.match(item.image,/^\.\/assets\/halloween\/backdrops\/[a-z0-9-]+\.webp$/);
+  assert.equal(item.previewOnly,true);
+  assert.equal(item.source,'concept');
+  assert.equal(item.status,'coming-soon');
+  assert.equal(ids.has(item.id),false);
+  assert.equal(paths.has(item.image),false);
+  ids.add(item.id);paths.add(item.image);
+ }
+ assert.ok(pack.portraitExamples.every(item=>item.role==='private-style-reference'&&!('image' in item)));
+ const catalogue=JSON.parse(fs.readFileSync('scenes.json','utf8')).scenes;
+ assert.ok(pack.scenes.every(item=>!catalogue.some(scene=>scene.id===item.id)));
+});

@@ -19,7 +19,34 @@ function renderCatalog(){
  if(!selected&&scenes.length)selectScene("reference-pumpkin-forest",false);
  renderMobileScenes();updateStudio();
 }
-async function loadCatalog(){try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}catch(e){scenes=staticScenes;toast('Catálogo de Halloween cargado sin conexión al servidor.')}renderCatalog()}
+async function loadExpansionPreviews(){
+ try{
+  const response=await fetch('./assets/halloween/expansion-2026.json',{cache:'no-store'});
+  if(!response.ok)return [];
+  const payload=await response.json();
+  if(!Array.isArray(payload.scenes))return [];
+  const valid=payload.scenes.filter(scene=>
+   scene&&typeof scene.id==='string'&&/^halloween-[a-z0-9-]+$/.test(scene.id)&&
+   typeof scene.name==='string'&&typeof scene.description==='string'&&
+   scene.source==='concept'&&scene.previewOnly===true&&
+   /^\.\/assets\/halloween\/backdrops\/[a-z0-9-]+\.webp$/.test(scene.image)
+  );
+  const checked=await Promise.all(valid.map(async scene=>{
+   try{
+    const image=await fetch(scene.image,{method:'HEAD',cache:'no-store'});
+    return image.ok&&/^image\/webp\b/i.test(image.headers.get('content-type')||'')?scene:null;
+   }catch{return null}
+  }));
+  return checked.filter(Boolean);
+ }catch{return []}
+}
+async function loadCatalog(){
+ try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}
+ catch(e){scenes=staticScenes;toast('Catálogo de Halloween cargado sin conexión al servidor.')}
+ const additions=await loadExpansionPreviews();
+ scenes=[...scenes,...additions.filter(s=>!scenes.some(existing=>existing.id===s.id))];
+ renderCatalog();
+}
 function renderMobileScenes(){
  const wrap=$('mobile-scenes');if(!wrap)return;
  const order=['reference-pumpkin-forest','reference-haunted-castle','reference-portrait-hall','reference-enchanted-city','halloween-pumpkin-bench','halloween-autumn-arch','halloween-lantern-street','halloween-potions'];
