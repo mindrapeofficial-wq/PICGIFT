@@ -184,7 +184,7 @@ async function create(ev){
   renderProgress({id:accepted.id,scene_id,status:'queued',created_at:new Date().toISOString()});
   await refreshGallery();
   startPolling();
- }catch(e){const preflightStopped=['photo_not_suitable','photo_preflight_unavailable','photo_source_unavailable'].includes(e.code);status(preflightStopped?(e.message||'La foto no superó la revisión.')+' No se han consumido créditos ni intentos.':requestSubmitted?'No se pudo confirmar la solicitud. Consulta Mis fotos antes de volver a intentarlo.':e.message||'No se pudo iniciar la generación.');if(requestSubmitted&&!preflightStopped)await refreshGallery();if(!acceptedByServer&&(!requestSubmitted||preflightStopped)&&uploadedPaths.length)await client.storage.from('picgift-uploads').remove(uploadedPaths).catch(()=>{});}
+ }catch(e){const preflightStopped=['photo_not_suitable','photo_preflight_unavailable','photo_source_unavailable','photo_reference_invalid'].includes(e.code);status(preflightStopped?(e.message||'La foto no superó la revisión.')+' No se han consumido créditos ni intentos.':requestSubmitted?'No se pudo confirmar la solicitud. Consulta Mis fotos antes de volver a intentarlo.':e.message||'No se pudo iniciar la generación.');if(requestSubmitted&&!preflightStopped)await refreshGallery();if(!acceptedByServer&&(!requestSubmitted||preflightStopped)&&uploadedPaths.length)await client.storage.from('picgift-uploads').remove(uploadedPaths).catch(()=>{});}
  finally{finishButton()}
 }
 function elapsedText(job){
