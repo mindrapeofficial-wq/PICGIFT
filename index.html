@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="Turn family photos into magical portraits with seasonal storybook scenes. Discover PICGIFT’s Halloween collection of pumpkins, little witches and warm lanterns.">
 <link rel="icon" href="./assets/halloween/picgift-favicon-hd.png?v=hd-20261008-v1" type="image/png"><link rel="apple-touch-icon" href="./assets/halloween/picgift-favicon-hd.png?v=hd-20261008-v1"><link rel="manifest" href="./manifest.webmanifest?v=hd-20261008-v1">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="./styles.css?v=halloween-studio-banner-20261008-v2"><link rel="stylesheet" href="./collection.css?v=fullbleed-halloween-20261008-v1"><link rel="stylesheet" href="./mobile-app.css?v=reference-20261008-v1"><link rel="stylesheet" href="./app-shell.css?v=20261009-auth-2"><title>PICGIFT · Halloween 2026</title>
+<link rel="stylesheet" href="./styles.css?v=halloween-studio-banner-20261008-v2"><link rel="stylesheet" href="./collection.css?v=fullbleed-halloween-20261008-v1"><link rel="stylesheet" href="./mobile-app.css?v=reference-20261008-v1"><link rel="stylesheet" href="./app-shell.css?v=google-auto-password-20261009-4"><title>PICGIFT · Halloween 2026</title>
 <script src="./native-auth-return.js?v=20261009-1"></script><script src="./i18n.js?v=real-portrait-services-20261008-v1"></script></head><body>
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
@@ -104,7 +104,7 @@
           </div>
         </header>
 
-        <div class="mobile-signin" id="mobile-signin"><button class="btn outline" type="button" data-open-auth="login">Entrar con Google</button><span>También puedes entrar con tu correo.</span></div>
+        <div class="mobile-signin" id="mobile-signin"><button class="btn outline" type="button" data-google-login>Conectar mi cuenta Google</button><button class="text-btn" type="button" data-open-auth="login">Entrar con contraseña</button></div>
         <div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
         <div class="studio-steps" aria-label="Pasos para generar una fotografía">
           <span id="studio-step-photo"><strong>1</strong> Tu foto</span>
@@ -254,15 +254,18 @@
  <div class="dialog">
    <button class="close" id="close" aria-label="Cerrar" type="button">×</button><img class="auth-logo" src="./assets/halloween/picgift-logo-hd.png?v=hd-20261008-v1" alt="PICGIFT">
    <span class="eyebrow" style="display:block;text-align:center">Halloween 2026</span><h2 id="auth-title">Iniciar sesión</h2><p class="auth-caption">Tus recuerdos empiezan aquí.</p>
-   <button class="btn outline" type="button" id="google">Continuar con Google</button>
-   <div class="auth-divider"><span>o entra con tu correo</span></div>
+   <button class="btn quiet" type="button" id="google">Elegir mi cuenta Google</button>
+   <div class="auth-divider"><span>acceso con correo y contraseña</span></div>
    <form id="auth-form">
      <label class="field"> <span>Correo electrónico</span><input type="email" id="auth-email" autocomplete="email" required placeholder="tu@correo.com"></label>
      <label class="field"><span>Contraseña</span><input type="password" id="auth-password" autocomplete="current-password" required minlength="8" placeholder="Mínimo 8 caracteres"></label>
+     <label class="field hidden" id="auth-confirm-field"><span>Repite la contraseña</span><input type="password" id="auth-password-confirm" autocomplete="new-password" minlength="8" placeholder="Repite tu nueva contraseña"></label>
      <label class="check"><input type="checkbox" id="terms" required>Confirmo que soy mayor de edad y que tengo autorización para utilizar las fotografías que subiré.</label>
      <button type="submit" class="btn primary" id="auth-submit">Continuar <svg><use href="#i-arrow"/></svg></button>
    </form>
    <button class="btn quiet" type="button" id="reset-pass">¿Has olvidado tu contraseña?</button>
+   <button class="btn quiet hidden" type="button" id="auth-back">Volver al acceso</button>
+   <button class="btn quiet hidden" type="button" id="auth-skip-password">Ahora no</button>
    <div class="notice" role="status" aria-live="polite" id="auth-msg">Puedes acceder con correo o Google.</div>
    <p class="tiny">Solo para personas adultas. Las fotos de menores requieren autorización de sus representantes. <a href="./privacy.html">Información de privacidad</a>.</p>
  </div>
@@ -279,5 +282,5 @@
  </form>
 </dialog>
 <style>#photo-service-choice::backdrop{background:rgba(12,7,4,.8)}#photo-service-choice p{margin:0 0 12px;font-size:13px;line-height:1.5}</style>
-<script defer src="./photo-editor.js?v=2"></script><script defer src="./experience.js?v=google-entry-20261009-3"></script><script defer src="./app.js?v=google-entry-20261009-3"></script><script type="module" src="./auth.js?v=google-entry-20261009-3"></script><script type="module" src="./generator.js?v=reference-shell-20261009-1"></script>
-<script type="module" src="./payments.js?v=reference-shell-20261009-1"></script><script defer src="./install.js?v=picgift-halloween-2026-2"></script><script type="module" src="./admin-entry.js?v=web-admin-v2"></script><dialog id="app-panel" class="app-panel"><button type="button" class="panel-close" aria-label="Cerrar">×</button><div id="app-panel-content"></div></dialog><script defer src="./app-shell.js?v=20261009-1"></script></body></html>
+<script defer src="./photo-editor.js?v=2"></script><script defer src="./experience.js?v=google-entry-20261009-3"></script><script defer src="./app.js?v=google-auto-password-20261009-4"></script><script type="module" src="./auth.js?v=google-auto-password-20261009-4"></script><script type="module" src="./generator.js?v=reference-shell-20261009-1"></script>
+<script type="module" src="./payments.js?v=reference-shell-20261009-1"></script><script defer src="./install.js?v=picgift-halloween-2026-2"></script><script type="module" src="./admin-entry.js?v=web-admin-v2"></script><dialog id="app-panel" class="app-panel"><button type="button" class="panel-close" aria-label="Cerrar">×</button><div id="app-panel-content"></div></dialog><script defer src="./app-shell.js?v=google-auto-password-20261009-4"></script></body></html>

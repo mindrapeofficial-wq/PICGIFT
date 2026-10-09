@@ -13,6 +13,7 @@ class Element {
     this.required = tag === 'input';
     this.disabled = false;
     this.hidden = false;
+    this.dataset = {};
     const classes = new Set();
     this.classList = {
       add: value => classes.add(value),
@@ -32,6 +33,8 @@ class Element {
   setAttribute(name, value) { this[name] = value; }
   closest(selector) { return selector === 'label' ? this.label : null; }
   focus() { this.focused = true; }
+  setCustomValidity(message) { this.validationMessage = message; }
+  reportValidity() { return !this.validationMessage; }
 }
 
 function fixture() {
@@ -40,7 +43,7 @@ function fixture() {
     if (!elements.has(id)) elements.set(id, new Element());
     return elements.get(id);
   };
-  return { elements, get, document: { getElementById: get, createElement: tag => new Element(tag) } };
+  return { elements, get, document: { getElementById: get, createElement: tag => new Element(tag), querySelector: get, addEventListener() {}, readyState: 'loading' } };
 }
 function runModule(path, context) {
   const source = fs.readFileSync(path, 'utf8').replace(/^import .*;\s*$/gm, '');
@@ -102,20 +105,23 @@ test('recovery link opens usable form and saves new password without hidden emai
       getUser: () => ++getCalls === 1
         ? new Promise(resolve => { resolveInitial = resolve; })
         : Promise.resolve({ data: { user: account }, error: null }),
-      updateUser: async values => { saves.push(values); return { error: null }; }
+      updateUser: async values => { saves.push(values); return { data: { user: { ...account, user_metadata: values.data } }, error: null }; }
     }
   };
   const context = {
     document, createClient: () => client,
     SUPABASE_URL: 'https://example.supabase.co',
     SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_012345678901234567890123456789',
-    location: { origin: 'https://picgift.onrender.com', pathname: '/' },
-    window: { dispatchEvent: event => authEvents.push(event), picgiftAuthMode: 'login' },
+    location: { origin: 'https://picgift.onrender.com', pathname: '/', hash: '', search: '' },
+    window: { dispatchEvent: event => authEvents.push(event), picgiftAuthMode: 'login', addEventListener() {} },
+    setTimeout: () => 0,
+    sessionStorage: { removeItem() {} },
     CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }
   };
   await runModule('auth.js', context);
   listener('PASSWORD_RECOVERY', { user: account });
   get('auth-password').value = 'strong-password-123';
+  get('auth-password-confirm').value = 'strong-password-123';
   assert.equal(get('auth').classList.contains('show'), true);
   assert.equal(get('auth-email').required, false);
   assert.equal(get('auth-password').focused, true);
@@ -123,8 +129,35 @@ test('recovery link opens usable form and saves new password without hidden emai
   await Promise.resolve();
   assert.equal(authEvents.length, 0, 'No account event should close the recovery form');
   await get('auth-form').listeners.submit({ preventDefault() {} });
-  assert.deepEqual(JSON.parse(JSON.stringify(saves)), [{ password: 'strong-password-123' }]);
-  assert.equal(get('auth-email').required, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(saves)), [{ password: 'strong-password-123', data: { picgift_password_backup: true } }]);
   assert.equal(get('auth').classList.contains('show'), false);
+  context.window.picgiftOpenAuth('login');
+  assert.equal(get('auth-email').required, true);
+  assert.equal(get('auth-email').disabled, false);
   assert.equal(get('auth-submit').textContent, 'Entrar en mi cuenta');
+});
+
+test('installed app opens Google without a button click and preserves existing sessions', async () => {
+  for (const [session, hash, expectedCalls] of [[null, '', 1], [{ user: { id: 'signed-in' } }, '', 0], [null, '#access_token=callback', 0]]) {
+    const { get, document } = fixture();
+    let onReady;
+    document.addEventListener = (name, fn) => { if (name === 'DOMContentLoaded') onReady = fn; };
+    const requests = [];
+    const client = { auth: {
+      onAuthStateChange() {},
+      getUser: async () => ({ data: { user: null }, error: null }),
+      getSession: async () => ({ data: { session }, error: null }),
+      signInWithOAuth: async request => { requests.push(request); return { data: {}, error: null }; }
+    } };
+    const context = { document, createClient: () => client,
+      SUPABASE_URL: 'https://example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_012345678901234567890123456789',
+      location: { origin: 'https://picgift.onrender.com', search: '', hash }, navigator: {},
+      window: { addEventListener() {}, dispatchEvent() {}, matchMedia: () => ({ matches: true }) },
+      sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+      setTimeout: () => 0, CustomEvent: class {}
+    };
+    await runModule('auth.js', context);await onReady();
+    assert.equal(requests.length, expectedCalls);
+    if (expectedCalls) { assert.equal(requests[0].provider, 'google');assert.equal(requests[0].options.queryParams.prompt, 'select_account');assert.equal(get('auth').classList.contains('show'), false); }
+  }
 });

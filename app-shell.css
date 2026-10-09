@@ -48,14 +48,18 @@ html[data-campaign="halloween"] #auth .btn.primary{
  border-color:#ffc166;color:#180900;box-shadow:0 0 24px #ff7d182b;
 }
 html[data-campaign="halloween"] #auth #google{
- border:1px solid #ffc166;background:linear-gradient(110deg,#ffd465,#ff9526 55%,#f45b08);color:#180900;box-shadow:0 0 24px #ff7d182b;
+ border:0;background:none;color:#ffbd6c;box-shadow:none;min-height:36px;font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:4px;
 }
 html[data-campaign="halloween"] #auth #auth-submit{background:linear-gradient(125deg,#2c170b88,#140b0788);border-color:#a76b33;color:#fff1db;box-shadow:none}
 .auth-divider{display:flex;align-items:center;gap:12px;color:#bba58e;font:400 12px/1.4 Arial,sans-serif;margin:20px 0 3px}
 .auth-divider:before,.auth-divider:after{content:'';height:1px;background:#83512c55;flex:1}
-.mobile-signin{display:flex;align-items:center;gap:12px;margin:0 0 18px}
+.mobile-signin{display:flex;align-items:center;gap:12px;margin:0 0 18px;position:relative;z-index:2}
 .mobile-signin .btn{min-height:42px;border-radius:12px;font-size:12px;border-color:#a76b33;background:#20100699;color:#ffce8a}
 .mobile-signin>span{font:400 11px/1.4 Arial,sans-serif;color:#cbb49f;max-width:140px}
+html[data-campaign="halloween"] #auth #auth-back,html[data-campaign="halloween"] #auth #auth-skip-password{background:none;border:0;color:#ffbd6c;box-shadow:none;min-height:40px;font-weight:500}
+html[data-campaign="halloween"] #auth[data-auth-mode="forgot"] #auth-submit,
+html[data-campaign="halloween"] #auth[data-auth-mode="backup"] #auth-submit,
+html[data-campaign="halloween"] #auth[data-auth-mode="recovery"] #auth-submit{background:linear-gradient(110deg,#ffd465,#ff9526 55%,#f45b08);border-color:#ffc166;color:#180900;box-shadow:0 0 24px #ff7d182b}
 html[data-campaign="halloween"] #auth #reset-pass{
  background:none;border:0;box-shadow:none;color:#ffbd6c;min-height:44px;
  margin-top:5px;font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:4px;
