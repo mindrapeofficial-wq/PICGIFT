@@ -52,6 +52,8 @@ jobs:
           node --check app-shell.js
           node --check auth.js
       - name: Android Lint, APK y AAB sin firma de subida
+        env:
+          PICGIFT_GOOGLE_WEB_CLIENT_ID: ${{ vars.PICGIFT_GOOGLE_WEB_CLIENT_ID }}
         run: gradle -p android --no-daemon :app:lintRelease :app:assembleDebug :app:bundleRelease
       - name: Publicar instalador para pruebas
         uses: actions/upload-artifact@v4
