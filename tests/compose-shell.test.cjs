@@ -12,7 +12,7 @@ test('Compose compiler plugin matches Kotlin version', () => {
   assert.match(gradle, /id\("org\.jetbrains\.kotlin\.plugin\.compose"\) version "2\.0\.21"/);
   assert.match(app, /id\("org\.jetbrains\.kotlin\.plugin\.compose"\)/);
   assert.match(app, /compose = true/);
-  assert.match(app, /versionCode = 8/);
+  assert.match(app, /versionCode = 9/);
   assert.match(app, /androidx\.compose\.material3:material3/);
 });
 
@@ -31,6 +31,8 @@ test('Native destinations mirror the authenticated SPA router without reloading'
   assert.match(activity, /"picgift:route"/);
   assert.match(activity, /PicgiftChrome\.pageRoutes/);
   assert.match(activity, /nativeTrustedPage/);
+  assert.match(activity, /GoogleCredentialSignIn/);
+  assert.match(activity, /picgiftNativeCredentialManagerSupported/);
   assert.match(activity, /WindowInsetsCompat\.Type\.ime/);
   assert.match(bridge, /picgift:navigated/);
   assert.match(css, /\.picgift-compose-shell \.mobile-nav/);
