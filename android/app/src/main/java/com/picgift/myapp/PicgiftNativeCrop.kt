@@ -77,7 +77,7 @@ internal object PicgiftCropProcessor {
         resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
             ?: throw IllegalArgumentException("Cannot open photo")
         require(bounds.outWidth > 0 && bounds.outHeight > 0)
-        val opts = BitmapFactory.Options()
+        val opts = BitmapFactory.Options().apply { inSampleSize = 1 }
         while (max(bounds.outWidth, bounds.outHeight) / opts.inSampleSize > maxSide * 2) {
             opts.inSampleSize *= 2
         }
