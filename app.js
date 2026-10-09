@@ -13,7 +13,7 @@ function card(s){
 const referenceScenes=[{"id":"reference-enchanted-city","name":"Ciudad encantada","category":"Fantasía","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/enchanted-city.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-pumpkin-forest","name":"Bosque de calabazas","category":"Bosques","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/pumpkin-forest.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-haunted-castle","name":"Castillo embrujado","category":"Fantasía","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/haunted-castle.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-portrait-hall","name":"Salón de retratos","category":"Clásicos","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/portrait-hall.webp","poses":["De pie"],"ages":"Retratos familiares"}];
 function renderCatalog(){
  scenes=[...referenceScenes,...scenes.filter(s=>!s.id.startsWith("reference-"))];
- $('home-scenes').innerHTML=scenes.slice(0,3).map(card).join('');
+ $('home-scenes').innerHTML=[...scenes.filter(s=>s.aiNew),...scenes.filter(s=>!s.aiNew)].slice(0,3).map(card).join('');
  $('collection-scenes').innerHTML=scenes.filter(s=>filter==='Todos'||s.category===filter).map(card).join('')||'<div class="notice">No hay escenarios en esta categoría.</div>';
  $('credits-list').innerHTML='<p>Fotografías de muestra autorizadas y decorados de la colección PICGIFT. Las imágenes ilustran el estilo; cada retrato personalizado puede variar.</p>';
  if(!selected&&scenes.length)selectScene("reference-pumpkin-forest",false);
@@ -73,11 +73,51 @@ async function loadExpansionPreviews(){
   return {scenes:scenes.filter(Boolean),examples:examples.filter(Boolean)};
  }catch{return {scenes:[],examples:[]}}
 }
+
+async function loadAIDirectorCatalog(){
+ try{
+  const {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}=await import('./config.js');
+  const base=SUPABASE_URL.replace(/\/$/,'');
+  const request=path=>fetch(base+'/rest/v1/'+path,{
+   headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Accept:'application/json'},cache:'no-store'
+  }).then(async response=>{if(!response.ok)throw Error('catalog_unavailable');return response.json()});
+  const [items,categories]=await Promise.all([
+   request('picgift_catalog_scenes?select=id,name,description,category,image_url,enabled,poses&order=published_at.desc'),
+   request('picgift_catalog_categories?select=name&order=created_at.desc')
+  ]);
+  const backdropScenes=(Array.isArray(items)?items:[]).filter(item=>{
+   if(!item||!/^halloween-ai-[a-z0-9-]{8,60}$/.test(item.id||''))return false;
+   try{
+    const image=new URL(item.image_url);
+    return image.origin===new URL(base).origin && image.pathname.includes('/storage/v1/object/public/picgift-catalog/');
+   }catch{return false}
+  }).map(item=>({
+   id:item.id,name:item.name,description:item.description,category:item.category,
+   image:item.image_url,source:'concept',status:'coming-soon',previewOnly:true,
+   poses:Array.isArray(item.poses)?item.poses:['De pie'],
+   ages:'Retratos infantiles y familiares',badge:'Nueva inspiración',
+   aiNew:true,credit:{author:'PICGIFT · IA Premium',url:null}
+  }));
+  const names=new Set([...(Array.isArray(categories)?categories:[]).map(x=>x.name),
+   ...backdropScenes.map(x=>x.category)]);
+  const filters=$('filters');
+  if(filters)for(const name of names){
+   if(typeof name!=='string'||name.length>50||[...filters.querySelectorAll('[data-filter]')].some(btn=>btn.dataset.filter===name))continue;
+   const button=document.createElement('button');button.className='chip';button.type='button';
+   button.dataset.filter=name;button.setAttribute('aria-pressed','false');button.textContent=name;
+   filters.append(button);
+  }
+  return backdropScenes;
+ }catch{return []}
+}
+
 async function loadCatalog(){
  try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}
  catch(e){scenes=staticScenes;toast('Catálogo de Halloween cargado sin conexión al servidor.')}
  const additions=await loadExpansionPreviews();
  scenes=[...scenes,...additions.scenes.filter(s=>!scenes.some(existing=>existing.id===s.id))];
+ const aiScenes=await loadAIDirectorCatalog();
+ scenes=[...scenes,...aiScenes.filter(s=>!scenes.some(existing=>existing.id===s.id))];
  renderCatalog();
  mountPortraitExamples(additions.examples);
 }
