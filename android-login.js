@@ -6,5 +6,5 @@
   sessionStorage.setItem('picgift_android_auth',JSON.stringify({state,created:Date.now()}));
   history.replaceState(null,'',location.pathname);
   location.replace(target.href);
- }catch(error){document.getElementById('native-auth-status').textContent=error.message||'No se pudo abrir Google. Vuelve a la aplicación e inténtalo de nuevo.';}
+ }catch{document.getElementById('native-auth-status').textContent='Solicitud de acceso no válida. Vuelve a la aplicación e inténtalo de nuevo.';}
 })();
