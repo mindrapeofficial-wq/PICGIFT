@@ -1,7 +1,7 @@
 {
-  "version": "halloween-2026-expansion-1",
-  "publication": "staged",
-  "notes": "Public image catalogue metadata only. Images are delivered in a separate asset pack; not every asset is in GitHub. Only reveal a preview when its same-origin public WebP exists. This does not enable generation. Real scene recipes and approval live server-side.",
+  "version": "halloween-2026-expansion-2",
+  "publication": "authorized-public-samples-staged-assets",
+  "notes": "The owner confirms publication permission for the three portrait examples, including the people depicted. All three examples are intended for the public inspiration gallery once the WebP files are uploaded. Example imagery does not prove generation by the PICGIFT engine. Seven new background scenes remain previews until server-side recipes and allowlists are configured and tested.",
   "scenes": [
     {
       "id": "halloween-calabaza-village",
@@ -140,18 +140,51 @@
   "portraitExamples": [
     {
       "id": "brujita-bosque",
-      "role": "private-style-reference",
-      "visualNotes": "Retrato de cuerpo entero, sombrero y vestido negro/naranja, farol, setas luminosas, luz ambiental azul y ámbar."
+      "name": "La brujita del bosque",
+      "role": "public-style-example",
+      "publicationAuthorized": true,
+      "image": "./assets/halloween/samples/brujita-bosque.webp",
+      "alt": "Retrato infantil de ejemplo autorizado: brujita con vestido negro y naranja y farol en bosque nocturno de setas luminosas.",
+      "styleGoals": [
+        "costume",
+        "candlelight",
+        "moonlight",
+        "natural-skin",
+        "ground-contact"
+      ],
+      "visualNotes": "Vestido negro y naranja, farol, setas luminosas, sombras de contacto y noche azul."
     },
     {
       "id": "brujita-pociones",
-      "role": "private-style-reference",
-      "visualNotes": "Retrato de cuerpo entero, caldero verde, varita y vestido verde/negro, biblioteca de pócimas, luz de velas."
+      "name": "La aprendiz de pócimas",
+      "role": "public-style-example",
+      "publicationAuthorized": true,
+      "image": "./assets/halloween/samples/brujita-pociones.webp",
+      "alt": "Retrato infantil de ejemplo autorizado: pequeña brujita con vestido verde, varita y caldero de humo verde en laboratorio iluminado.",
+      "styleGoals": [
+        "costume",
+        "ambient-effects",
+        "practical-props",
+        "skin-tones",
+        "hands"
+      ],
+      "visualNotes": "Vestido verde y negro, varita, caldero verde, biblioteca de pócimas y reflejos cálidos."
     },
     {
       "id": "brujita-biblioteca",
-      "role": "private-style-reference",
-      "visualNotes": "Retrato de cuerpo entero, libro en las manos, vestido burdeos/negro, biblioteca victoriana, velas y cortinas rojas."
+      "name": "El libro de los hechizos",
+      "role": "public-style-example",
+      "publicationAuthorized": true,
+      "image": "./assets/halloween/samples/brujita-biblioteca.webp",
+      "alt": "Retrato infantil de ejemplo autorizado: brujita con vestido burdeos sosteniendo un libro en una biblioteca gótica iluminada por velas.",
+      "styleGoals": [
+        "warm-practical-light",
+        "fabric-detail",
+        "hands",
+        "props",
+        "scale"
+      ],
+      "visualNotes": "Vestido burdeos y negro, libro, biblioteca victoriana, cortinas rojas, vela y sombras naturales."
     }
   ]
 }

@@ -48,7 +48,7 @@ test('catalogue and offline shell reference existing public assets only',()=>{
  assert.ok(!shell.some(path=>/picgift-uploads|picgift-generated|token|signed/i.test(path)));
 });
 
-test('Halloween expansion remains preview-only and excludes private portrait references from public scenes',()=>{
+test('Halloween scenes remain previews and authorized portrait examples are public catalogue metadata',()=>{
  const pack=JSON.parse(fs.readFileSync('assets/halloween/expansion-2026.json','utf8'));
  assert.equal(pack.scenes.length,7);
  assert.equal(pack.portraitExamples.length,3);
@@ -63,7 +63,11 @@ test('Halloween expansion remains preview-only and excludes private portrait ref
   assert.equal(paths.has(item.image),false);
   ids.add(item.id);paths.add(item.image);
  }
- assert.ok(pack.portraitExamples.every(item=>item.role==='private-style-reference'&&!('image' in item)));
+ assert.ok(pack.portraitExamples.every(item=>item.role==='public-style-example'&&item.publicationAuthorized===true&&/^\.\/assets\/halloween\/samples\/brujita-[a-z0-9-]+\.webp$/.test(item.image)));
+ assert.equal(new Set(pack.portraitExamples.map(item=>item.image)).size,3);
+ const frontend=fs.readFileSync('app.js','utf8');
+ assert.ok(frontend.includes('mountPortraitExamples(additions.examples)'));
+ assert.ok(frontend.includes('availablePublicWebp(example.image)'));
  const catalogue=JSON.parse(fs.readFileSync('scenes.json','utf8')).scenes;
  assert.ok(pack.scenes.every(item=>!catalogue.some(scene=>scene.id===item.id)));
 });

@@ -19,33 +19,67 @@ function renderCatalog(){
  if(!selected&&scenes.length)selectScene("reference-pumpkin-forest",false);
  renderMobileScenes();updateStudio();
 }
+async function availablePublicWebp(path){
+ try{
+  const response=await fetch(path,{method:'HEAD',cache:'no-store'});
+  return response.ok&&/^image\/webp\b/i.test(response.headers.get('content-type')||'');
+ }catch{return false}
+}
+function mountPortraitExamples(examples){
+ if(!examples.length)return;
+ const content=examples.map(s=>'<figure class="portrait-example-card"><a href="'+escapeHTML(s.image)+'" target="_blank" rel="noopener noreferrer" aria-label="Ampliar '+escapeHTML(s.name)+'"><img src="'+escapeHTML(s.image)+'" alt="'+escapeHTML(s.alt)+'" loading="lazy" decoding="async"></a><figcaption><span>Ejemplo visual autorizado</span><strong>'+escapeHTML(s.name)+'</strong></figcaption></figure>').join('');
+ const build=home=>{
+  const section=document.createElement('section');
+  section.className=home?'section portrait-example-section':'inspiration-section portrait-example-section';
+  if(!home)section.dataset.inspirationSection='scenes';
+  const title=home?'Así se ven nuestros retratos de cuento':'Retratos de ejemplo';
+  section.innerHTML='<div class="'+(home?'section-head':'app-section-head')+'"><div><span class="eyebrow">Inspiración Halloween</span><h2>'+title+'</h2></div></div><p class="portrait-example-note">Ejemplos visuales autorizados de estilo y acabado. El retrato personalizado puede variar según la fotografía original.</p><div class="portrait-example-grid">'+content+'</div>';
+  return section;
+ };
+ const home=document.getElementById('home-scenes');
+ if(home&&!document.querySelector('[data-picgift-portraits="home"]')){
+  const section=build(true);section.dataset.picgiftPortraits='home';
+  home.closest('section').insertAdjacentElement('afterend',section);
+ }
+ const insp=document.getElementById('inspiration-scenes');
+ if(insp&&!document.querySelector('[data-picgift-portraits="inspiration"]')){
+  const section=build(false);section.dataset.picgiftPortraits='inspiration';
+  const active=document.querySelector('[data-inspiration-tabs][aria-pressed="true"]')?.dataset.inspirationTabs||'all';
+  section.hidden=!['all','scenes'].includes(active);
+  insp.closest('section').insertAdjacentElement('afterend',section);
+ }
+}
 async function loadExpansionPreviews(){
  try{
   const response=await fetch('./assets/halloween/expansion-2026.json',{cache:'no-store'});
-  if(!response.ok)return [];
+  if(!response.ok)return {scenes:[],examples:[]};
   const payload=await response.json();
-  if(!Array.isArray(payload.scenes))return [];
-  const valid=payload.scenes.filter(scene=>
+  const validScenes=(Array.isArray(payload.scenes)?payload.scenes:[]).filter(scene=>
    scene&&typeof scene.id==='string'&&/^halloween-[a-z0-9-]+$/.test(scene.id)&&
    typeof scene.name==='string'&&typeof scene.description==='string'&&
    scene.source==='concept'&&scene.previewOnly===true&&
    /^\.\/assets\/halloween\/backdrops\/[a-z0-9-]+\.webp$/.test(scene.image)
   );
-  const checked=await Promise.all(valid.map(async scene=>{
-   try{
-    const image=await fetch(scene.image,{method:'HEAD',cache:'no-store'});
-    return image.ok&&/^image\/webp\b/i.test(image.headers.get('content-type')||'')?scene:null;
-   }catch{return null}
-  }));
-  return checked.filter(Boolean);
- }catch{return []}
+  const validExamples=(Array.isArray(payload.portraitExamples)?payload.portraitExamples:[]).filter(example=>
+   example&&typeof example.id==='string'&&/^brujita-[a-z0-9-]+$/.test(example.id)&&
+   typeof example.name==='string'&&typeof example.alt==='string'&&
+   example.role==='public-style-example'&&example.publicationAuthorized===true&&
+   /^\.\/assets\/halloween\/samples\/brujita-[a-z0-9-]+\.webp$/.test(example.image)
+  );
+  const [scenes,examples]=await Promise.all([
+   Promise.all(validScenes.map(async scene=>(await availablePublicWebp(scene.image))?scene:null)),
+   Promise.all(validExamples.map(async example=>(await availablePublicWebp(example.image))?example:null))
+  ]);
+  return {scenes:scenes.filter(Boolean),examples:examples.filter(Boolean)};
+ }catch{return {scenes:[],examples:[]}}
 }
 async function loadCatalog(){
  try{const r=await fetch('./scenes.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog');const data=await r.json();scenes=data.scenes||staticScenes;}
  catch(e){scenes=staticScenes;toast('Catálogo de Halloween cargado sin conexión al servidor.')}
  const additions=await loadExpansionPreviews();
- scenes=[...scenes,...additions.filter(s=>!scenes.some(existing=>existing.id===s.id))];
+ scenes=[...scenes,...additions.scenes.filter(s=>!scenes.some(existing=>existing.id===s.id))];
  renderCatalog();
+ mountPortraitExamples(additions.examples);
 }
 function renderMobileScenes(){
  const wrap=$('mobile-scenes');if(!wrap)return;
