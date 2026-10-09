@@ -2,11 +2,11 @@
 
 ## Entrega y activación
 
-La ampliación contiene **siete fondos sin personas**, **tres ejemplos de retrato** y un duplicado descartado. El ZIP de entrega se mantiene fuera de GitHub hasta que se incorporen los archivos.
+La ampliación contiene **siete fondos sin personas**, **tres ejemplos de retrato autorizados para uso público** y un duplicado descartado. Los archivos WEBP se distribuyen en un ZIP pendiente de importación en GitHub.
 
-- Fondos públicos: copiar exclusivamente `assets/halloween/backdrops/*.webp` a las rutas exactas del manifiesto `assets/halloween/expansion-2026.json`.
-- Ejemplos con una niña: conservar en almacenamiento **privado**, sujeto a autorización de publicación/uso por su tutor. No subirlos a GitHub ni utilizarlos como referencia de identidad de clientes.
-- El catálogo del frontend comprueba que cada fondo existe, es del mismo origen y tiene tipo `image/webp`; solo entonces muestra su tarjeta **Próximamente**.
+- Fondos públicos: copiar `assets/halloween/backdrops/*.webp` a las rutas exactas del manifiesto `assets/halloween/expansion-2026.json`.
+- Retratos de muestra: el titular del proyecto ha confirmado autorización de publicación pública de las personas retratadas. Incorporar `assets/halloween/samples/brujita-*.webp` a la **galería pública de ejemplos**, manteniendo registro de autorización y atendiendo cualquier retirada de consentimiento.
+- El frontend comprueba que cada archivo existe en el mismo origen y es `image/webp` antes de mostrar el fondo o retrato correspondiente. No se publican imágenes rotas.
 - Una tarjeta visible **no habilita la generación**. Para activarla hay que añadir su receta a `picgift_scene_recipes` con permisos, ampliar las listas permitidas del backend, probar ambos motores, cuotas, consentimiento y control de calidad; únicamente entonces cambiar su estado a `picgift` y añadir la ruta a `generator.js`.
 
 ## Lenguaje visual
@@ -24,7 +24,7 @@ La ampliación contiene **siete fondos sin personas**, **tres ejemplos de retrat
 3. **Foto opcional del mismo cliente:** detalle facial o corporal, solo cuando se aporta con autorización y pertenece al mismo usuario.
 4. **Ejemplos editoriales de la ampliación:** inspiración general para vestuario, acabado, iluminación y relación sujeto/escenario. Nunca copiar la cara, los rasgos personales ni la identidad del sujeto del ejemplo.
 
-No mezclar la cara del cliente con la niña de las muestras ni mostrar una fotografía de muestra como resultado real del cliente. Los ejemplos no se envían automáticamente al motor: se incorporan a un corpus privado solo después de verificar su consentimiento y propósito.
+No mezclar la cara del cliente con la niña de las muestras ni mostrar una fotografía de muestra como resultado real del cliente. Los ejemplos están autorizados para presentación pública en Picgift y pueden utilizarse como guía editorial de luz, vestuario, perspectiva y texturas. Su publicación **no** habilita la reproducción de identidad del sujeto en encargos de clientes. No declarar que estos ejemplos son trabajos completados por el motor real sin una generación verificable.
 
 ## Fichas por decorado
 
@@ -68,3 +68,11 @@ No mezclar la cara del cliente con la niña de las muestras ni mostrar una fotog
 Comprobar en al menos tres fotografías consentidas por escena: rostro, manos y proporciones; contacto físico con el suelo/mobiliario; sombras, dirección de luz y escala; coherencia de la arquitectura; atuendo apropiado; ausencia de personas extra. Revisar al menos una pose de pie y una sentada si el decorado la permite. `needs_review` o `failed` nunca equivale a un retrato entregado.
 
 La receta completa con parámetros específicos sigue en Supabase y no debe exponerse en este documento público.
+
+## Referencias públicas aprobadas
+
+- **La brujita del bosque** (`./assets/halloween/samples/brujita-bosque.webp`): costume, candlelight, moonlight, natural-skin, ground-contact.
+- **La aprendiz de pócimas** (`./assets/halloween/samples/brujita-pociones.webp`): costume, ambient-effects, practical-props, skin-tones, hands.
+- **El libro de los hechizos** (`./assets/halloween/samples/brujita-biblioteca.webp`): warm-practical-light, fabric-detail, hands, props, scale.
+
+Mostrar como «Ejemplo visual autorizado», no como fotografía privada de un cliente ni como resultado de una venta finalizada.

@@ -63,7 +63,11 @@ test('Halloween expansion remains preview-only and excludes private portrait ref
   assert.equal(paths.has(item.image),false);
   ids.add(item.id);paths.add(item.image);
  }
- assert.ok(pack.portraitExamples.every(item=>item.role==='private-style-reference'&&!('image' in item)));
+ assert.ok(pack.portraitExamples.every(item=>item.role==='public-style-example'&&item.publicationAuthorized===true&&/^\.\/assets\/halloween\/samples\/brujita-[a-z0-9-]+\.webp$/.test(item.image)));
+ assert.equal(new Set(pack.portraitExamples.map(item=>item.image)).size,3);
+ const frontend=fs.readFileSync('app.js','utf8');
+ assert.ok(frontend.includes('mountPortraitExamples(additions.examples)'));
+ assert.ok(frontend.includes('availablePublicWebp(example.image)'));
  const catalogue=JSON.parse(fs.readFileSync('scenes.json','utf8')).scenes;
  assert.ok(pack.scenes.every(item=>!catalogue.some(scene=>scene.id===item.id)));
 });
