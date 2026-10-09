@@ -1,6 +1,5 @@
 package com.picgift.myapp
 
-import android.security.keystore.KeyProperties
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.credentials.CustomCredential
@@ -86,7 +85,7 @@ internal class GoogleCredentialSignIn(
     private fun request(
         request: GetCredentialRequest,
         nonce: String,
-        onError: (GetCredentialException) -> Unit
+        onCredentialError: (GetCredentialException) -> Unit
     ) {
         credentialManager.getCredentialAsync(
             activity, request, null, ContextCompat.getMainExecutor(activity),
@@ -110,7 +109,7 @@ internal class GoogleCredentialSignIn(
                 }
 
                 override fun onError(e: GetCredentialException) {
-                    onError(e)
+                    onCredentialError(e)
                 }
             }
         )
