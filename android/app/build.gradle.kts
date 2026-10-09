@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 // Include Google Services only when the matching Firebase Android config is supplied.
 val firebaseConfigPresent = file("google-services.json").isFile
@@ -15,7 +16,7 @@ android {
         versionCode = 7
         versionName = "1.6.0-notifications"
     }
-    buildFeatures { buildConfig = true }
+    buildFeatures { buildConfig = true; compose = true }
     defaultConfig { buildConfigField("boolean", "PICGIFT_FIREBASE_CONFIGURED", firebaseConfigPresent.toString()) }
     val uploadStore = System.getenv("PICGIFT_UPLOAD_STORE")
     if (!uploadStore.isNullOrBlank() && !firebaseConfigPresent) {
@@ -41,6 +42,11 @@ android {
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.webkit:webkit:1.13.0")
+    implementation(platform("androidx.compose:compose-bom:2025.02.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("com.android.billingclient:billing:9.1.0")
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-messaging")
