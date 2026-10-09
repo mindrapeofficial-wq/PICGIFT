@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,13 +57,13 @@ internal object PicgiftChrome {
     }
 }
 
-private data class PicgiftTab(val route: String, val label: String, val icon: ImageVector)
+private data class PicgiftTab(val route: String, val labelRes: Int, val icon: ImageVector)
 
 private val tabs = listOf(
-    PicgiftTab("crear", "Crear", Icons.Filled.AddCircle),
-    PicgiftTab("mis-fotos", "Mis fotos", Icons.Filled.PhotoLibrary),
-    PicgiftTab("escenarios", "Inspiración", Icons.Filled.AutoAwesome),
-    PicgiftTab("cuenta", "Perfil", Icons.Filled.Person)
+    PicgiftTab("crear", R.string.native_nav_create, Icons.Filled.AddCircle),
+    PicgiftTab("mis-fotos", R.string.native_nav_photos, Icons.Filled.PhotoLibrary),
+    PicgiftTab("escenarios", R.string.native_nav_inspiration, Icons.Filled.AutoAwesome),
+    PicgiftTab("cuenta", R.string.native_nav_profile, Icons.Filled.Person)
 )
 
 @Composable
@@ -92,7 +93,7 @@ fun PicgiftNativeTabs(selectedRoute: String, onTabSelected: (String) -> Unit) {
                     )
                     Spacer(Modifier.height(5.dp))
                     Text(
-                        text = tab.label,
+                        text = stringResource(tab.labelRes),
                         color = tone, maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelSmall.copy(
@@ -109,11 +110,11 @@ fun PicgiftNativeTabs(selectedRoute: String, onTabSelected: (String) -> Unit) {
 @Composable
 fun PicgiftNativeHeader(selectedRoute: String, onBack: () -> Unit, onAccount: () -> Unit) {
     val title = when (selectedRoute) {
-        "mis-fotos" -> "Mis fotos"
-        "escenarios" -> "Inspiración"
-        "cuenta" -> "Mi perfil"
-        "precios", "creditos" -> "Packs y créditos"
-        "resultado" -> "Tu resultado"
+        "mis-fotos" -> stringResource(R.string.native_nav_photos)
+        "escenarios" -> stringResource(R.string.native_nav_inspiration)
+        "cuenta" -> stringResource(R.string.native_header_profile)
+        "precios", "creditos" -> stringResource(R.string.native_header_credits)
+        "resultado" -> stringResource(R.string.native_header_result)
         else -> "PICGIFT"
     }
     Row(
@@ -123,7 +124,7 @@ fun PicgiftNativeHeader(selectedRoute: String, onBack: () -> Unit, onAccount: ()
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver al estudio", tint = PicgiftChrome.parchment)
+            Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.native_back_studio), tint = PicgiftChrome.parchment)
         }
         Spacer(Modifier.width(9.dp))
         Text(
@@ -133,7 +134,7 @@ fun PicgiftNativeHeader(selectedRoute: String, onBack: () -> Unit, onAccount: ()
             modifier = Modifier.weight(1f), maxLines = 1
         )
         IconButton(onClick = onAccount) {
-            Icon(Icons.Filled.Person, contentDescription = "Abrir mi perfil", tint = PicgiftChrome.copper)
+            Icon(Icons.Filled.Person, contentDescription = stringResource(R.string.native_open_profile), tint = PicgiftChrome.copper)
         }
     }
 }
