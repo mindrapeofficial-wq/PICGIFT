@@ -106,6 +106,12 @@
   html.picgift-native :where(input, textarea, select) {
     font-size: max(16px, 1em);
   }
+  /* Android shows its own logo while this document initializes. */
+  html.picgift-native #splash {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
   html.picgift-native #install-picgift {
     display: none !important;
   }
