@@ -51,7 +51,7 @@ async function startGoogle(automatic=false){
  try{
   try{sessionStorage.setItem(attemptedKey,'yes')}catch{}
   const native=!!window.PicgiftNative;
-  if(native&&window.picgiftNativeGoogleSupported===true){
+  if(native&&window.picgiftNativeCredentialManagerSupported===true){
    window.PicgiftNative.postMessage(JSON.stringify({action:'google-native',mode:automatic?'auto':'manual'}));
    return;
   }
