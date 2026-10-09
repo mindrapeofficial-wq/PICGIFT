@@ -28,7 +28,7 @@ test('signed portrait downloads save to the Android Pictures collection with bou
  assert.match(downloads,/IS_PENDING/);
  assert.match(downloads,/MAX_BYTES/);
  assert.match(downloads,/if \(bytesRead > MAX_BYTES\)/);
- assert.match(downloads,/connection\.instanceFollowRedirects = false/);
+ assert.match(downloads,/http\.instanceFollowRedirects = false/);
  assert.match(downloads,/isTrustedPortrait\(uri: Uri\)/);
  assert.match(downloads,/getQueryParameter\("token"\)/);
  assert.match(downloads,/HttpsURLConnection/);
