@@ -5,6 +5,7 @@ const $=id=>document.getElementById(id);
 let available=false,initialized=false;
 let nativeUser=null;
 const nativeInFlight=new Set();
+const playReadyProducts=new Set();
 const PRODUCT_IDS=new Set(["esencial","magico","familiar"]);
 /* Halloween 2026: 20% on 5/10 packs. Madrid midnight 1 Nov is 2026-10-31T23:00Z. */
 const PROMO_START=Date.parse("2026-10-07T22:00:00Z"),PROMO_END=Date.parse("2026-10-31T23:00:00Z");
@@ -46,7 +47,7 @@ function renderHalloweenPromo(){
 const isNative=()=>typeof window.PicgiftNative==="object"&&typeof window.PicgiftNative.postMessage==="function";
 function syncNative(){if(isNative())window.PicgiftNative.postMessage(JSON.stringify({action:"account",user_id:nativeUser?.id||""}));}
 function status(text){$("payment-status").textContent=text}
-function buttons(can){document.querySelectorAll("[data-buy]").forEach(btn=>{btn.disabled=!can;btn.textContent="Elegir pack";});}
+function buttons(can){document.querySelectorAll("[data-buy]").forEach(btn=>{btn.disabled=!can||(isNative()&&!playReadyProducts.has(btn.dataset.buy));btn.textContent="Elegir pack";});}
 async function call(body){
  const {data,error}=await client.functions.invoke("picgift-checkout",{body});
  if(error){let message="No se pudo consultar el servicio de pagos.";try{const reply=await error.context.json();message=reply.error||message}catch{}throw Error(message)}
@@ -63,7 +64,11 @@ async function refresh(){
   const {data:orders}=await client.from("picgift_orders").select("id,status,created_at,product_id").order("created_at",{ascending:false}).limit(10);
   $("account-orders").textContent=(orders||[]).filter(x=>x.status==="paid").length+" pagos confirmados";
   const enable=available;
-  buttons(enable);
+  if(isNative()){
+    playReadyProducts.clear();
+    buttons(false);
+    if(enable)window.PicgiftNative.postMessage(JSON.stringify({action:"products"}));
+  }else buttons(enable);
   status(enable?"Ya puedes elegir un pack. Los créditos se añaden únicamente cuando el proveedor confirma el cobro.":isNative()?"La compra en Android se habilitará tras completar las pruebas de Google Play y activar las ventas.":"Los packs están publicados, pero no se admiten pagos hasta terminar las pruebas de generación y activar Stripe.");
  }catch(err){buttons(false);status("No se pudo comprobar el estado de los pagos. La compra no está disponible por seguridad.")}
 }
@@ -104,13 +109,19 @@ function init(){
  window.addEventListener("picgift:play-error",()=>{status(window.picgiftI18n.t("No fue posible comenzar el pago."));buttons(available);});
  window.addEventListener("picgift:play-pending",()=>status(window.picgiftI18n.t("Pendiente de confirmación por Google Play.")));
  window.addEventListener("picgift:play-prices",e=>{
- if(!available)return;
+   if(!available||!isNative())return;
+   playReadyProducts.clear();
    for(const [id,price] of Object.entries(e.detail||{})){
-     if(!PRODUCT_IDS.has(id)||typeof price!=="string")continue;
+     if(!PRODUCT_IDS.has(id)||typeof price!=="string"||!price.trim())continue;
+     playReadyProducts.add(id);
      const card=document.querySelector('[data-buy="'+id+'"]')?.closest('.price-card');
      const amount=card?.querySelector('.price-amount');
      if(amount){amount.replaceChildren();const local=document.createElement('span');local.dataset.noTranslate='';local.textContent=price;amount.append(local);}
    }
+   buttons(true);
+   status(playReadyProducts.size===PRODUCT_IDS.size
+     ?"Google Play ha confirmado los tres paquetes. Ya puedes elegir el que prefieras."
+     :"Google Play solo ha encontrado "+playReadyProducts.size+" de "+PRODUCT_IDS.size+" paquetes. Revisa sus opciones de compra activas y la cuenta tester.");
  });
  window.addEventListener("picgift:play-purchase",e=>handleNativePurchase(e.detail));
  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
