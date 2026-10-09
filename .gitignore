@@ -10,3 +10,6 @@ android/**/build/
 !.env.example
 
 android/.kotlin/
+
+# Android Firebase client configuration is injected at build time.
+android/app/google-services.json
