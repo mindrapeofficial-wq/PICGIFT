@@ -51,7 +51,7 @@ const status=s=>{$('generator-status').textContent=s};
 async function invoke(body){
  const functionName=fluxMode&&['start','health'].includes(body.action)?'picgift-flux-personal':'picgift-generate';
  const {data,error}=await client.functions.invoke(functionName,{body});
- if(error){let message='El estudio no está disponible.';try{const j=await error.context.json();message=j.error||message}catch{}throw Error(message)}
+ if(error){let message='El estudio no está disponible.',code='';try{const j=await error.context.json();message=j.error||message;code=j.code||''}catch{}const failure=Error(message);failure.code=code;throw failure}
  return data;
 }
 async function health(){
@@ -170,7 +170,7 @@ async function create(ev){
     uploadedPaths.push(extraPath);reference_paths[kind]=extraPath;
    }
   }
-  status('Las fotos están protegidas. Enviando solicitud al estudio…');
+  status('Revisando si tu fotografía es apta antes de consumir créditos o intentos…');
   requestSubmitted=true;
   const accepted=await invoke({action:'start',request_language:window.picgiftI18n.language,scene_id,source_path:path,reference_paths,format,pose:String(pose).slice(0,90),outfit:String(outfit).slice(0,90),consent:true,guardian_consent:consent===true,email_requested:email_requested===true});
   if(!accepted?.id)throw Error('No se pudo iniciar la generación.');
@@ -184,7 +184,7 @@ async function create(ev){
   renderProgress({id:accepted.id,scene_id,status:'queued',created_at:new Date().toISOString()});
   await refreshGallery();
   startPolling();
- }catch(e){status(requestSubmitted?'No se pudo confirmar la solicitud. Consulta Mis fotos antes de volver a intentarlo.':e.message||'No se pudo iniciar la generación.');if(requestSubmitted)await refreshGallery();if(!acceptedByServer&&!requestSubmitted&&uploadedPaths.length)await client.storage.from('picgift-uploads').remove(uploadedPaths).catch(()=>{});}
+ }catch(e){const preflightStopped=['photo_not_suitable','photo_preflight_unavailable','photo_source_unavailable'].includes(e.code);status(preflightStopped?(e.message||'La foto no superó la revisión.')+' No se han consumido créditos ni intentos.':requestSubmitted?'No se pudo confirmar la solicitud. Consulta Mis fotos antes de volver a intentarlo.':e.message||'No se pudo iniciar la generación.');if(requestSubmitted&&!preflightStopped)await refreshGallery();if(!acceptedByServer&&(!requestSubmitted||preflightStopped)&&uploadedPaths.length)await client.storage.from('picgift-uploads').remove(uploadedPaths).catch(()=>{});}
  finally{finishButton()}
 }
 function elapsedText(job){
