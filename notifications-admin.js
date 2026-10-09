@@ -48,7 +48,7 @@ $('notification-form').addEventListener('submit',async event=>{
   setStatus('Campaña '+result.status+'. Dispositivos seleccionados: '+(result.total??'pendiente')+'. Actualiza el historial para ver los resultados; la aceptación no garantiza lectura.');
   $('notification-form').reset();$('notification-user-label').hidden=true;
  }catch(e){setStatus('No se ha enviado: '+e.message,true)}
- finally{await load();button.disabled=false}
+ finally{await load()}
 });
 async function activate(){
  if(!$('dashboard')||$('dashboard').hidden)return;
