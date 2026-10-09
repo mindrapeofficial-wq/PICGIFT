@@ -12,4 +12,17 @@
     <string name="native_header_result">Tu retrato</string>
     <string name="native_back_studio">Volver al estudio</string>
     <string name="native_open_profile">Abrir mi perfil</string>
+    <string name="native_gallery_title">Mis retratos</string>
+    <string name="native_gallery_description">Tus creaciones privadas de PICGIFT</string>
+    <string name="native_gallery_refresh">Actualizar retratos</string>
+    <string name="native_gallery_empty">Todavía no hay retratos</string>
+    <string name="native_gallery_favorite">Marcar o quitar favorito</string>
+    <string name="native_gallery_ready">Lista</string>
+    <string name="native_crop_title">Ajusta tu fotografía</string>
+    <string name="native_crop_help">Amplía con dos dedos y arrastra para encuadrar</string>
+    <string name="native_crop_original">Original</string>
+    <string name="native_crop_cancel">Cancelar</string>
+    <string name="native_crop_apply">Usar fotografía</string>
+    <string name="native_crop_loading">Preparando foto…</string>
+    <string name="native_crop_error">No se pudo procesar la foto. Prueba con otra imagen.</string>
 </resources>
