@@ -28,8 +28,9 @@ test('Source files and FLUX reference paths are scoped to the session user',()=>
  assert.match(backend,/jpegDimensions/);
  assert.match(backend,/size\[0\]>511\|\|size\[1\]>511/);
 });
-test('No automatic access to generated portraits before quality review',()=>{
- assert.match(backend,/mark\(id,owner,"needs_review"/);
+test('Free beta portraits remain private to their owner and manual review stays admin-protected',()=>{
+ assert.match(backend,/resultPath=owner\+"\/"\+id/);
+ assert.match(backend,/mark\(id,owner,"completed",\{result_path:resultPath,result_quality:"unverified"\}\)/);
  assert.match(backend,/job\.status!=="needs_review"/);
  assert.match(backend,/confirmed!==true/);
  assert.match(backend,/picgift_admin_users/);
