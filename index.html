@@ -126,6 +126,7 @@
                 <h3>Sube tu foto</h3>
                 <p>JPG, PNG o WEBP · Máx. 15 MB</p>
                 <button type="button" class="btn primary" id="choose-photo">Seleccionar fotografía</button>
+                <button type="button" class="btn outline picgift-drive-import" id="choose-drive-photo" hidden>Elegir desde Google Drive</button>
               </div>
               <div class="hidden" id="upload-loaded">
                 <img id="chosen-photo" class="hidden" alt="Fotografía original seleccionada">
@@ -134,9 +135,10 @@
                 <div class="crop-buttons" role="group" aria-label="Mover el encuadre"><button type="button" data-crop-pan="left" aria-label="Mover foto a la izquierda">←</button><button type="button" data-crop-pan="up" aria-label="Mover foto hacia arriba">↑</button><button type="button" data-crop-pan="down" aria-label="Mover foto hacia abajo">↓</button><button type="button" data-crop-pan="right" aria-label="Mover foto a la derecha">→</button></div>
                 <p class="crop-help" id="crop-status" role="status">Cargando la foto…</p><p class="crop-help">No recortes la cabeza ni los pies. El ajuste se realiza en tu dispositivo; las guías no aparecen en la foto enviada.</p>
                 <p style="margin-top:8px" id="file-name"></p>
-                </details><div class="studio-photo-actions"><button class="btn outline" type="button" id="change-photo">Cambiar foto</button><button class="btn quiet" type="button" id="remove-photo">Quitar foto</button></div>
+                </details><div class="studio-photo-actions"><button class="btn outline" type="button" id="change-photo">Cambiar foto</button><button class="btn outline picgift-drive-import" type="button" id="change-drive-photo" hidden>Desde Google Drive</button><button class="btn quiet" type="button" id="remove-photo">Quitar foto</button></div>
               </div>
               <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Subir fotografía para editar">
+              <p id="picgift-drive-hint" class="picgift-drive-tip" role="status" hidden>Se abrirá Archivos de Android. En el menú ☰, elige Drive y selecciona una fotografía. Solo se importará la foto que elijas.</p>
             </div>
             <p class="app-note" id="photo-quality-note">Antes de generar, la IA comprueba si la foto tiene calidad suficiente para conservar los rasgos del rostro. Si no es apta, podrás cambiarla sin gastar créditos ni intentos.</p>
 
