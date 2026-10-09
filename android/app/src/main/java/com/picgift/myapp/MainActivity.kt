@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
             val logo = ImageView(this@MainActivity).apply {
                 setImageResource(R.drawable.ic_launcher_official)
                 scaleType = ImageView.ScaleType.FIT_CENTER
-                contentDescription = getString(R.string.app_name)
+                contentDescription = "PICGIFT"
             }
             val side = (resources.displayMetrics.density * 192).toInt()
             addView(logo, FrameLayout.LayoutParams(side, side, Gravity.CENTER))
