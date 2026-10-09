@@ -116,7 +116,7 @@ document.addEventListener('click',event=>{
 $('reset-pass').addEventListener('click',()=>openAuth('forgot'));
 $('auth-back').addEventListener('click',()=>openAuth());
 $('auth-skip-password').addEventListener('click',()=>{$('auth').classList.remove('show');});
-$('logout').addEventListener('click',async()=>{if(client){const {error}=await client.auth.signOut();if(error){msg('No se pudo cerrar la sesión.');return}}try{sessionStorage.setItem(attemptedKey,'yes')}catch{};publish(null);window.location.hash='crear';});
+$('logout').addEventListener('click',async()=>{if(client){if(window.picgiftNotificationsUnregister)await window.picgiftNotificationsUnregister();const {error}=await client.auth.signOut();if(error){msg('No se pudo cerrar la sesión.');return}}try{sessionStorage.setItem(attemptedKey,'yes')}catch{};publish(null);window.location.hash='crear';});
 window.addEventListener('picgift:update-profile',async event=>{
  const name=String(event.detail?.display_name||'').trim().slice(0,60);
  if(!client||!name){window.dispatchEvent(new CustomEvent('picgift:profile-updated',{detail:{error:'Escribe un nombre válido e inicia sesión.'}}));return}
