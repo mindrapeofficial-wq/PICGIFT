@@ -230,6 +230,12 @@ Deno.serve(async req=>{
  if(listError||!objects?.some(x=>x.name===parts[2]))return respond({error:"La fotografía todavía no está subida"},400);
  const referencePaths:Record<string,string>={};
  if(body.reference_paths!==undefined){if(!body.reference_paths||Array.isArray(body.reference_paths)||typeof body.reference_paths!=="object"||Object.keys(body.reference_paths).some(k=>!["face","body"].includes(k)))return respond({error:"Referencias inválidas"},400);for(const kind of ["face","body"]){const value=body.reference_paths[kind];if(value===undefined)continue;if(typeof value!=="string"||!["jpg","png","webp"].some(ext=>value===folder+"/reference-"+kind+"."+ext)||!objects?.some(x=>folder+"/"+x.name===value))return respond({error:"La referencia no pertenece a esta solicitud o no está subida"},400);referencePaths[kind]=value;}}
+ // Validate optional personal references before spending credits.
+ for(const referencePath of Object.values(referencePaths)){
+  const {data:referenceBlob,error:referenceError}=await db.storage.from("picgift-uploads").download(referencePath);
+  if(referenceError||!referenceBlob||referenceBlob.size>15728640||referenceBlob.size<1500||!["image/jpeg","image/png","image/webp"].includes(referenceBlob.type))
+   return respond({code:"photo_reference_invalid",error:"Una referencia adicional no es válida. Cámbiala antes de generar.",credit_spent:false},422);
+ }
  // Server-authoritative preflight: never reserve quota or spend a credit on a clearly unusable photo.
  // It operates on the authenticated user's private source, not on a client-provided verdict.
  const {data:sourcePhoto,error:sourceError}=await db.storage.from("picgift-uploads").download(path);
