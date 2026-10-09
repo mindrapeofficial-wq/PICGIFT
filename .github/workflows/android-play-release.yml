@@ -25,9 +25,10 @@ jobs:
           STORE_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.PICGIFT_UPLOAD_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_KEY_PASSWORD }}
+          GOOGLE_WEB_CLIENT_ID: ${{ vars.PICGIFT_GOOGLE_WEB_CLIENT_ID }}
         run: |
           missing=0
-          for key in FIREBASE KEYSTORE STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+          for key in FIREBASE KEYSTORE STORE_PASSWORD KEY_ALIAS KEY_PASSWORD GOOGLE_WEB_CLIENT_ID; do
             if [ -z "${!key}" ]; then
               case "$key" in
                 FIREBASE) echo "::error::Missing PICGIFT_FIREBASE_ANDROID_JSON_B64" ;;
@@ -35,6 +36,7 @@ jobs:
                 STORE_PASSWORD) echo "::error::Missing PICGIFT_UPLOAD_STORE_PASSWORD" ;;
                 KEY_ALIAS) echo "::error::Missing PICGIFT_UPLOAD_KEY_ALIAS" ;;
                 KEY_PASSWORD) echo "::error::Missing PICGIFT_UPLOAD_KEY_PASSWORD" ;;
+                GOOGLE_WEB_CLIENT_ID) echo "::error::Missing repository variable PICGIFT_GOOGLE_WEB_CLIENT_ID (Supabase-authorized Google OAuth web client ID)" ;;
               esac
               missing=1
             fi
@@ -78,6 +80,7 @@ jobs:
 
       - name: Build signed Android App Bundle
         env:
+          PICGIFT_GOOGLE_WEB_CLIENT_ID: ${{ vars.PICGIFT_GOOGLE_WEB_CLIENT_ID }}
           PICGIFT_UPLOAD_STORE: ${{ runner.temp }}/picgift-upload.jks
           PICGIFT_UPLOAD_STORE_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_STORE_PASSWORD }}
           PICGIFT_UPLOAD_KEY_ALIAS: ${{ secrets.PICGIFT_UPLOAD_KEY_ALIAS }}
@@ -115,7 +118,7 @@ jobs:
       - name: Upload signed Google Play AAB
         uses: actions/upload-artifact@v4
         with:
-          name: picgift-v1.6.0-code7-google-play-signed
+          name: picgift-v1.7.0-code8-native-google-play-signed
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7

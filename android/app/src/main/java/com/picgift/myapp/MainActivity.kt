@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var billing: BillingClient
     private var currentAccount: String? = null
     private var pageReady = false
+    private val googleSignIn by lazy { GoogleCredentialSignIn(this, ::deliverGoogleToken, ::googleSignInError) }
     private lateinit var loading: ProgressBar
     private lateinit var failure: LinearLayout
     private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
@@ -173,6 +174,11 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "google-native" -> {
+                            val automatic = req.optString("mode") == "auto"
+                            runOnUiThread { googleSignIn.signIn(automatic) }
+                            return@addWebMessageListener
+                        }
                         "google-auth" -> {
                             val target = req.optString("url")
                             val state = req.optString("state")
@@ -196,7 +202,8 @@ class MainActivity : AppCompatActivity() {
                 currentAccount = null
             }
             override fun onPageFinished(view: WebView?, url: String?) {
-                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                val supported = googleSignIn.isConfigured
+                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
@@ -226,6 +233,26 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleGoogleReturn(intent)
+    }
+
+    private fun trustedPicgiftPage() = runCatching {
+        val uri = Uri.parse(web.url ?: "")
+        uri.scheme == "https" && uri.host == "picgift.onrender.com"
+    }.getOrDefault(false)
+
+    private fun deliverGoogleToken(token: String, nonce: String) {
+        if (!trustedPicgiftPage()) return
+        // JSONObject serializes both strings safely for evaluateJavascript.
+        val payload = JSONObject().put("token", token).put("nonce", nonce).toString()
+        web.evaluateJavascript("window.picgiftReceiveGoogleIdToken?.($payload);", null)
+    }
+
+    private fun googleSignInError(reason: String) {
+        if (!trustedPicgiftPage()) return
+        val message = JSONObject.quote(reason)
+        web.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('picgift:native-google-error',{detail:{reason:$message}}));", null
+        )
     }
 
     private fun startGoogleAuth(link: String, state: String) {
