@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.graphics.Color
 import android.view.Gravity
 import android.widget.Button
@@ -200,17 +201,23 @@ class MainActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 pageReady = false
                 currentAccount = null
+                failure.visibility = android.view.View.GONE
             }
             override fun onPageFinished(view: WebView?, url: String?) {
+                val current = url?.let { Uri.parse(it) }
+                if (failure.visibility == android.view.View.VISIBLE ||
+                    current?.scheme != "https" || current.host != "picgift.onrender.com") return
                 val supported = googleSignIn.isConfigured
                 web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                if (request?.isForMainFrame == true) {
-                    pageReady = false
-                    failure.visibility = android.view.View.VISIBLE
-                    loading.visibility = android.view.View.GONE
-                }
+                if (request?.isForMainFrame == true) showPageFailure()
+            }
+            override fun onReceivedHttpError(
+                view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?
+            ) {
+                // Image/API failures must not replace an otherwise usable page.
+                if (request?.isForMainFrame == true) showPageFailure()
             }
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val target = request?.url ?: return false
@@ -227,6 +234,13 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) web.loadUrl(homeUrl)
         else if (web.restoreState(savedInstanceState) == null) web.loadUrl(homeUrl)
         handleGoogleReturn(intent)
+    }
+
+    private fun showPageFailure() {
+        pageReady = false
+        currentAccount = null
+        failure.visibility = android.view.View.VISIBLE
+        loading.visibility = android.view.View.GONE
     }
 
     override fun onNewIntent(intent: Intent) {
