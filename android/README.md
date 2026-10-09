@@ -32,3 +32,14 @@ NOTA: La carpeta es código fuente para el proyecto de Android Studio; no contie
 - El SDK solicita permiso solo cuando el usuario habilita notificaciones en Perfil > Notificaciones. Los tokens se registran ante Supabase usando su sesión, nunca con secretos de Firebase en el móvil. Al desactivar la preferencia o cerrar sesión se elimina el registro del dispositivo.
 - Confirmar que la función privada `picgift-notifications` en Supabase tenga `FIREBASE_SERVICE_ACCOUNT_JSON` configurado para el mismo proyecto. **No colocar esa cuenta de servicio en Git ni en el .aab.**
 - Verificar en un Android 13+ y un Android 12: permiso, registro en la tabla `picgift_notification_devices`, notificación de prueba con app cerrada, navegación, rotación del token, exclusión tras cierre de sesión y recarga de la app.
+
+
+## Phase 2A · Native Jetpack Compose shell (1.7.0 preview)
+- Android uses a native Material 3 / Jetpack Compose tab bar (Crear, Mis fotos, Inspiración, Perfil) and a native context header for non-editor routes. Both are actual Android views, not HTML/CSS. The existing WebView only renders the feature screens being migrated.
+- The existing SPA router is still authoritative for authentication and order state. Compose sends a `picgift:route` event; `native-shell.js` reports `picgift:navigated` through AndroidX WebMessageListener with main-frame + pinned origin restrictions. Android accepts only known routes.
+- Native chrome disappears while the keyboard is open, and insets are managed by Android. The web content is resized to avoid overlapping Compose controls. The old HTML tab bar remains as fallback for older APKs, installed PWAs and browsers.
+- Photo upload now uses the Android Photo Picker via `PickVisualMedia`. The existing WebView upload callback receives a one-time `content://` URI. No broad storage permissions or persistent read grants are needed.
+- Version code 8/version 1.7.0-compose-preview is a **preview**, not a production release. Do not remove existing OAuth with PKCE or server-verified Google Play Billing.
+- Rollout order: deploy `index.html` + `native-shell.js` + `native-shell.css` to the web host, then publish a **signed** AAB after real-device testing. Never ship a new Android client before its matching web assets are available.
+- Checklist: Gradle lint/assemble/bundle, app launch, 4 navigation tabs, Android hardware Back, keyboard open and close, Photo Picker JPG/PNG/WEBP and cancellation, existing crop tool, Google login round trip, profile, gallery, purchase licence tests, rotation and process recreation.
+- Credential Manager / native Supabase sign-in, server-backed Compose photo gallery, and the crop editor's native replacement remain **future migrations**. Do not claim they were implemented in phase 2A or that all feature screens are native.
