@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity() {
                 .setProductType(BillingClient.ProductType.INAPP).build()
         }).build()
         billing.queryProductDetailsAsync(params) { result, details ->
-            if (result.responseCode != BillingClient.BillingResponseCode.OK) return@queryProductDetailsAsync
+            if (result.responseCode != BillingClient.BillingResponseCode.OK) { playError(); return@queryProductDetailsAsync }
             val prices = JSONObject()
             details.productDetailsList.forEach { product ->
                 val id = products.entries.firstOrNull { it.value == product.productId }?.key
