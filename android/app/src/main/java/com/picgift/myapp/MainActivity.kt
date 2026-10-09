@@ -473,6 +473,71 @@ class MainActivity : AppCompatActivity() {
         web.loadUrl(Uri.parse(homeUrl).buildUpon().appendQueryParameter("code", code).build().toString())
     }
 
+    private fun clearNativeGallery() {
+        galleryItems.value = emptyList()
+        galleryFavorites.value = emptySet()
+        galleryOwner = null
+        gallerySynced = false
+    }
+
+    private fun nativeGalleryAction(action: String, jobId: String) {
+        if (!nativeTrustedPage || currentAccount != galleryOwner ||
+            !PicgiftGalleryValidator.uuid(jobId) || galleryItems.value.none { it.id == jobId } ||
+            action !in setOf("open", "favorite")) return
+        val id = JSONObject.quote(jobId)
+        web.evaluateJavascript("window.picgiftNativeGalleryAction?.('$action',$id);", null)
+    }
+
+    private fun beginNativeCrop(uri: Uri) {
+        if (pendingFileUpload == null) return
+        val serial = ++cropTaskId
+        cropOpen = true
+        cropSaving.value = false
+        cropImage.value = null
+        updateNativeChrome()
+        Thread {
+            val result = runCatching { PicgiftCropProcessor.loadPreview(this, uri) }
+            runOnUiThread {
+                if (serial != cropTaskId || !cropOpen) {
+                    result.getOrNull()?.recycle()
+                    return@runOnUiThread
+                }
+                if (result.isSuccess) cropImage.value = result.getOrThrow()
+                else {
+                    android.widget.Toast.makeText(this, R.string.native_crop_error, android.widget.Toast.LENGTH_SHORT).show()
+                    finishNativeCrop(null)
+                }
+            }
+        }.start()
+    }
+
+    private fun saveNativeCrop(bitmap: Bitmap, geometry: PicgiftCropGeometry) {
+        if (!cropOpen || cropSaving.value || pendingFileUpload == null) return
+        val serial = cropTaskId
+        cropSaving.value = true
+        Thread {
+            val saved = runCatching { PicgiftCropProcessor.save(this, bitmap, geometry) }
+            runOnUiThread {
+                if (serial != cropTaskId || !cropOpen) return@runOnUiThread
+                if (saved.isFailure) {
+                    cropSaving.value = false
+                    android.widget.Toast.makeText(this, R.string.native_crop_error, android.widget.Toast.LENGTH_SHORT).show()
+                } else finishNativeCrop(saved.getOrNull())
+            }
+        }.start()
+    }
+
+    private fun finishNativeCrop(uri: Uri?) {
+        ++cropTaskId
+        cropOpen = false
+        cropSaving.value = false
+        cropImage.value = null
+        val callback = pendingFileUpload
+        pendingFileUpload = null
+        callback?.onReceiveValue(uri?.let { arrayOf(it) })
+        updateNativeChrome()
+    }
+
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun updateNativeChrome() {
@@ -641,6 +706,10 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         pendingFileUpload?.onReceiveValue(null)
         pendingFileUpload = null
+        ++cropTaskId
+        cropOpen = false
+        cropImage.value = null
+        runCatching { java.io.File(cacheDir, "picgift-prepared").listFiles()?.forEach { it.delete() } }
         if (::billing.isInitialized) billing.endConnection()
         if (::web.isInitialized) web.destroy()
         super.onDestroy()
