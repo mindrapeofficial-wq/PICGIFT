@@ -41,6 +41,8 @@ import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.QueryProductDetailsParams
 import org.json.JSONObject
+import org.json.JSONArray
+import android.graphics.Bitmap
 import java.security.MessageDigest
 
 class MainActivity : AppCompatActivity() {
@@ -53,20 +55,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nativeTabs: ComposeView
     private lateinit var nativeHeader: ComposeView
     private val nativeRoute = mutableStateOf("crear")
+    private lateinit var nativeGallery: ComposeView
+    private lateinit var nativeCrop: ComposeView
+    private val galleryItems = mutableStateOf<List<PicgiftGalleryItem>>(emptyList())
+    private val galleryFavorites = mutableStateOf<Set<String>>(emptySet())
+    private var galleryOwner: String? = null
+    private var gallerySynced = false
+    private var cropOpen = false
+    private val cropImage = mutableStateOf<Bitmap?>(null)
+    private val cropSaving = mutableStateOf(false)
+    private var cropTaskId = 0
     private var nativeTrustedPage = false
     private var keyboardVisible = false
     private lateinit var failure: LinearLayout
     private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
     private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
-    // Android Photo Picker supports scoped gallery access without storage permissions.
+    // Scoped Android Photo Picker: native local crop before the WebView upload callback.
     private val photoPicker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        val mime = uri?.let { contentResolver.getType(it) }
-        val accepted = uri?.takeIf { mime in setOf("image/jpeg", "image/png", "image/webp") }
-        if (uri != null && accepted == null) {
-            android.widget.Toast.makeText(this, R.string.photo_format_not_supported, android.widget.Toast.LENGTH_SHORT).show()
-        }
-        pendingFileUpload?.onReceiveValue(accepted?.let { arrayOf(it) })
-        pendingFileUpload = null
+        if (uri == null) finishNativeCrop(null) else beginNativeCrop(uri)
     }
     private val products = mapOf(
         "esencial" to "picgift_esencial_1",
@@ -144,6 +150,51 @@ class MainActivity : AppCompatActivity() {
             visibility = View.GONE
         }
         root.addView(nativeTabs, FrameLayout.LayoutParams(-1, dp(PicgiftChrome.tabHeightDp), Gravity.BOTTOM))
+        nativeGallery = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    PicgiftNativeGallery(
+                        portraits = galleryItems.value,
+                        favorites = galleryFavorites.value,
+                        onOpen = { nativeGalleryAction("open", it) },
+                        onFavorite = { nativeGalleryAction("favorite", it) },
+                        onCreate = { navigateFromNative("crear") },
+                        onRefresh = { web.evaluateJavascript("window.dispatchEvent(new Event('picgift:gallery-refresh'));", null) }
+                    )
+                }
+            }
+            visibility = View.GONE
+        }
+        root.addView(nativeGallery, FrameLayout.LayoutParams(-1, -1))
+        nativeCrop = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    val image = cropImage.value
+                    if (image == null) {
+                        androidx.compose.foundation.layout.Box(
+                            androidx.compose.ui.Modifier.fillMaxSize()
+                                .background(androidx.compose.ui.graphics.Color(0xFF100907)),
+                            contentAlignment = androidx.compose.ui.Alignment.Center
+                        ) {
+                            androidx.compose.material3.Text(
+                                getString(R.string.native_crop_loading),
+                                color = PicgiftChrome.parchment
+                            )
+                        }
+                    } else {
+                        PicgiftNativeCrop(
+                            bitmap = image, saving = cropSaving.value,
+                            onCancel = { finishNativeCrop(null) },
+                            onSave = { geometry -> saveNativeCrop(image, geometry) }
+                        )
+                    }
+                }
+            }
+            visibility = View.GONE
+        }
+        root.addView(nativeCrop, FrameLayout.LayoutParams(-1, -1))
         // A native launch surface masks web initialization and avoids a browser-style progress bar.
         launchCover = FrameLayout(this).apply {
             setBackgroundColor(Color.rgb(22,17,16))
