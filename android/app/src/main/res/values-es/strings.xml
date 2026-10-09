@@ -2,4 +2,14 @@
     <string name="choose_photo">Seleccionar fotografía</string>
     <string name="connection_error">PICGIFT no ha podido conectar. Revisa tu conexión a internet y vuelve a intentarlo.</string>
     <string name="retry">Volver a intentar</string>
+    <string name="photo_format_not_supported">Selecciona una foto JPG, PNG o WEBP.</string>
+    <string name="native_nav_create">Crear</string>
+    <string name="native_nav_photos">Mis fotos</string>
+    <string name="native_nav_inspiration">Inspiración</string>
+    <string name="native_nav_profile">Perfil</string>
+    <string name="native_header_profile">Mi perfil</string>
+    <string name="native_header_credits">Packs y créditos</string>
+    <string name="native_header_result">Tu retrato</string>
+    <string name="native_back_studio">Volver al estudio</string>
+    <string name="native_open_profile">Abrir mi perfil</string>
 </resources>
