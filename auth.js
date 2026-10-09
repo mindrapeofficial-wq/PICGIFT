@@ -85,7 +85,7 @@ async function offerInstalledSignIn(){
 window.picgiftReceiveGoogleIdToken=async detail=>{
  if(!window.PicgiftNative||!client)return;
  const token=detail?.token,nonce=detail?.nonce;
- if(typeof token!=='string'||!(/^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/).test(token)||
+ if(typeof token!=='string'||!(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/).test(token)||
     typeof nonce!=='string'||!(/^[a-f0-9]{64}$/).test(nonce)){
   openAuth();msg('Respuesta de Google no válida. Vuelve a intentarlo.');return;
  }
