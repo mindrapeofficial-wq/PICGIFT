@@ -3,6 +3,11 @@ package com.picgift.myapp
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.content.ClipData
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.core.content.FileProvider
+import java.io.File
 import android.os.Bundle
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -46,12 +51,35 @@ class MainActivity : AppCompatActivity() {
     private lateinit var failure: LinearLayout
     private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
     private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
+    private var pendingCameraUri: Uri? = null
+    private var pendingCameraFile: File? = null
+    private var pendingNotificationRoute: String? = null
+    private val nativeRoutes = setOf("crear", "mis-fotos", "escenarios", "cuenta", "precios")
     private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val value = if (result.resultCode == Activity.RESULT_OK) {
+        val picked = if (result.resultCode == Activity.RESULT_OK) {
             WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+                ?.take(1)?.filter { safePickedImage(it) }?.toTypedArray()
         } else null
+        val cameraCaptured = result.resultCode == Activity.RESULT_OK &&
+            (picked == null || picked.isEmpty()) &&
+            (pendingCameraFile?.length() ?: 0L) > 100L
+        val value = when {
+            !picked.isNullOrEmpty() -> picked
+            cameraCaptured -> pendingCameraUri?.let { arrayOf(it) }
+            else -> null
+        }
+        if (!cameraCaptured) pendingCameraFile?.delete()
+        pendingCameraFile = null
+        pendingCameraUri = null
         pendingFileUpload?.onReceiveValue(value)
         pendingFileUpload = null
+    }
+
+    private fun safePickedImage(uri: Uri): Boolean {
+        if (uri.scheme != "content" || uri.authority == "$packageName.photo") return false
+        return try {
+            contentResolver.getType(uri) in setOf("image/jpeg", "image/png", "image/webp")
+        } catch (_: Exception) { false }
     }
     private val products = mapOf(
         "esencial" to "picgift_esencial_1",
@@ -134,12 +162,31 @@ class MainActivity : AppCompatActivity() {
                     putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
+                // Camera, local files and Drive are offered through one Android chooser.
+                val cameraIntent = try {
+                    val directory = File(cacheDir, "camera").also { it.mkdirs() }
+                    val photo = File.createTempFile("picgift-capture-", ".jpg", directory)
+                    val uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.photo", photo)
+                    pendingCameraFile = photo
+                    pendingCameraUri = uri
+                    Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                        putExtra(MediaStore.EXTRA_OUTPUT, uri)
+                        clipData = ClipData.newRawUri("PICGIFT photo", uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    }
+                } catch (_: Exception) { null }
+                val chooser = Intent.createChooser(pick, getString(R.string.choose_photo)).apply {
+                    if (cameraIntent != null) putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(cameraIntent))
+                }
                 return try {
-                    filePicker.launch(pick)
+                    filePicker.launch(chooser)
                     true
                 } catch (_: Exception) {
                     pendingFileUpload?.onReceiveValue(null)
                     pendingFileUpload = null
+                    pendingCameraFile?.delete()
+                    pendingCameraFile = null
+                    pendingCameraUri = null
                     false
                 }
             }
@@ -150,13 +197,18 @@ class MainActivity : AppCompatActivity() {
                 if (web.canGoBack()) web.goBack() else finish()
             }
         })
-        // Images are available through short-lived signed links. Open downloads in the browser.
+        // Save private portraits to the phone's Pictures/PICGIFT album without storage permissions.
         web.setDownloadListener { link, _, _, _, _ ->
             val target = Uri.parse(link)
-            if (target.scheme == "https" &&
-                target.host == "uimrvgrpenccijumyiek.supabase.co" &&
-                (target.path ?: "").startsWith("/storage/v1/object/sign/picgift-generated/")) {
+            if (!PicgiftPhotoDownloads.isTrustedPortrait(target)) return@setDownloadListener
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
                 openExternal(target)
+            } else {
+                PicgiftPhotoDownloads.save(this@MainActivity, target) { successful ->
+                    Toast.makeText(this@MainActivity,
+                        getString(if (successful) R.string.photo_saved else R.string.photo_save_failed),
+                        Toast.LENGTH_LONG).show()
+                }
             }
         }
 
@@ -207,6 +259,7 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 val supported = googleSignIn.isConfigured
                 web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                dispatchNativeRoute()
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
@@ -230,12 +283,34 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) web.loadUrl(homeUrl)
         else if (web.restoreState(savedInstanceState) == null) web.loadUrl(homeUrl)
         handleGoogleReturn(intent)
+        receiveNotificationRoute(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleGoogleReturn(intent)
+        receiveNotificationRoute(intent)
+    }
+
+    private fun receiveNotificationRoute(intent: Intent?) {
+        val route = intent?.getStringExtra("picgift_route") ?: return
+        intent.removeExtra("picgift_route")
+        val normalized = if (route == "inspiracion") "escenarios" else route
+        if (normalized !in nativeRoutes) return
+        pendingNotificationRoute = normalized
+        dispatchNativeRoute()
+    }
+
+    private fun dispatchNativeRoute() {
+        val route = pendingNotificationRoute ?: return
+        if (!::web.isInitialized || web.progress < 100 || !trustedPicgiftPage()) return
+        pendingNotificationRoute = null
+        val value = JSONObject.quote(route)
+        web.evaluateJavascript(
+            "window.picgiftPendingNativeRoute=$value;window.dispatchEvent(new CustomEvent('picgift:native-route',{detail:{route:$value}}));",
+            null
+        )
     }
 
     private fun trustedPicgiftPage() = runCatching {
