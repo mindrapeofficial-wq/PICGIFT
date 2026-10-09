@@ -4,13 +4,25 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [main]
-  push:
     paths:
       - 'android/**'
+      - 'auth.js'
+      - 'tests/**'
+      - '.github/workflows/android-debug.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'auth.js'
+      - 'tests/**'
       - '.github/workflows/android-debug.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: picgift-android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-debug-apk:
