@@ -70,6 +70,8 @@ async function startGoogle(automatic=false){
 }
 async function offerInstalledSignIn(){
  if(!client||askedToSignIn||recovery||window.picgiftNativeReturn)return;
+ // Wait for Android to announce Credential Manager support before selecting a sign-in flow.
+ if(window.PicgiftNative&&typeof window.picgiftNativeGoogleSupported==='undefined')return;
  const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||!!window.PicgiftNative;
  if(!installed||/[?&]code=/.test(location.search)||/access_token=|type=recovery/.test(location.hash))return;
  try{const {data,error}=await client.auth.getSession();if(error||data.session)return;askedToSignIn=true;
