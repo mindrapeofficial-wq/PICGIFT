@@ -185,6 +185,7 @@ class MainActivity : AppCompatActivity() {
                     val id = req.optString("product_id")
                     val user = req.optString("user_id")
                     if (id !in products || !Regex("^[0-9a-f-]{36}$").matches(user)) return@addWebMessageListener
+                    if (!pageReady || user != currentAccount) { runOnUiThread { playError() }; return@addWebMessageListener }
                     runOnUiThread { buy(id, user) }
                 } catch (_: Exception) { }
             }
