@@ -90,7 +90,7 @@ html[data-campaign="halloween"] .topbar{display:none}
 .app-wordmark{display:flex;align-items:center;gap:4px;justify-content:center}
 .app-wordmark img{width:80px;height:59px;object-fit:contain;clip-path:inset(0 0 25%);margin-bottom:-13px;margin-right:-5px}
 .app-wordmark span{font:600 24px/1 'Times New Roman',serif;letter-spacing:-.7px;background:linear-gradient(#fff7ce,#fff0bb 28%,#c9802a 64%,#ffdfa0);background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px #000)}
-.app-settings{justify-self:end;width:28px;min-height:36px;border:0;background:none;color:#f5dfba;padding:0}
+.app-settings{justify-self:end;width:44px;min-width:44px;min-height:44px;border:0;background:none;color:#f5dfba;padding:0}
 .app-settings svg{width:22px;height:22px}
 .back-link{border:0;background:none;color:#f5dfba;display:flex;align-items:center;gap:5px;font:400 28px/1 'Times New Roman',serif;padding:0;justify-self:start}
 .back-link span{font-size:14px}
@@ -156,7 +156,7 @@ body[data-app-page="mis-fotos"] .app-page-hero>p{max-width:66%}
 .profile-identity p{font-size:12px;color:#dfc6a6;overflow-wrap:anywhere;line-height:1.2;margin-bottom:6px}
 .profile-badge{border:1px solid #7c4c1a;border-radius:15px;background:#49230cb0;display:inline-flex;align-items:center;gap:4px;color:#ffd07f;font-size:9px;padding:4px 7px}
 .profile-badge svg{width:15px;height:15px}
-.profile-edit{min-height:28px!important;font-size:10px!important;padding:6px 8px!important;gap:4px!important;border:1px solid #bd792c!important;border-radius:12px!important;flex:none}
+.profile-edit{min-height:44px!important;font-size:10px!important;padding:6px 8px!important;gap:4px!important;border:1px solid #bd792c!important;border-radius:12px!important;flex:none}
 .profile-edit svg{width:14px;height:14px}
 html[data-campaign="halloween"] .account-grid{display:block}
 .profile-menu{margin-top:9px}
