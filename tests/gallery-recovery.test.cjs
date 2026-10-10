@@ -86,3 +86,52 @@ test('logout clears all capabilities and email delivery from an available studio
  for(const name of ['picgiftAiReady','picgiftFreeReady','picgiftPremiumReady','picgiftPilot','picgiftReferencesReady'])assert.equal(h.context.window[name],false,name);
  assert.equal(h.element('photo-email-delivery').disabled,true);assert.equal(h.element('photo-email-delivery').checked,false);
 });
+function creationHarness(pause){
+ const h=harness(),waiting=deferred(),calls=[],uploads=[],removed=[],routes=[];
+ h.context.crypto={randomUUID:()=> 'test-upload'};
+ h.context.CustomEvent=class{constructor(type,options){this.type=type;this.detail=options.detail}};
+ h.context.window.picgiftI18n={language:'es'};
+ h.context.window.dispatchEvent=event=>routes.push(event);
+ h.run('init(); galleryAuthenticated=true; premiumReady=true; preparedFile=async file=>file');
+ h.client.auth.getUser=async()=>({data:{user:{id:'old-account'}}});
+ h.client.functions={async invoke(name,{body}){calls.push(body.action);if(body.action===pause)return waiting.promise;return {data:{available:true,email_available:true,references_supported:true,id:'job'}}}};
+ h.client.storage.from=()=>({async upload(path){uploads.push(path);return pause==='upload'?waiting.promise:{}},async remove(paths){removed.push(...paths);return {}}});
+ h.client.from=()=>({select(){return this},order(){return this},limit:async()=>({data:[],error:null})});
+ const event={detail:{service:'premium',file:{type:'image/png',size:2},scene_id:'halloween-potions',consent:true,pose:'portrait',outfit:'original'}};
+ h.context.createEvent=event;
+ return {...h,waiting,calls,uploads,removed,routes};
+}
+test('logout during generation health stops uploads and the start request',async()=>{
+ const h=creationHarness('health'),pending=h.run('create(createEvent)');await settle();
+ await h.events['picgift:auth']({detail:{user:null}});
+ h.waiting.resolve({data:{available:true}});await pending;
+ assert.equal(h.uploads.length,0);assert.deepEqual(h.calls,['health']);assert.equal(h.routes.length,0);
+ assert.equal(h.run('working'),false);
+});
+test('logout during upload stops generation submission and cleans an unsubmitted original',async()=>{
+ const h=creationHarness('upload'),pending=h.run('create(createEvent)');await settle();
+ await h.events['picgift:auth']({detail:{user:null}});h.waiting.resolve({});await pending;
+ assert.deepEqual(h.calls,['health']);assert.equal(h.uploads.length,1);assert.deepEqual(h.removed,h.uploads);
+ assert.equal(h.routes.length,0);assert.equal(h.run('activeId'),null);
+});
+test('an accepted generation from the old session does not route, poll or delete its original after logout',async()=>{
+ const h=creationHarness('start'),pending=h.run('create(createEvent)');await settle();
+ assert.deepEqual(h.calls,['health','start']);
+ await h.events['picgift:auth']({detail:{user:null}});h.waiting.resolve({data:{id:'accepted-job'}});await pending;
+ assert.equal(h.routes.length,0);assert.equal(h.run('activeId'),null);assert.equal(h.removed.length,0);
+ assert.match(h.element('generator-status').textContent,/Inicia sesión/);
+});
+test('a normal accepted generation still opens its result and retains the uploaded original',async()=>{
+ const h=creationHarness(null);await h.run('create(createEvent)');
+ assert.deepEqual(h.calls,['health','start']);assert.equal(h.uploads.length,1);assert.equal(h.removed.length,0);
+ assert.equal(h.routes.length,1);assert.equal(h.routes[0].detail.name,'resultado');assert.equal(h.run('activeId'),'job');assert.equal(h.run('working'),false);
+});
+test('switching accounts clears the old gallery immediately before the new session check finishes',async()=>{
+ const h=harness(),health=deferred();h.context.healthWait=health.promise;
+ h.run('init(); health=()=>healthWait; activeId="old-job"; window.picgiftGallery=[{job:{id:"old-job"}}]');
+ h.element('download-result').href='https://private/old';h.element('result-sample').src='https://private/old';
+ const login=h.events['picgift:auth']({detail:{user:{id:'new-account'}}});
+ assert.equal(h.context.window.picgiftGallery.length,0);assert.equal(h.run('activeId'),null);
+ assert.equal(h.element('download-result').href,undefined);assert.equal(h.element('result-sample').src,undefined);
+ health.resolve();await settle();h.queries[0].resolve({data:[],error:null});await login;
+});

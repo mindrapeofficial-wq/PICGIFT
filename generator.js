@@ -140,13 +140,18 @@ async function create(ev){
  if(!file||consent!==true){status('Selecciona una foto y autoriza su tratamiento antes de generar.');return}
  if(!Object.prototype.hasOwnProperty.call(labels,scene_id)){status('Este escenario está en preparación.');return}
  working=true;$('generate').disabled=true;$('generate').textContent='Preparando solicitud…';
+ const sessionRevision=authRevision;
+ const requireSameSession=()=>{if(sessionRevision!==authRevision){const error=Error('La sesión ha cambiado.');error.code='session_changed';throw error}};
  let path=null,uploadedPaths=[],acceptedByServer=false,requestSubmitted=false;
  try{
   const {data:{user}}=await client.auth.getUser();if(!user)throw Error('Inicia sesión de nuevo para continuar.');
+  requireSameSession();
   const ready=await invoke({action:'health'});
+  requireSameSession();
   if(!ready.available)throw Error('El estudio no está disponible. No se ha subido ni procesado ninguna foto.');
   if(email_requested&&!ready.email_available)throw Error('La entrega por correo todavía no está activada. Desmarca esa opción para recibirla en tu cuenta.');
   const prepared=await preparedFile(file);
+  requireSameSession();
   if(prepared.size>15*1024*1024)throw Error('El archivo es demasiado grande. Máximo 15 MB.');
   const ext=prepared.type==='image/png'?'png':prepared.type==='image/webp'?'webp':'jpg';
   path=user.id+'/'+crypto.randomUUID()+'/source.'+ext;
@@ -154,14 +159,18 @@ async function create(ev){
   const uploaded=await client.storage.from('picgift-uploads').upload(path,prepared,{contentType:prepared.type,cacheControl:'0',upsert:false});
   if(uploaded.error)throw Error('No se pudo subir el archivo de forma privada. '+uploaded.error.message);
   uploadedPaths.push(path);
+  requireSameSession();
   const reference_paths={};
   if(fluxMode){
    const folder=path.slice(0,path.lastIndexOf('/'));
-   const inputs=[['flux_subject',await smallFluxImage(prepared,'flux-subject.jpg')],['flux_scene',await sceneFluxImage(scene_id)]];
+   const subject=await smallFluxImage(prepared,'flux-subject.jpg');requireSameSession();
+   const scene=await sceneFluxImage(scene_id);requireSameSession();
+   const inputs=[['flux_subject',subject],['flux_scene',scene]];
    for(const kind of ['face','body']){
     if(references[kind]){
      if(inputs.length>=4)throw Error('Demasiadas referencias.');
      inputs.push(['flux_'+kind,await smallFluxImage(references[kind],'flux-'+kind+'.jpg')]);
+     requireSameSession();
     }
    }
    for(const [key,small] of inputs){
@@ -169,6 +178,7 @@ async function create(ev){
     const upload=await client.storage.from('picgift-uploads').upload(privatePath,small,{contentType:'image/jpeg',cacheControl:'0',upsert:false});
     if(upload.error)throw Error('No se pudo guardar la imagen de referencia en privado. '+upload.error.message);
     reference_paths[key]=privatePath;uploadedPaths.push(privatePath);
+    requireSameSession();
    }
   }else{
    for(const kind of ['face','body']){
@@ -176,17 +186,22 @@ async function create(ev){
     if(!['image/jpeg','image/png','image/webp'].includes(reference.type)||reference.size>15*1024*1024)throw Error('La referencia supera el tamaño o tipo permitido.');
     if(ready.references_supported!==true)throw Error('El estudio aún no admite referencias adicionales.');
     const extra=await preparedFile(reference),extension=extra.type==='image/png'?'png':extra.type==='image/webp'?'webp':'jpg';
+    requireSameSession();
     const extraPath=path.slice(0,path.lastIndexOf('/'))+'/reference-'+kind+'.'+extension;
     const upload=await client.storage.from('picgift-uploads').upload(extraPath,extra,{contentType:extra.type,cacheControl:'0',upsert:false});
     if(upload.error)throw Error('No se pudo subir la referencia.');
     uploadedPaths.push(extraPath);reference_paths[kind]=extraPath;
+    requireSameSession();
    }
   }
+  requireSameSession();
   status('Revisando si tu fotografía es apta antes de consumir créditos o intentos…');
   requestSubmitted=true;
   const accepted=await invoke({action:'start',request_language:window.picgiftI18n.language,scene_id,source_path:path,reference_paths,format,pose:String(pose).slice(0,90),outfit:String(outfit).slice(0,90),consent:true,guardian_consent:consent===true,email_requested:email_requested===true});
   if(!accepted?.id)throw Error('No se pudo iniciar la generación.');
-  activeId=accepted.id;path=null;acceptedByServer=true;
+  path=null;acceptedByServer=true;
+  requireSameSession();
+  activeId=accepted.id;
   $('result-empty').classList.add('hidden');$('real-result').classList.remove('hidden');
   $('result-page-title').textContent='Tu retrato de cuento';
   $('result-page-description').textContent='El trabajo se está procesando. Podrás descargar tu foto cuando termine y supere el control de calidad.';
@@ -195,8 +210,16 @@ async function create(ev){
   $('download-result').classList.add('hidden');
   renderProgress({id:accepted.id,scene_id,status:'queued',created_at:new Date().toISOString()});
   await refreshGallery();
+  requireSameSession();
   startPolling();
- }catch(e){const preflightStopped=['photo_not_suitable','photo_preflight_unavailable','photo_source_unavailable','photo_reference_invalid'].includes(e.code);status(preflightStopped?(e.message||'La foto no superó la revisión.')+' No se han consumido créditos ni intentos.':requestSubmitted?'No se pudo confirmar la solicitud. Consulta Mis fotos antes de volver a intentarlo.':e.message||'No se pudo iniciar la generación.');if(requestSubmitted&&!preflightStopped)await refreshGallery();if(!acceptedByServer&&(!requestSubmitted||preflightStopped)&&uploadedPaths.length)await client.storage.from('picgift-uploads').remove(uploadedPaths).catch(()=>{});}
+ }catch(e){
+  const preflightStopped=['photo_not_suitable','photo_preflight_unavailable','photo_source_unavailable','photo_reference_invalid'].includes(e.code);
+  if(sessionRevision===authRevision){
+   status(preflightStopped?(e.message||'La foto no superó la revisión.')+' No se han consumido créditos ni intentos.':requestSubmitted?'No se pudo confirmar la solicitud. Consulta Mis fotos antes de volver a intentarlo.':e.message||'No se pudo iniciar la generación.');
+   if(requestSubmitted&&!preflightStopped)await refreshGallery();
+  }
+  if(!acceptedByServer&&(!requestSubmitted||preflightStopped)&&uploadedPaths.length)await client.storage.from('picgift-uploads').remove(uploadedPaths).catch(()=>{});
+ }
  finally{finishButton()}
 }
 function elapsedText(job){
@@ -309,6 +332,11 @@ async function refreshGallery(){
  }
 }
 function resumeGallery(){if(galleryAuthenticated&&!document.hidden)void refreshGallery()}
+function clearPrivateGallery(){
+ galleryRevision++;stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];
+ $('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');
+ $('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');
+}
 function stopPolling(){if(poller){clearInterval(poller);poller=null}if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}}
 function startPolling(){
  stopPolling();
@@ -343,7 +371,14 @@ function init(){
     $('progress-warning').classList.remove('hidden');
   }finally{btn.disabled=false;btn.textContent='Comprobar estado'}
  });
- window.addEventListener('picgift:auth',async e=>{const revision=++authRevision;if(e.detail.user){galleryRevision++;galleryAuthenticated=true;resetStudioAvailability();await health();if(revision!==authRevision)return;const jobs=await refreshGallery();if(revision!==authRevision)return;if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{galleryAuthenticated=false;galleryRevision++;stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];$('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');resetStudioAvailability();status('Inicia sesión para acceder a la creación de retratos.');}});
+ window.addEventListener('picgift:auth',async e=>{
+  const revision=++authRevision;
+  clearPrivateGallery();resetStudioAvailability();galleryAuthenticated=!!e.detail.user;
+  if(!galleryAuthenticated){status('Inicia sesión para acceder a la creación de retratos.');return}
+  await health();if(revision!==authRevision)return;
+  const jobs=await refreshGallery();if(revision!==authRevision)return;
+  if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}
+ });
  $('photo-library').addEventListener('click',async e=>{
   const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;
   if(id){await removePhoto(id);return}
