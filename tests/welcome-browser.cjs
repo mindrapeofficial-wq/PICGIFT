@@ -47,4 +47,23 @@ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:native-pus
 await page.locator('.mobile-nav [data-route="cuenta"]').click();await page.waitForSelector('#admin-dashboard-link:visible');await page.locator('#admin-dashboard-link').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'03-perfil-admin.png')});await page.locator('#admin-dashboard-link').click();await page.waitForSelector('#dashboard:not([hidden])');await page.waitForSelector('#ai-director-list article');assert.equal(await page.getByRole('heading',{name:'Disponible solo en la web'}).count(),0);await page.locator('#ai-director-section').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'04-admin-movil.png'),fullPage:false});
 for(const width of [320,390,768]){await page.setViewportSize({width,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Admin overflows at '+width)}
 await page.goto('http://127.0.0.1:8133/#crear');await page.setViewportSize({width:390,height:844});await page.waitForTimeout(700);await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:null}})));await page.waitForSelector('#mobile-signin:visible');assert.ok((await page.locator('#mobile-signin .google-signin').boundingBox()).width<=240);await page.screenshot({path:path.join(out,'05-google-compacto.png')});
+// Dynamic sign-in, recovery and backup copy must follow the device/user language.
+await page.evaluate(()=>window.picgiftI18n.setPreference('en'));
+for(const [mode,title] of [['login','Sign in with a password'],['forgot','Forgot your password?'],['register','Create an account'],['backup','Create a backup password'],['recovery','Change your password']]){
+ await page.evaluate(mode=>window.picgiftOpenAuth(mode),mode);
+ await page.waitForFunction(title=>document.getElementById('auth-title').textContent===title,title);
+ assert.equal(await page.locator('#auth .auth-caption').textContent(),mode==='login'||mode==='register'?'Use the email address of your PICGIFT account.':mode==='forgot'?'We will send you a link to recover access.':mode==='backup'?'You can sign in with your email if Google is unavailable.':'Choose a new password for your account.');
+}
+await page.locator('#auth-password').fill('sample-password-one');
+await page.locator('#auth-password-confirm').fill('sample-password-two');
+await page.locator('#auth-submit').click();
+assert.equal(await page.locator('#auth-password-confirm').evaluate(e=>e.validationMessage),'The passwords do not match.');
+await page.evaluate(()=>window.picgiftOpenAuth('login'));
+await page.waitForFunction(()=>document.querySelector('#auth .auth-divider').textContent.includes('email and password sign-in'));
+await page.screenshot({path:path.join(out,'06-acceso-ingles.png')});
+await page.evaluate(()=>window.picgiftI18n.setPreference('es'));
+await page.waitForFunction(()=>document.getElementById('auth-title').textContent==='Entrar con contraseña');
+assert.equal(await page.locator('#auth-email').getAttribute('placeholder'),'tu@correo.com');
+assert.equal(await page.locator('#google span').textContent(),'Continuar con Google');
+await page.locator('#close').click();
 await page.addInitScript(()=>window.testAdmin=false);await page.goto('http://127.0.0.1:8133/admin.html');await page.waitForSelector('#blocked-title');await page.waitForFunction(()=>document.getElementById('blocked-title').textContent==='Acceso no autorizado');assert.equal(await page.locator('#dashboard').isVisible(),false);assert.deepEqual(errors,[]);await browser.close();server.close();console.log('Verified: onboarding once, notification consent after onboarding, no reprompt after denial, native admin and responsive 320/390/768px, compact Google, account change clears photo and cancels delayed editor export.');})().catch(e=>{console.error(e);server.close();process.exit(1)});

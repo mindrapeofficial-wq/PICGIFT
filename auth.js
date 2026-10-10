@@ -125,7 +125,7 @@ $('auth-form').addEventListener('submit',async event=>{
  event.preventDefault();if(!client){msg('Acceso temporalmente no disponible.');return}
  const currentMode=mode,email=$('auth-email').value.trim(),password=$('auth-password').value;
  const passwordMode=currentMode==='backup'||currentMode==='recovery';
- if(passwordMode&&password!==$('auth-password-confirm').value){$('auth-password-confirm').setCustomValidity('Las contraseñas no coinciden.');$('auth-password-confirm').reportValidity();return}
+ if(passwordMode&&password!==$('auth-password-confirm').value){$('auth-password-confirm').setCustomValidity(window.picgiftI18n?.t('Las contraseñas no coinciden.')||'Las contraseñas no coinciden.');$('auth-password-confirm').reportValidity();return}
  if(currentMode==='register'&&!$('terms').checked){msg('Confirma la autorización para utilizar las imágenes.');return}
  const submit=$('auth-submit');submit.disabled=true;msg('Conectando de forma segura…');
  try{
