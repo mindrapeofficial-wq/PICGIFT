@@ -10,7 +10,7 @@ function harness(){
  const context=vm.createContext({createClient:()=>client,SUPABASE_URL:'test',SUPABASE_PUBLISHABLE_KEY:'test',document:{readyState:'loading',hidden:false,getElementById:element,querySelectorAll:()=>[],addEventListener:(name,fn)=>events[name]=fn},window:{addEventListener:(name,fn)=>events[name]=fn,picgiftRenderGallery:items=>renders.push(items)},console:{warn(){}},setInterval(){},clearInterval(){},Date});
  vm.runInContext(fs.readFileSync('generator.js','utf8').replace(/^import .*;\r?\n/gm,''),context);
  const run=source=>vm.runInContext(source,context);
- return {context,run,events,renders,queries,links,element};
+ return {context,run,events,renders,queries,links,element,client};
 }
 const job=id=>({id,scene_id:'halloween-potions',status:'completed',result_path:id+'.jpg',created_at:new Date().toISOString()});
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
@@ -52,4 +52,37 @@ test('a delayed login check cannot start loading photos after logout',async()=>{
  const login=h.events['picgift:auth']({detail:{user:{id:'old-account'}}});
  await h.events['picgift:auth']({detail:{user:null}});health.resolve();await login;
  assert.equal(h.queries.length,0);assert.equal(h.context.window.picgiftGallery.length,0);
+});
+test('health replies from the previous session cannot enable the studio after logout',async()=>{
+ const h=harness(),requests=[];
+ h.context.document.documentElement={dataset:{campaign:'halloween'}};
+ h.client.auth.getSession=async()=>({data:{session:{user:{id:'old-account'}}}});
+ h.client.functions={invoke(){const request=deferred();requests.push(request);return request.promise}};
+ h.run('init(); galleryAuthenticated=true');const pending=h.run('health()');await settle();
+ await h.events['picgift:auth']({detail:{user:null}});
+ requests[0].resolve({data:{available:true}});requests[1].resolve({data:{available:true,email_available:true,pilot:true,references_supported:true}});await pending;
+ assert.equal(h.element('generate').disabled,true);
+ assert.equal(h.context.window.picgiftAiReady,false);
+ assert.equal(h.context.window.picgiftFreeReady,false);
+ assert.equal(h.context.window.picgiftPremiumReady,false);
+});
+test('an older failing health request cannot disable a newer available studio',async()=>{
+ const h=harness(),requests=[];
+ h.context.document.documentElement={dataset:{campaign:'halloween'}};
+ h.client.auth.getSession=async()=>({data:{session:{user:{id:'account'}}}});
+ h.client.functions={invoke(){const request=deferred();requests.push(request);return request.promise}};
+ const old=h.run('health()');await settle();const latest=h.run('health()');await settle();
+ requests[2].resolve({data:{available:true}});requests[3].resolve({data:{available:true,email_available:true,pilot:true,references_supported:true}});await latest;
+ requests[0].resolve({error:true});requests[1].resolve({error:true});await old;
+ assert.equal(h.context.window.picgiftAiReady,true);
+ assert.equal(h.context.window.picgiftFreeReady,true);
+ assert.equal(h.context.window.picgiftPremiumReady,true);
+ assert.equal(h.element('photo-email-delivery').disabled,false);
+});
+test('logout clears all capabilities and email delivery from an available studio',async()=>{
+ const h=harness();h.run('init(); freeReady=true; premiumReady=true; window.picgiftFreeReady=true; window.picgiftPremiumReady=true; window.picgiftPilot=true; window.picgiftReferencesReady=true; controlAi(true)');
+ h.element('photo-email-delivery').checked=true;
+ await h.events['picgift:auth']({detail:{user:null}});
+ for(const name of ['picgiftAiReady','picgiftFreeReady','picgiftPremiumReady','picgiftPilot','picgiftReferencesReady'])assert.equal(h.context.window[name],false,name);
+ assert.equal(h.element('photo-email-delivery').disabled,true);assert.equal(h.element('photo-email-delivery').checked,false);
 });
