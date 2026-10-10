@@ -26,8 +26,18 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  assert.ok(!html.includes('Ver demostración'),'no fake demo as primary action');
 });
 
-test('mobile shell has four meaningful routes and controls stay interactive',()=>{
+test('mobile shell has six ordered actions, including camera and edit shortcut',()=>{
  const nav=html.match(/<nav class="mobile-nav"[\s\S]*?<\/nav>/)?.[0]||'';
+ const buttons=[...nav.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].map(x=>x[0]);
+ const labels=buttons.map(button=>[...button.matchAll(/<span(?:\s+[^>]*)?>([^<]+)<\/span>/g)].at(-1)?.[1]);
+ assert.deepEqual(labels,['Crear','Mis fotos','Cámara','Embellecido','Inspiración','Perfil']);
+ assert.equal(buttons.length,6);
+ assert.match(buttons[2],/data-camera-capture/);
+ assert.match(buttons[2],/#i-camera/);
+ assert.match(buttons[3],/data-beautify/);
+ assert.ok(html.includes('id="camera-photo"'));
+ assert.ok(js.includes("$('camera-photo').click()"));
+ assert.ok(js.includes('showBeautifyEditor()'));
  const routes=[...nav.matchAll(/data-route="([^"]+)"/g)].map(x=>x[1]);
  assert.deepEqual(routes,['crear','mis-fotos','escenarios','cuenta']);
  assert.ok(js.includes("const mobileEntry=window.matchMedia('(max-width:820px)').matches"));
@@ -39,6 +49,7 @@ test('mobile shell has four meaningful routes and controls stay interactive',()=
  assert.ok(js.includes('renderMobileScenes();updateStudio()'),'scene UI bound to state');
  assert.ok(styles.includes('.mobile-scene-option.is-selected'),'selected scene visible');
  assert.ok(styles.includes('.mobile-nav button.active'),'active tab visible');
+ assert.ok(styles.includes('grid-template-columns:repeat(6,minmax(0,1fr))'),'six navigation slots');
 });
 
 test('mobile CSS offers scrollable cards, safe-area navigation and no desktop regression',()=>{
