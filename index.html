@@ -6,7 +6,7 @@
 <link rel="icon" href="./assets/halloween/picgift-favicon-hd.png?v=hd-20261008-v1" type="image/png"><link rel="apple-touch-icon" href="./assets/halloween/picgift-favicon-hd.png?v=hd-20261008-v1"><link rel="manifest" href="./manifest.webmanifest?v=hd-20261008-v1">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="./styles.css?v=google-entry-20261010-v1"><link rel="stylesheet" href="./collection.css?v=fullbleed-halloween-20261008-v1"><link rel="stylesheet" href="./mobile-app.css?v=camera-nav-20261010-v1"><link rel="stylesheet" href="./app-shell.css?v=touch-controls-20261010-v1"><title>PICGIFT · Halloween 2026</title>
-<script src="./native-auth-return.js?v=20261009-1"></script><script src="./i18n.js?v=payments-session-20261010-v1"></script><link rel="stylesheet" href="./welcome.css?v=visual-tutorial-v1"><script defer src="./first-steps.js?v=mobile-welcome-v1"></script><script type="module" src="./native-notifications.js?v=mobile-push-20261010-v1"></script><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script></head><body>
+<script src="./native-auth-return.js?v=20261009-1"></script><script src="./i18n.js?v=payments-session-20261010-v1"></script><link rel="stylesheet" href="./welcome.css?v=welcome-alignment-20261010-v1"><script defer src="./first-steps.js?v=mobile-welcome-v1"></script><script type="module" src="./native-notifications.js?v=mobile-push-20261010-v1"></script><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script></head><body>
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
   <div class="splash-inner"><img src="./assets/halloween/picgift-logo-hd.png?v=hd-20261008-v1" alt="PICGIFT"></div>
@@ -105,7 +105,33 @@
         </header>
 
         <div class="mobile-signin" id="mobile-signin"><button class="google-signin" type="button" data-google-login><img src="./assets/google-g.svg" width="20" height="20" alt="" aria-hidden="true"><span>Continuar con Google</span></button><button class="text-btn" type="button" data-open-auth="login">Entrar con contraseña</button></div>
-<section class="welcome-story" aria-label="Descubre PicGift"><h2>Tu retrato en 3 pasos</h2><div class="welcome-art"><figure><img src="./assets/halloween/guide/cuerpo-entero.webp" alt="Foto de ejemplo con buena luz" loading="eager"><figcaption><span>1</span> Sube tu foto</figcaption></figure><figure><img src="./assets/halloween/reference/pumpkin-forest.webp" alt="Ejemplo de escenario de calabazas" loading="eager"><figcaption><span>2</span> Elige escenario</figcaption></figure><figure><img src="./assets/halloween/samples/bosque.webp" alt="Ejemplo de estilo de retrato generado" loading="eager"><figcaption><span>3</span> Crea y guarda</figcaption></figure></div><button type="button" data-first-steps>Ver cómo funciona →</button></section><div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
+<section class="welcome-story" aria-label="Descubre PicGift">
+  <h2>Tu retrato en 3 pasos</h2>
+  <div class="welcome-art">
+    <figure>
+      <div class="welcome-art__frame">
+        <img class="welcome-art__backdrop" src="./assets/halloween/guide/cuerpo-entero.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">
+        <img class="welcome-art__image" src="./assets/halloween/guide/cuerpo-entero.webp" alt="Foto de ejemplo con buena luz" loading="eager" decoding="async">
+      </div>
+      <figcaption><span>1</span> Sube tu foto</figcaption>
+    </figure>
+    <figure>
+      <div class="welcome-art__frame">
+        <img class="welcome-art__backdrop" src="./assets/halloween/reference/pumpkin-forest.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">
+        <img class="welcome-art__image" src="./assets/halloween/reference/pumpkin-forest.webp" alt="Ejemplo de escenario de calabazas" loading="eager" decoding="async">
+      </div>
+      <figcaption><span>2</span> Elige escenario</figcaption>
+    </figure>
+    <figure>
+      <div class="welcome-art__frame">
+        <img class="welcome-art__backdrop" src="./assets/halloween/samples/bosque.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">
+        <img class="welcome-art__image" src="./assets/halloween/samples/bosque.webp" alt="Ejemplo de estilo de retrato generado" loading="eager" decoding="async">
+      </div>
+      <figcaption><span>3</span> Crea y guarda</figcaption>
+    </figure>
+  </div>
+  <button type="button" data-first-steps>Ver cómo funciona →</button>
+</section><div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
         <div class="studio-steps" aria-label="Pasos para generar una fotografía">
           <span id="studio-step-photo"><strong>1</strong> Tu foto</span>
           <span id="studio-step-scene"><strong>2</strong> Escenario</span>
