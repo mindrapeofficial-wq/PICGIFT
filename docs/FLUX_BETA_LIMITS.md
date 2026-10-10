@@ -1,6 +1,6 @@
 # PICGIFT FLUX free beta limits
 
-Updated 2026-10-08. The product owner chose **15 personal photo attempts per authorized tester per UTC day**.
+Updated 2026-10-10 against the deployed configuration. The product owner chose **15 personal photo attempts per authorized tester per UTC day**.
 
 ## Current deployment status
 
@@ -9,7 +9,7 @@ Updated 2026-10-08. The product owner chose **15 personal photo attempts per aut
 - Config table: `public.picgift_flux_beta_config`
 - `per_tester_daily_limit = 15`
 - `daily_estimated_neuron_budget = 7500.00`
-- `enabled = false` (**not generating personal photos yet**).
+- `enabled = true`, restricted to two authorized testers as of this audit. This is not an unrestricted free trial for every account.
 - Users must be explicitly authorized in `picgift_ai_pilot_users`.
 - Claimed free-photo attempts will be recorded atomically in `picgift_flux_free_usage`, via service-role-only RPC `picgift_claim_flux_free_photo(p_user, p_job, p_format)`.
 - This server-side claim must be called only after authenticated ownership and source/scene permissions are checked. Do not accept job IDs, paths or recipes without validating ownership.
@@ -43,8 +43,8 @@ The separate `picgift-flux-smoke` function still limits fictional sample request
 - `picgift-flux-personal`: deployed, JWT-only Supabase Edge Function using the Cloudflare FLUX.2 Klein 4B API, with tester authorization, a private recipe allowlist, idempotent submissions and atomic shared quota allocation. This does not use the premium OpenAI API.
 - Browser: the original stays in private storage. Portrait, backdrop and optional face/body reference JPEGs are reduced to a maximum of 480 pixels per side before being uploaded to the same user's private job folder.
 - `picgift_scene_recipes` contains the four Halloween scene instructions privately, not in publicly deployed JavaScript or the GitHub repository.
-- Generated images go to the private `picgift-generated` bucket with job status `needs_review`. Storage RLS prevents owner signing/downloading until status is `completed`. `/admin.html` has a restricted review queue; only an authorized admin can inspect, approve or reject.
-- The free beta kill switch remains `picgift_flux_beta_config.enabled=false`. The server-side quota procedure rejects even service-role claims while disabled. The published Halloween studio will NOT route to paid OpenAI as a fallback.
+- Generated images go to the private `picgift-generated` bucket with job status `completed` and `result_quality=unverified`; they are available to their owner. The deployed free generator does not require manual approval for every output. The restricted admin review route remains available for jobs requiring review. A completed free job is not proof that its likeness or visual quality has passed review.
+- The free beta kill switch is `picgift_flux_beta_config.enabled`, currently true. The server-side quota procedure rejects even service-role claims when disabled. The published Halloween studio will NOT route to paid OpenAI as a fallback.
 - `picgift-flux-edit-smoke` separately implements an authenticated, quota-limited, admin-and-pilot-only test of **two fictional reference images**, independent of the personal beta switch. This can verify whether FLUX actually integrates a subject with a background, rather than generating unrelated sample art.
 - CI `.github/workflows/flux-personal-ci.yml` runs browser syntax checks and static security tests. A successful CI result is not proof of faithful facial identity or correct personal-photo generation.
 
@@ -56,4 +56,4 @@ The separate `picgift-flux-smoke` function still limits fictional sample request
 4. Confirm approved photos are downloadable and deletable. Verify errors and quota limits. Immediately disable the flag if this fails or model output alters the face.
 5. Only then expand the allowlist. Do not present the beta as verified until the full private end-to-end test has passed.
 
-Current state: implementation deployed, **personal-beta generation NOT enabled**, two-image live smoke test pending administrator execution and visual review.
+Current state: implementation deployed and restricted personal-beta generation enabled. Three FLUX jobs are completed with unverified output quality at the 2026-10-10 audit. Human likeness review, actual provider billing reconciliation and wider tester authorization remain separate gates before expanding the beta. The activation checklist above documents the original rollout gates; it does not override the live configuration.
