@@ -45,7 +45,9 @@ Hasta ese momento **no hay sistema de cobro real habilitado** y no se entregará
 
 ## Verificación del 10 de octubre de 2026
 
-Play Console → Productos únicos muestra el catálogo vacío. El inventario de secretos de Supabase no contiene las cuatro variables de Google Play indicadas abajo. No se ha activado ningún cobro ni concedido permisos nuevos a una cuenta de servicio en esta revisión.
+Play Console contiene los tres packs como borrador, con textos en español e inglés y cero opciones activas. Con autorización expresa se creó la cuenta dedicada `picgift-play-billing` y se habilitó la API; la cuenta tiene lectura básica, datos financieros y gestión de pedidos únicamente de PicGift. Los secretos `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` y `GOOGLE_PLAY_PACKAGE_NAME` están guardados en Supabase; la descarga temporal de la clave se eliminó. Los flags de activación siguen pendientes de la prueba controlada y no se ha activado ningún cobro.
+
+La validación exige una unidad comprada y una unidad sin reembolsar, estado PURCHASED, producto y cuenta coincidentes y fecha de compra verificable. No acredita recibos reembolsados, pendientes, de alquiler ni preventa. Al restaurar una compra, la fecha confirmada por Google determina si corresponde el precio previsto de Halloween; el importe almacenado sigue siendo el precio del catálogo, no una conciliación del importe financiero real de Google. La conciliación y los reembolsos posteriores a una acreditación ya consumida requieren validación adicional antes de abrir ventas reales.
 
 Una prueba real de base de datos con rollback comprobó la acreditación, repetición idempotente, una única entrada de crédito y rechazo de pedidos reembolsados e inexistentes. La validación completa aún necesita el recibo de Google, crédito, consumo del producto, reinicio sin duplicados y creación/descarga de una foto.
 
