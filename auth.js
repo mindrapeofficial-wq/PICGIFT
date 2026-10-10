@@ -1,6 +1,7 @@
 // PICGIFT · Google, password backup and email recovery. No service-role keys here.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
+import { requestGoogleCredential } from './google-native.js';
 const $=id=>document.getElementById(id);
 const ready=/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SUPABASE_URL)&&SUPABASE_PUBLISHABLE_KEY?.length>24;
 const client=ready?createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:window.PicgiftNative?'pkce':'implicit'}}):null;
@@ -21,7 +22,7 @@ function openAuth(next='login'){
  $('auth-password').autocomplete=passwordMode||signup?'new-password':'current-password';
  $('auth-password').value='';$('auth-password-confirm').value='';$('auth-password-confirm').setCustomValidity('');
  $('terms').closest('label').classList.toggle('hidden',!signup);$('terms').required=signup;
- // Google is an alternative link here; opening the installed app goes directly to Google.
+ // Keep Google's branded button available after cancelling the opening sheet.
  $('google').classList.toggle('hidden',passwordMode||forgot);
  document.querySelector('.auth-divider').classList.toggle('hidden',passwordMode||forgot);
  $('reset-pass').classList.toggle('hidden',passwordMode||forgot||signup);
@@ -51,6 +52,11 @@ async function startGoogle(automatic=false){
  try{
   try{sessionStorage.setItem(attemptedKey,'yes')}catch{}
   const native=!!window.PicgiftNative;
+  if(native&&window.picgiftNativeGoogleMode==='credential-manager'){
+   const detail=await requestGoogleCredential(automatic);
+   await window.picgiftReceiveGoogleIdToken(detail);
+   return;
+  }
   if(native&&window.picgiftNativeCredentialManagerSupported===true){
    window.PicgiftNative.postMessage(JSON.stringify({action:'google-native',mode:automatic?'auto':'manual'}));
    return;
@@ -76,7 +82,8 @@ async function offerInstalledSignIn(){
  if(!installed||/[?&]code=/.test(location.search)||/access_token=|type=recovery/.test(location.hash))return;
  try{const {data,error}=await client.auth.getSession();if(error||data.session)return;askedToSignIn=true;
   let attempted=false;try{attempted=sessionStorage.getItem(attemptedKey)==='yes'}catch{}
-  if(attempted||/error=|error_description=/.test(location.hash)){openAuth();msg('Puedes reintentar Google o entrar con tu correo y contraseña.');return}
+  // Browser redirects need a loop guard; native sheets may reopen after an app launch.
+  if((attempted&&!window.PicgiftNative)||/error=|error_description=/.test(location.hash)){openAuth();msg('Puedes reintentar Google o entrar con tu correo y contraseña.');return}
   await startGoogle(true);
  }catch{openAuth();msg('Comprueba tu conexión para iniciar sesión.');}
 }
