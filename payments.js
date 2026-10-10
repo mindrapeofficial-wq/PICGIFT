@@ -5,6 +5,7 @@ const $=id=>document.getElementById(id);
 let available=false,initialized=false;
 let nativeUser=null;
 let nativeCheckoutPending=false;
+let authRevision=0,refreshRevision=0;
 const nativeInFlight=new Set();
 const playReadyProducts=new Set();
 const PRODUCT_IDS=new Set(["esencial","magico","familiar"]);
@@ -50,20 +51,33 @@ function syncNative(){if(isNative())window.PicgiftNative.postMessage(JSON.string
 function status(text){$("payment-status").textContent=text}
 function nativeBusy(){return nativeCheckoutPending||nativeInFlight.size>0}
 function buttons(can){document.querySelectorAll("[data-buy]").forEach(btn=>{btn.disabled=!can||(isNative()&&(nativeBusy()||!playReadyProducts.has(btn.dataset.buy)));btn.textContent="Elegir pack";});}
+function resetAccount(user){
+ authRevision++;refreshRevision++;
+ nativeUser=user||null;available=false;nativeCheckoutPending=false;
+ nativeInFlight.clear();playReadyProducts.clear();
+ window.picgiftCreditsAvailable=null;window.picgiftStudioUpdate?.();
+ $("account-credits").textContent="—";$("account-orders").textContent="—";
+ buttons(false);syncNative();
+}
 async function call(body){
  const {data,error}=await client.functions.invoke("picgift-checkout",{body});
  if(error){let message="No se pudo consultar el servicio de pagos.";try{const reply=await error.context.json();message=reply.error||message}catch{}throw Error(message)}
  return data;
 }
 async function refresh(){
+ const revision=++refreshRevision,sessionRevision=authRevision;
+ const isCurrent=()=>revision===refreshRevision&&sessionRevision===authRevision;
  try{
   const {data:{session}}=await client.auth.getSession();
+  if(!isCurrent())return;
   nativeUser=session?.user||null;syncNative();
-  if(!session){window.picgiftCreditsAvailable=null;window.picgiftStudioUpdate?.();buttons(false);status("Inicia sesión para consultar tus créditos. Los pagos están pendientes de activación.");return}
-  const data=await call({action:"status"});available=isNative()?!!data.google_play_available:!!data.checkout_available;
+  if(!session){available=false;playReadyProducts.clear();window.picgiftCreditsAvailable=null;window.picgiftStudioUpdate?.();$("account-credits").textContent="—";$("account-orders").textContent="—";buttons(false);status("Inicia sesión para consultar tus créditos. Los pagos están pendientes de activación.");return}
+  const data=await call({action:"status"});if(!isCurrent())return;
+  available=isNative()?!!data.google_play_available:!!data.checkout_available;
   const credits=Math.max(0,Number(data.credits)||0);window.picgiftCreditsAvailable=credits;window.picgiftStudioUpdate?.();
   $("account-credits").textContent=credits+" "+(credits===1?"fotografía":"fotografías");
   const {data:orders}=await client.from("picgift_orders").select("id,status,created_at,product_id").order("created_at",{ascending:false}).limit(10);
+  if(!isCurrent())return;
   $("account-orders").textContent=(orders||[]).filter(x=>x.status==="paid").length+" pagos confirmados";
   const enable=available;
   if(isNative()){
@@ -72,46 +86,55 @@ async function refresh(){
     if(enable)window.PicgiftNative.postMessage(JSON.stringify({action:"products"}));
   }else buttons(enable);
   if(!isNative()||!nativeBusy())status(enable?"Ya puedes elegir un pack. Los créditos se añaden únicamente cuando el proveedor confirma el cobro.":isNative()?"La compra en Android se habilitará tras completar las pruebas de Google Play y activar las ventas.":"Los packs están publicados, pero no se admiten pagos hasta terminar las pruebas de generación y activar Stripe.");
- }catch(err){buttons(false);status("No se pudo comprobar el estado de los pagos. La compra no está disponible por seguridad.")}
+ }catch(err){if(isCurrent()){available=false;buttons(false);status("No se pudo comprobar el estado de los pagos. La compra no está disponible por seguridad.")}}
 }
 async function pay(productId){
+ const revision=authRevision,accountId=nativeUser?.id;
+ const isCurrent=()=>revision===authRevision&&accountId===nativeUser?.id;
  if(!PRODUCT_IDS.has(productId))return;
  if(isNative()&&(nativeBusy()||!playReadyProducts.has(productId)))return;
  if(!available){status("Los pagos todavía están desactivados.");return}
- const {data:{user}}=await client.auth.getUser();
+ let user;
+ try{({data:{user}}=await client.auth.getUser());}
+ catch(e){if(isCurrent())status("No se pudo comprobar tu sesión. Vuelve a intentarlo.");return}
+ if(!isCurrent()||user&&user.id!==accountId)return;
  if(!user){status("Primero inicia sesión o crea una cuenta PICGIFT.");return}
-  if(isNative()&&nativeBusy())return;
+  if(!available||isNative()&&(nativeBusy()||!playReadyProducts.has(productId)))return;
   const btn=document.querySelector('[data-buy="'+productId+'"]');btn.disabled=true;
  try{
   if(isNative()){nativeCheckoutPending=true;buttons(false);window.PicgiftNative.postMessage(JSON.stringify({action:"purchase",product_id:productId,user_id:user.id}));status("Solicitando el pago a Google Play…");return}
   const data=await call({action:"checkout",product_id:productId});
+  if(!isCurrent())return;
   const url=new URL(data.url);
   if(url.protocol!=="https:"||url.hostname!=="checkout.stripe.com")throw Error("URL de pago no verificada.");
   window.location.assign(url.href);
- }catch(e){nativeCheckoutPending=false;status(e.message||"No fue posible comenzar el pago.");}finally{if(isNative())buttons(available);else btn.disabled=false}
+ }catch(e){if(isCurrent()){nativeCheckoutPending=false;status(e.message||"No fue posible comenzar el pago.");}}finally{if(isCurrent()){if(isNative())buttons(available);else btn.disabled=!available}}
 }
 async function handleNativePurchase(detail){
  // The purchase token is sent ONLY to the authenticated Supabase Edge Function, never accepted as proof in this browser.
- if(!detail||!PRODUCT_IDS.has(detail.product_id)||typeof detail.purchase_token!=="string")return;
- if(nativeInFlight.has(detail.purchase_token))return;
+ if(!nativeUser||!detail||!PRODUCT_IDS.has(detail.product_id)||typeof detail.purchase_token!=="string")return;
+ const revision=authRevision,key=revision+":"+detail.purchase_token;
+ if(nativeInFlight.has(key))return;
  nativeCheckoutPending=false;
- nativeInFlight.add(detail.purchase_token);
+ nativeInFlight.add(key);
  buttons(false);
  status("Verificando tu compra con Google Play…");
  try{
   const {data,error}=await client.functions.invoke("picgift-google-play",{body:{product_id:detail.product_id,purchase_token:detail.purchase_token}});
+  if(revision!==authRevision)return;
   if(error)throw Error("Google Play todavía no ha confirmado el pago.");
   if(data?.success)await refresh();
+  if(revision!==authRevision)return;
   status(data?.success?"Compra verificada. Créditos actualizados.":"Pendiente de confirmación por Google Play.");
- }catch(e){status("No se pudieron acreditar los créditos. Conserva el recibo de Google Play para recuperar la compra.")}
- finally{nativeInFlight.delete(detail.purchase_token);buttons(available);}
+ }catch(e){if(revision===authRevision)status("No se pudieron acreditar los créditos. Conserva el recibo de Google Play para recuperar la compra.")}
+ finally{nativeInFlight.delete(key);if(revision===authRevision)buttons(available);}
 }
 function init(){
  if(initialized)return;initialized=true;
  renderHalloweenPromo();window.addEventListener("picgift:language",renderHalloweenPromo);
  setInterval(renderHalloweenPromo,60000);
  document.addEventListener("click",e=>{const btn=e.target.closest("[data-buy]");if(btn)pay(btn.dataset.buy)});
- window.addEventListener("picgift:auth",e=>{nativeUser=e.detail.user||null;syncNative();refresh();});
+ window.addEventListener("picgift:auth",e=>{resetAccount(e.detail.user);refresh();});
  window.addEventListener("picgift:native-ready",syncNative);
  window.addEventListener("picgift:play-error",()=>{nativeCheckoutPending=false;status(window.picgiftI18n.t("No fue posible comenzar el pago."));buttons(available);});
  window.addEventListener("picgift:play-cancelled",()=>{nativeCheckoutPending=false;status("Compra cancelada. No se han añadido créditos.");buttons(available);});
@@ -134,6 +157,7 @@ function init(){
  });
  window.addEventListener("picgift:play-purchase",e=>handleNativePurchase(e.detail));
  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
- client.auth.getUser().then(({data})=>{if(data?.user)refresh();else buttons(false)}).catch(()=>buttons(false));
+ const initialRevision=authRevision;
+ client.auth.getUser().then(({data})=>{if(initialRevision!==authRevision)return;if(data?.user)refresh();else buttons(false)}).catch(()=>{if(initialRevision===authRevision)buttons(false)});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
