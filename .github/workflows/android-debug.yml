@@ -16,6 +16,10 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'tests/**'
+      - 'welcome.css'
+      - 'mobile-app.css'
+      - 'app-shell.css'
+      - 'mobile-scrollbars.css'
       - '.github/workflows/android-debug.yml'
   push:
     branches: [main]
@@ -31,6 +35,10 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'tests/**'
+      - 'welcome.css'
+      - 'mobile-app.css'
+      - 'app-shell.css'
+      - 'mobile-scrollbars.css'
       - '.github/workflows/android-debug.yml'
 
 permissions:
@@ -49,6 +57,19 @@ jobs:
         uses: actions/checkout@v4
       - name: Verificar experiencia web
         run: node --test tests/*.test.cjs
+      - name: Verificar tutorial visual y scroll móvil
+        run: |
+          npm install --prefix "$RUNNER_TEMP/picgift-ui" --no-save --package-lock=false playwright@1.62.1
+          node "$RUNNER_TEMP/picgift-ui/node_modules/playwright/cli.js" install --with-deps chromium
+          NODE_PATH="$RUNNER_TEMP/picgift-ui/node_modules" node tests/welcome-browser.cjs
+      - name: Guardar capturas de validación móvil
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: picgift-mobile-ui-validation
+          path: artifacts/mobile-welcome
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Preparar Java 17
         uses: actions/setup-java@v4
         with:

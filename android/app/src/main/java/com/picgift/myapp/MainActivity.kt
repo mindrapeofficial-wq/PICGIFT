@@ -108,7 +108,10 @@ class MainActivity : AppCompatActivity() {
             .build()
         connectBilling()
 
-        web = WebView(this)
+        web = WebView(this).apply {
+            isVerticalScrollBarEnabled = false
+            isHorizontalScrollBarEnabled = false
+        }
         val root = FrameLayout(this).apply { setBackgroundColor(Color.rgb(22,17,16)) }
         root.addView(web, FrameLayout.LayoutParams(-1,-1))
         loading = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
