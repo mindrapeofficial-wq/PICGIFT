@@ -7,6 +7,7 @@ if (window.PicgiftNative && typeof window.PicgiftNative.postMessage === 'functio
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
   const KEY = 'picgift-push-opt-in';
+  const ASKED = 'picgift-push-permission-asked-v1';
   const native = window.PicgiftNative;
   const isEnabled = () => localStorage.getItem(KEY) === 'yes';
   const setEnabled = yes => yes ? localStorage.setItem(KEY, 'yes') : localStorage.removeItem(KEY);
@@ -72,6 +73,7 @@ if (window.PicgiftNative && typeof window.PicgiftNative.postMessage === 'functio
         status('La configuración Firebase de esta versión Android está pendiente. Actualiza la app.');
         break;
       case 'permission_denied':
+        setEnabled(false);
         status('El permiso de notificaciones está desactivado. Puedes permitirlo en ajustes de Android.');
         break;
       default:
@@ -110,10 +112,30 @@ if (window.PicgiftNative && typeof window.PicgiftNative.postMessage === 'functio
   window.addEventListener('picgift:native-ready', () => {
     if (isEnabled()) post('notifications-status');
   });
+  // Request once, after Google and the introductory guide have finished.
+  // A later refusal or opt-out is never overridden on the next launch.
+  let startupPending=false;
+  async function requestOnEntry(){
+    if(startupPending)return;
+    startupPending=true;
+    try {
+      const {data:{session}}=await client.auth.getSession();
+      if(!session?.user)return;
+      if(isEnabled()){post('notifications-status');return;}
+      if(localStorage.getItem(ASKED)==='yes')return;
+      if(document.getElementById('first-steps')?.open)return;
+      localStorage.setItem(ASKED,'yes');
+      setEnabled(true);
+      status('Solicitando permiso para avisos diarios y novedades de PICGIFT…');
+      post('notifications-enable');
+    } catch {status('No se pudo comprobar el permiso. Reinténtalo desde Perfil → Notificaciones.');}
+    finally {startupPending=false;}
+  }
+  window.addEventListener('picgift:onboarding-complete',()=>{void requestOnEntry();});
   client.auth.onAuthStateChange((event,session) => {
-    if (session?.user && isEnabled()) queueMicrotask(() => post('notifications-status'));
+    if (session?.user) setTimeout(()=>void requestOnEntry(),400);
   });
   client.auth.getSession().then(({data}) => {
-    if (data?.session?.user && isEnabled()) post('notifications-status');
+    if (data?.session?.user) setTimeout(()=>void requestOnEntry(),400);
   }).catch(() => {});
 }

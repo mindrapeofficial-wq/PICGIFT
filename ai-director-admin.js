@@ -11,6 +11,15 @@ const status=(message,error=false)=>{
 };
 const typeName={scene:'Fondo Premium',category:'Categoría',notification:'Notificación',promotion:'Campaña promocional'};
 const stateName={pending:'Pendiente de aprobar',approved:'Aprobado',rejected:'Rechazado',failed:'Error de publicación',processing:'Publicando'};
+let proposals=[];
+const day=value=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value));
+function renderProposals(){
+ const list=$('ai-director-list');list.replaceChildren();
+ const date=$('ai-proposal-date')?.value||'today',state=$('ai-proposal-state')?.value||'all';
+ const filtered=proposals.filter(item=>(date==='all'||day(item.created_at)===day(Date.now()))&&(state==='all'||item.status===state));
+ for(const item of filtered)list.append(renderProposal(item));
+ if(!filtered.length)list.textContent=proposals.length?'No hay propuestas que coincidan. Selecciona «Todos los días» para ver las anteriores.':'Aún no hay propuestas generadas. La planificación diaria está programada en el servidor.';
+}
 async function api(body){
  const {data,error}=await client.functions.invoke('picgift-ai-director',{body});
  if(error){let code='No se pudo contactar con el servicio de IA.';
@@ -68,7 +77,7 @@ function renderProposal(item){
    categoryInput=document.createElement('input');categoryInput.maxLength=50;categoryInput.value=item.category||'Fantasía';
    field.append(categoryInput);row.append(field);
   }
-  const actions=document.createElement('div');actions.style.cssText='display:flex;gap:10px;flex-wrap:wrap';
+  const actions=document.createElement('div');actions.className='ai-proposal-actions';
   async function decide(decision){
    const headingValue=title.value.trim(),messageValue=textInput?.value.trim(),categoryValue=categoryInput?.value.trim();
    if(!headingValue||(textInput&&!messageValue)||(categoryInput&&!categoryValue)){
@@ -101,9 +110,7 @@ async function refresh(){
   const providers=data.providers||{};
   const health=$('ai-director-providers');
   if(health)health.textContent='IA Premium: '+(providers.premium_configured?'configurada':'sin configurar')+' · IA gratuita: '+(providers.free_configured?'configurada':'sin configurar')+'. La prueba de conexión se realiza por separado.';
-  const list=$('ai-director-list');list.replaceChildren();
-  if(!data.proposals?.length)list.textContent='Aún no hay propuestas generadas. La planificación diaria está programada en el servidor.';
-  for(const item of data.proposals||[])list.append(renderProposal(item));
+  proposals=data.proposals||[];renderProposals();
   const outbox=$('ai-director-outbox');outbox.replaceChildren();
   for(const item of data.outbox||[]){
    const wrap=document.createElement('div');wrap.className='user-item';
@@ -120,6 +127,8 @@ async function refresh(){
  finally{refreshing=false}
 }
 $('ai-director-refresh')?.addEventListener('click',()=>void refresh());
+$('ai-proposal-date')?.addEventListener('change',renderProposals);
+$('ai-proposal-state')?.addEventListener('change',renderProposals);
 $('ai-director-check')?.addEventListener('click',async()=>{
  const button=$('ai-director-check');button.disabled=true;status('Comprobando ambas IA sin generar imágenes ni consumir créditos de los usuarios…');
  try{const data=await api({action:'check_providers'});
