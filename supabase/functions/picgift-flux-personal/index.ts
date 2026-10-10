@@ -10,8 +10,8 @@ const cors={"Access-Control-Allow-Origin":"https://picgift.onrender.com","Access
 const reply=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:cors});
 const MODEL="@cf/black-forest-labs/flux-2-klein-4b";
 const TAG="cloudflare-flux-2-klein-4b";
-const SCENES=["halloween-potions","halloween-autumn-arch","halloween-pumpkin-bench","halloween-lantern-street"];
-const POSES:Record<string,string[]>={"halloween-potions":["De pie tras el caldero"],"halloween-autumn-arch":["De pie"],"halloween-pumpkin-bench":["Sentado en el banco"],"halloween-lantern-street":["De pie"]};
+const SCENES=["halloween-potions","halloween-autumn-arch","halloween-pumpkin-bench","halloween-lantern-street","halloween-pumpkin-forest","halloween-haunted-castle","halloween-portrait-hall","halloween-enchanted-city"];
+const POSES:Record<string,string[]>={"halloween-potions":["De pie tras el caldero"],"halloween-autumn-arch":["De pie"],"halloween-pumpkin-bench":["Sentado en el banco"],"halloween-lantern-street":["De pie"],"halloween-pumpkin-forest":["De pie"],"halloween-haunted-castle":["De pie"],"halloween-portrait-hall":["De pie"],"halloween-enchanted-city":["De pie"]};
 const OUTFITS=["Automático para la escena","Brujita de cuento","Pequeño mago","Conservar ropa original"];
 const SIZES:Record<string,[number,number]>={square:[1024,1024],vertical:[1024,1536],horizontal:[1536,1024]};
 const safe=(value:unknown,max=100)=>typeof value==="string"?value.slice(0,max).trim():"";
@@ -148,7 +148,7 @@ Deno.serve(async request=>{
  const {data:campaign}=await db.from("picgift_campaign_state").select("active_campaign").eq("singleton",true).single();
  const {count:scenesCount}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true}).eq("enabled",true).in("scene_id",SCENES);
  const account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")||"";
- const available=!configError&&config?.enabled===true&&campaign?.active_campaign==="halloween"&&scenesCount===4&&/^[a-f0-9]{32}$/i.test(account)&&!!Deno.env.get("CLOUDFLARE_API_TOKEN")&&!!Deno.env.get("OPENAI_API_KEY");
+ const available=!configError&&config?.enabled===true&&campaign?.active_campaign==="halloween"&&scenesCount===SCENES.length&&/^[a-f0-9]{32}$/i.test(account)&&!!Deno.env.get("CLOUDFLARE_API_TOKEN")&&!!Deno.env.get("OPENAI_API_KEY");
  if(action==="health")return reply({available,pilot:true,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,email_available:false,quality_review:false,remaining_daily_limit:config?.per_tester_daily_limit||0});
  if(action!=="start")return reply({error:"unknown_action"},400);
  if(!available)return reply({error:"La prueba de retratos aún no está activada. No se ha procesado ninguna fotografía."},503);
