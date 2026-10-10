@@ -14,6 +14,12 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  for(const id of needed)assert.ok(ids.includes(id),'missing control: '+id);
  assert.ok(html.includes('mobile-app.css?v='),'mobile CSS linked');
  assert.ok(html.includes('class="mobile-app-hero"'),'branded hero present');
+ const welcome=html.match(/<section class="welcome-story"[\\s\\S]*?<\\/section>/)?.[0]||'';
+ assert.equal((welcome.match(/class="welcome-art__frame"/g)||[]).length,3,'three equal tutorial frames');
+ assert.equal((welcome.match(/class="welcome-art__image"/g)||[]).length,3,'three uncropped illustrations');
+ assert.equal((welcome.match(/class="welcome-art__backdrop"/g)||[]).length,3,'decorative frame fills');
+ assert.ok(read('welcome.css').includes('max-width:950px'),'welcome matches studio max-width');
+ assert.ok(read('welcome.css').includes('object-fit:contain'),'foreground photos remain uncropped');
  const publicHome=html.split('<section class="page" data-page="inicio"')[1]?.split('<section class="page" data-page="precios"')[0]||'';
  for(const unwanted of ['COLECCIÓN DE TEMPORADA · HALLOWEEN 2026','EL ÁLBUM DE HALLOWEEN','Para familias','Tu galería privada','Magia de temporada','Demostración ilustrativa con un personaje ficticio','Los cobros siguen desactivados. Tus fotografías anteriores'])assert.ok(!publicHome.includes(unwanted),'obsolete homepage text: '+unwanted);
  assert.ok(!html.includes('Tu estudio de recuerdos'),'obsolete sidebar caption removed');
