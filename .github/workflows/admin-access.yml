@@ -56,7 +56,7 @@ jobs:
           assert.match(js,/resetPasswordForEmail\(user\.email/);
           assert.match(js,/const canReset=Boolean\(user\.confirmed&&user\.email\)/);
           assert.match(js,/window\.confirm/);
-          assert.match(html,/account-recovery-google-20261009-v2/);
+          assert.match(html,/<script\s+type="module"\s+src="\.\/admin\.js\?v=[a-z0-9-]+"/);
           assert.match(backend,/db\.auth\.getUser\(bearer\)/);
           assert.match(backend,/picgift_admin_users/);
           assert.ok(backend.indexOf('picgift_admin_users')<backend.indexOf('if(action==="list")'));
