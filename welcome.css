@@ -13,13 +13,38 @@ body.studio-has-photo .welcome-story{display:none}
 /* Use the full mobile viewport, with small gutters for readable, tappable content. */
 @media(max-width:820px){
  html[data-campaign="halloween"] .workspace,html[data-campaign="halloween"] .main{width:100%;max-width:none;margin:0;padding-left:0;padding-right:0}
- html[data-campaign="halloween"] .page[data-page]{width:100%;max-width:none;margin-left:0;margin-right:0;padding-left:12px;padding-right:12px;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
- html[data-campaign="halloween"] .page[data-page="crear"] .mobile-app-hero{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
- .app-page-hero{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
+ html[data-campaign="halloween"] .page[data-page]{width:100%;max-width:none;margin-left:0;margin-right:0;padding-left:8px;padding-right:8px;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+ html[data-campaign="halloween"] .page[data-page="crear"] .mobile-app-hero{margin-left:-8px;margin-right:-8px;padding-left:8px;padding-right:8px}
+ .app-page-hero{margin-left:-8px;margin-right:-8px;padding-left:8px;padding-right:8px}
  html[data-campaign="halloween"] .studio-layout{width:100%;max-width:none}
- html[data-campaign="halloween"] .mobile-scene-grid{margin-right:-12px;gap:8px}
+ html[data-campaign="halloween"] .mobile-scene-grid{margin-right:-8px;gap:8px}
  html[data-campaign="halloween"] .mobile-scene-option{min-width:0;flex-basis:calc((100% - 28px)/3);white-space:normal}
  html[data-campaign="halloween"] .mobile-scene-option>span:nth-of-type(1){white-space:normal;font-size:12px}
  html[data-campaign="halloween"] .mobile-nav{left:0;right:0;width:100%;max-width:none;margin:0;border-radius:0}
  .profile-row{width:100%;min-height:60px}.profile-row strong{font-size:16px}.profile-row small{font-size:12px}.welcome-story{width:100%}
 }
+.welcome-story{display:block;padding:18px 12px 10px}
+.welcome-story h2{font-size:23px;line-height:1.25;margin-bottom:14px}
+.welcome-art{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.welcome-art img{display:block;height:160px;object-fit:contain;object-position:center;background:#150c08}
+.welcome-art figcaption{font:600 12px/1.4 Arial,sans-serif;color:#fff0db;margin-top:8px}
+.welcome-art figcaption span{display:inline-grid;place-items:center;width:18px;height:18px;background:#ffb45c;color:#241207;border-radius:50%}
+.welcome-story button{display:block;width:100%;text-align:center;margin-top:8px}
+.first-steps{padding:20px;max-height:calc(100dvh - 32px)}
+.first-steps h2{font-size:27px;margin:8px 0 16px}
+.first-steps .visual-tutorial{gap:10px;margin:0 0 12px}
+.first-steps .visual-tutorial li{position:relative;display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:14px;border:1px solid #e8aa6140;border-radius:14px;padding:6px;background:#150c08}
+.first-steps .visual-tutorial li::before{position:absolute;top:10px;left:10px;width:23px;height:23px;font-size:12px;box-shadow:0 1px 5px #0008}
+.visual-tutorial img{display:block;width:90px;height:104px;object-fit:contain;object-position:center;border-radius:10px;background:#21150f}
+.first-steps .visual-tutorial li p{margin:7px 0 0;font-size:13px}
+.first-steps .tutorial-note{font-size:10px;line-height:1.4;margin:8px 0 14px}
+@media(max-width:820px){
+ .welcome-story{flex-shrink:0;padding:16px 10px 8px;margin-top:4px}
+ .welcome-story h2{font-size:22px}
+ .welcome-art img{height:128px}
+ .welcome-art figcaption{font-size:11px}
+ html[data-campaign="halloween"] body .page[data-page="crear"]:not([hidden]){padding-bottom:calc(112px + env(safe-area-inset-bottom))!important;scroll-padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+ html[data-campaign="halloween"] body:not(.studio-has-photo) .studio-layout{flex:0 0 auto}
+ .mobile-scene-selector{flex-shrink:0}
+}
+@media(max-width:360px){.welcome-art{gap:5px}.welcome-art img{height:108px}.welcome-art figcaption{font-size:10px}.first-steps{padding:16px}.first-steps .visual-tutorial li{gap:10px}.first-steps .visual-tutorial li strong{font-size:15px}}

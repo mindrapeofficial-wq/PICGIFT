@@ -1,3 +1,5 @@
+import kotlin.math.hypot
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -18,8 +20,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.8.1-beta"
+        versionCode = 11
+        versionName = "1.8.2-beta"
     }
     buildFeatures { buildConfig = true }
     defaultConfig {
@@ -60,3 +62,41 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-messaging")
 }
+
+// Validate the rendered art, rather than only checking the PNG canvas size.
+val verifyLauncherIcon by tasks.registering {
+    val artwork = file("src/main/res/drawable-nodpi/ic_launcher_official.png")
+    val adaptive = file("src/main/res/mipmap-anydpi-v26/ic_launcher.xml")
+    inputs.files(artwork, adaptive)
+    doLast {
+        val bitmap = javax.imageio.ImageIO.read(artwork)
+            ?: throw GradleException("Cannot read the PICGIFT launcher artwork")
+        check(bitmap.width == 512 && bitmap.height == 512) { "Launcher artwork must be 512 × 512" }
+        val inset = Regex("android:inset=\"(-?[0-9.]+)%\"").find(adaptive.readText())
+            ?.groupValues?.get(1)?.toDouble()?.div(100)
+            ?: throw GradleException("Launcher inset must be an explicit percentage")
+        val scale = 1 - 2 * inset
+        var minX = bitmap.width
+        var maxX = -1
+        var radius = 0.0
+        for (y in 0 until bitmap.height) for (x in 0 until bitmap.width) {
+            val color = bitmap.getRGB(x, y)
+            val red = (color shr 16) and 255
+            val green = (color shr 8) and 255
+            // Measure the recognizable gold/orange logo, excluding its dark background.
+            if (red > 85 && red > green * 1.15) {
+                minX = minOf(minX, x)
+                maxX = maxOf(maxX, x)
+                radius = maxOf(radius, hypot(
+                    (x - (bitmap.width - 1) / 2.0) / bitmap.width,
+                    (y - (bitmap.height - 1) / 2.0) / bitmap.height
+                ) * scale)
+            }
+        }
+        val coverage = (maxX - minX + 1).toDouble() / bitmap.width * scale
+        check(coverage >= 0.50) { "PICGIFT launcher logo is too small: ${(coverage * 100).toInt()}% coverage. Check source padding and adaptive inset." }
+        check(radius <= 66.0 / 216) { "PICGIFT launcher logo exceeds the 66dp adaptive safe circle and may be cropped." }
+        println("PICGIFT launcher verified: ${(coverage * 100).toInt()}% foreground coverage; safe circle preserved")
+    }
+}
+tasks.named("preBuild") { dependsOn(verifyLauncherIcon) }
