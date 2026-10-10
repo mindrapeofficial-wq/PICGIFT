@@ -1,4 +1,4 @@
-// PICGIFT: show admin navigation only on the public web and only after server authorization.
+// PICGIFT: navigation requires server authorization on web and Android alike.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 
@@ -7,8 +7,7 @@ const links=['admin-dashboard-link','admin-topbar-link','admin-sidebar-link']
 const hide=()=>links.forEach(link=>link.classList.add('hidden'));
 const show=()=>links.forEach(link=>link.classList.remove('hidden'));
 
-// The native Android application does not expose the admin UI.
-if(links.length && typeof window.PicgiftNative==='undefined'){
+if(links.length){
  const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
  });
@@ -25,7 +24,7 @@ if(links.length && typeof window.PicgiftNative==='undefined'){
      if(!error&&data?.admin===true){authorized=true;show();}
      else{authorized=false;hide();}
    }catch{
-     if(seq===latest){if(authorized)show();else hide();}
+     if(seq===latest){authorized=false;hide();}
    }
  };
  const queueCheck=()=>{void check()};

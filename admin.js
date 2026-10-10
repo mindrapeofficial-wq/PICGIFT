@@ -110,8 +110,7 @@ $('global-form').addEventListener('submit',async e=>{
  try{await api({action:'set_global',global_daily_limit:global,default_user_daily_limit:def});settings.global_daily_limit=global;settings.default_user_daily_limit=def;render();msg('Límites globales guardados.');}
  catch(e){msg('No se pudo guardar: '+e.message,true)}finally{button.disabled=false}
 });
-if(typeof window.PicgiftNative!=='undefined')block('Disponible solo en la web','La administración se gestiona desde un navegador web, no desde la aplicación Android.');
-else {
+{
   try{
    const {data:{session}}=await client.auth.getSession();
    if(!session)block('Inicia sesión primero','Accede a PICGIFT con tu cuenta administradora y vuelve a abrir esta página.');

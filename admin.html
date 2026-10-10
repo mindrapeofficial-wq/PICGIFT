@@ -2,13 +2,22 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#170e0b"><title>PICGIFT · Administración</title>
 <link rel="icon" href="./assets/halloween/picgift-logo-oficial.svg">
-<link rel="stylesheet" href="./admin.css?v=account-recovery-google-20261009-v2"></head><body>
+<link rel="stylesheet" href="./admin.css?v=mobile-admin-20261010-v1"></head><body>
 <header class="topbar"><a href="./#cuenta" aria-label="Volver a PICGIFT"><img src="./assets/halloween/picgift-logo-oficial.svg" alt="PICGIFT" width="130" height="65"></a><span class="eyebrow">PANEL PRIVADO · ADMINISTRACIÓN</span><a href="./#cuenta">Volver a PICGIFT ↗</a></header>
 <main class="wrapper">
 <div id="blocked" class="card center"><span class="eyebrow">ACCESO PROTEGIDO</span><h1 id="blocked-title">Comprobando permisos…</h1><p id="blocked-message">Este panel requiere una cuenta administradora con sesión iniciada.</p><a class="button" href="./#cuenta">Ir a PICGIFT</a></div>
 <div id="dashboard" hidden>
-<div class="headline"><div><span class="eyebrow">CONTROL DE PRUEBAS · PICGIFT</span><h1>Gestión de usuarios</h1><p>Gestiona las cuotas y el acceso de tus usuarios, sin exponer sus contraseñas.</p></div><button id="refresh" class="button" type="button">Actualizar datos</button></div>
-<div class="stats">
+<div class="headline"><div><span class="eyebrow">CONTROL DE PRUEBAS · PICGIFT</span><h1>Tu panel de PicGift</h1><p>Revisa las propuestas de hoy y gestiona tu app desde el móvil.</p></div><button id="refresh" class="button" type="button">Actualizar datos</button></div>
+<section class="card" id="ai-director-section" style="margin-top:22px" aria-labelledby="ai-director-title">
+ <div class="heading"><span class="eyebrow">DIRECCIÓN CREATIVA CON IA · SUPERVISIÓN HUMANA</span><h2 id="ai-director-title">Propuestas para PICGIFT <span id="ai-director-count"></span></h2></div>
+ <p>Revisa los fondos y mensajes de hoy. Tú decides qué aprobar y publicar.</p>
+ <button class="button" id="ai-director-refresh" type="button">Actualizar propuestas</button>
+ <div class="ai-proposal-controls"><label>Fecha<select id="ai-proposal-date"><option value="today">Hoy · hora de Madrid</option><option value="all">Todos los días</option></select></label><label>Estado<select id="ai-proposal-state"><option value="all">Todos los estados</option><option value="pending">Pendientes</option><option value="approved">Aprobadas</option><option value="failed">Con errores</option></select></label></div><div id="ai-director-list" class="user-list"></div><details class="ai-service-details"><summary>Estado de las IA y herramientas</summary> <div id="ai-director-providers" class="status" role="status">Comprobando motores de IA…</div><div id="ai-director-status" class="status" role="status" aria-live="polite">Esperando autorización…</div>
+ <div style="display:flex;gap:12px;flex-wrap:wrap;margin:15px 0"><button class="button" id="ai-director-check" type="button">Comprobar ambas IA</button><button class="button" id="ai-director-dispatch" type="button">Reintentar notificaciones fallidas</button></div>
+<p>La IA gratuita revisa las temáticas y la Premium propone un fondo. Aprobar un fondo lo publica en Inspiración; los mensajes se aprueban por separado. Los retratos necesitan pruebas de calidad antes de activarse.</p></details>
+ <div class="heading" style="margin-top:22px"><h3>Entregas y notificaciones</h3></div>
+ <div id="ai-director-outbox" class="user-list"></div>
+</section><nav class="admin-shortcuts" aria-label="Secciones de administración"><a class="button" href="#ai-director-section">Propuestas IA</a><a class="button" href="#users-section">Usuarios</a><a class="button" href="#notification-section">Notificaciones</a></nav><div class="stats">
 <div class="stat"><span>USUARIOS</span><strong id="count-users">0</strong></div>
 <div class="stat"><span>HABILITADOS</span><strong id="count-enabled">0</strong></div>
 <div class="stat"><span>USADAS HOY</span><strong id="count-used">0</strong></div>
@@ -26,7 +35,7 @@
 <div class="notice"><strong>Formatos aprobados</strong><p>Vertical 1024 × 1536 y horizontal 1536 × 1024. Sin fotografías cuadradas.</p></div>
 <div class="notice"><strong>Estado del motor gratuito</strong><p>Los límites se preparan aquí. La edición gratuita de retratos todavía no está activada.</p></div>
 </section>
-<section class="card"><div class="heading"><span class="eyebrow">CONTROL INDIVIDUAL</span><h2>Usuarios de PICGIFT</h2><small id="day-label">Hoy (UTC)</small></div>
+<section class="card" id="users-section"><div class="heading"><span class="eyebrow">CONTROL INDIVIDUAL</span><h2>Usuarios de PICGIFT</h2><small id="day-label">Hoy (UTC)</small></div>
 <div class="search-row"><label>Buscar usuario<input id="user-search" type="search" placeholder="Correo de inicio de sesión"></label><label class="only-enabled"><input id="filter-enabled" type="checkbox"> Solo habilitados</label></div>
 <div id="user-list" class="user-list"></div>
 <p class="footnote">Puedes solicitar un enlace para crear o cambiar la contraseña de PICGIFT aunque una cuenta acceda con Google. Solo se permite para correos confirmados; el administrador nunca ve la contraseña y el usuario mantiene su acceso con Google. Los límites no modifican los packs comprados.</p>
@@ -40,7 +49,7 @@
 </section>
 <section class="card" id="notification-section" style="margin-top:22px" aria-labelledby="notification-title">
  <div class="heading"><span class="eyebrow">COMUNICACIÓN CON USUARIOS</span><h2 id="notification-title">Notificaciones de la app</h2></div>
- <p>Envía avisos a los dispositivos Android que hayan autorizado las notificaciones. El envío se realiza desde un servicio privado y solo con permisos de administrador.</p>
+ <p>Recordatorio diario: 20:00, hora de Madrid. Se envía automáticamente a los móviles que hayan permitido los avisos. Puedes desactivarlos desde Perfil → Notificaciones.</p><p>Envía avisos a los dispositivos Android que hayan autorizado las notificaciones. El envío se realiza desde un servicio privado y solo con permisos de administrador.</p>
  <div id="notification-health" class="status" role="status">Comprobando Firebase y dispositivos…</div>
  <form id="notification-form">
   <label>Título (máximo 80 caracteres)<input id="notification-title-input" maxlength="80" required placeholder="Novedades de PICGIFT"></label>
@@ -54,15 +63,7 @@
  <div class="heading"><h3>Historial de envíos</h3><button class="button" type="button" id="notification-refresh">Actualizar historial</button></div>
  <div id="notification-history" class="user-list"></div>
 </section>
-<section class="card" id="ai-director-section" style="margin-top:22px" aria-labelledby="ai-director-title">
- <div class="heading"><span class="eyebrow">DIRECCIÓN CREATIVA CON IA · SUPERVISIÓN HUMANA</span><h2 id="ai-director-title">Propuestas para PICGIFT <span id="ai-director-count"></span></h2></div>
- <p>Cada día, la IA gratuita estudia las descripciones y temáticas del catálogo y la IA Premium crea una propuesta fotográfica diferente a partir de esa revisión. Nada se publica automáticamente. Primero aprueba el fondo; después puedes editar y aprobar la notificación de forma independiente. Los nuevos fondos aparecerán como inspiración hasta superar pruebas de retrato reales.</p>
- <div id="ai-director-providers" class="status" role="status">Comprobando motores de IA…</div><div id="ai-director-status" class="status" role="status" aria-live="polite">Esperando autorización…</div>
- <div style="display:flex;gap:12px;flex-wrap:wrap;margin:15px 0"><button class="button" id="ai-director-refresh" type="button">Actualizar propuestas</button><button class="button" id="ai-director-check" type="button">Comprobar ambas IA</button><button class="button" id="ai-director-dispatch" type="button">Reintentar notificaciones fallidas</button></div>
- <div id="ai-director-list" class="user-list"></div>
- <div class="heading" style="margin-top:22px"><h3>Entregas y notificaciones</h3></div>
- <div id="ai-director-outbox" class="user-list"></div>
-</section>
+
 </div></main>
-<script type="module" src="./admin.js?v=account-recovery-google-20261009-v2"></script>
-<script type="module" src="./flux-review-admin.js?v=20261008-v1"></script><script type="module" src="./notifications-admin.js?v=20261009"></script><script type="module" src="./ai-director-admin.js?v=20261010-dual-ai"></script></body></html>
+<script type="module" src="./admin.js?v=mobile-admin-20261010-v1"></script>
+<script type="module" src="./flux-review-admin.js?v=20261008-v1"></script><script type="module" src="./notifications-admin.js?v=20261009"></script><script type="module" src="./ai-director-admin.js?v=20261010-mobile-ai"></script></body></html>
