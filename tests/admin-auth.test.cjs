@@ -50,6 +50,27 @@ function runModule(path, context) {
   return vm.runInNewContext('(async () => {\n' + source + '\n})()', context, { filename: path });
 }
 
+test('signed 1.6.1 opens its native Google sheet despite an earlier attempt, only without a session',async()=>{
+ for(const signedIn of [false,true]){
+  const {get,document}=fixture();const calls=[];let onReady;
+  document.addEventListener=(type,callback)=>{if(type==='DOMContentLoaded')onReady=callback};
+  const user={id:'existing-user',user_metadata:{picgift_password_backup:true}};
+  const client={auth:{getSession:async()=>({data:{session:signedIn?{user}:null}}),
+   getUser:async()=>({data:{user:signedIn?user:null}}),onAuthStateChange(){},
+   signInWithIdToken:async request=>{calls.push(['exchange',request]);return {data:{user},error:null}}}};
+  const window={PicgiftNative:{},picgiftNativeGoogleSupported:true,picgiftNativeGoogleMode:'credential-manager',
+   addEventListener(){},dispatchEvent(){},matchMedia:()=>({matches:false})};
+  const context={document,window,navigator:{},createClient:()=>client,
+   SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_012345678901234567890123456789',
+   location:{origin:'https://picgift.onrender.com',search:'',hash:''},
+   sessionStorage:{getItem:()=> 'yes',setItem(){},removeItem(){}},setTimeout:()=>0,CustomEvent:class{},
+   requestGoogleCredential:async automatic=>{calls.push(['sheet',automatic]);return {token:'header.payload.signature',nonce:'a'.repeat(64)}}};
+  await runModule('auth.js',context);await onReady();
+  assert.equal(calls.filter(call=>call[0]==='sheet').length,signedIn?0:1);
+  if(!signedIn){assert.equal(calls[0][1],true);assert.equal(calls[1][0],'exchange');assert.equal(get('auth').classList.contains('show'),false)}
+ }
+});
+
 test('Google account with verified email can request a new PICGIFT password', async () => {
   const { get, document } = fixture();
   const sent = [];
