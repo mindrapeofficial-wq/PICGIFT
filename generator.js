@@ -5,6 +5,7 @@ const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
 const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
 let fluxMode=false,freeReady=false,premiumReady=false,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
+let galleryRevision=0,galleryAuthenticated=false,authRevision=0;
 const sceneImages={
  'halloween-potions':'./assets/halloween/backdrops/potions.jpg',
  'halloween-autumn-arch':'./assets/halloween/backdrops/autumn-arch.jpg',
@@ -249,14 +250,19 @@ function plainCard(job,href,download){
  +'<button class="btn quiet" type="button" data-delete-job="'+escape(job.id)+'">Eliminar fotografía y datos</button></article>';
 }
 async function refreshGallery(){
+ const revision=++galleryRevision;
  try{
   if(currentJob&&['queued','analyzing','generating','reviewing'].includes(currentJob.status)){
    const time=new Date(currentJob.updated_at||currentJob.created_at).getTime();
    if(Date.now()-time>8*60*1000)await invoke({action:'status'});
   }
   const {data,error}=await client.from('picgift_photo_jobs').select('id,scene_id,result_path,status,created_at,updated_at,email_status,failure_message,failure_code,failure_stage,result_quality').order('created_at',{ascending:false}).limit(30);
- if(error)throw error;lastJobs=data||[];
- const withLinks=await Promise.all(lastJobs.map(async j=>({job:j,href:j.status==='completed'?await signed(j.result_path):null,download:j.status==='completed'?await signed(j.result_path,true):null})));
+ if(revision!==galleryRevision)return null;
+ if(error)throw error;
+ const jobs=data||[];
+ const withLinks=await Promise.all(jobs.map(async j=>({job:j,href:j.status==='completed'?await signed(j.result_path):null,download:j.status==='completed'?await signed(j.result_path,true):null})));
+ if(revision!==galleryRevision)return null;
+ lastJobs=jobs;
  window.picgiftGallery=withLinks.map(o=>({...o,name:labels[o.job.scene_id]||'PICGIFT',statusLabel:statuses[o.job.status]||o.job.status}));
  if(window.picgiftRenderGallery)window.picgiftRenderGallery(window.picgiftGallery);
  else $('photo-library').innerHTML=withLinks.length?'<div class="scene-grid">'+withLinks.map(o=>plainCard(o.job,o.href,o.download)).join('')+'</div>':'<div class="panel empty"><div class="large">✧</div><h3>Todavía no hay fotografías</h3><p>Cuando generes tu primera imagen, aparecerá aquí de forma privada.</p><button class="btn outline" data-route="crear">Crear una foto</button></div>';
@@ -282,6 +288,7 @@ async function refreshGallery(){
  }
  return lastJobs;
  }catch(e){
+  if(revision!==galleryRevision)return null;
   console.warn('PICGIFT private gallery unavailable');
   if(currentJob&&['queued','analyzing','generating','reviewing'].includes(currentJob.status)){
     $('progress-warning').textContent='No hemos podido conectar con el servidor. No significa que la imagen haya fallado. Comprobaremos otra vez cuando vuelva la conexión.';
@@ -290,6 +297,7 @@ async function refreshGallery(){
   return null;
  }
 }
+function resumeGallery(){if(galleryAuthenticated&&!document.hidden)void refreshGallery()}
 function stopPolling(){if(poller){clearInterval(poller);poller=null}if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}}
 function startPolling(){
  stopPolling();
@@ -324,7 +332,7 @@ function init(){
     $('progress-warning').classList.remove('hidden');
   }finally{btn.disabled=false;btn.textContent='Comprobar estado'}
  });
- window.addEventListener('picgift:auth',async e=>{if(e.detail.user){await health();const jobs=await refreshGallery();if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];$('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');controlAi(false);status('Inicia sesión para acceder a la creación de retratos.');}});
+ window.addEventListener('picgift:auth',async e=>{const revision=++authRevision;if(e.detail.user){galleryRevision++;galleryAuthenticated=true;await health();if(revision!==authRevision)return;const jobs=await refreshGallery();if(revision!==authRevision)return;if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{galleryAuthenticated=false;galleryRevision++;stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];$('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');controlAi(false);status('Inicia sesión para acceder a la creación de retratos.');}});
  $('photo-library').addEventListener('click',async e=>{
   const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;
   if(id){await removePhoto(id);return}
@@ -338,8 +346,10 @@ function init(){
   await refreshGallery();
   if(['queued','analyzing','generating','reviewing'].includes(job.status))startPolling();
  });
- document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeId)refreshGallery()});
- client.auth.getUser().then(async ({data})=>{if(data?.user){await health();const jobs=await refreshGallery();const pending=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(pending){activeId=pending.id;startPolling()}}}).catch(()=>{});
+ document.addEventListener('visibilitychange',resumeGallery);
+ window.addEventListener('online',resumeGallery);
+ const initialAuthRevision=authRevision;
+ client.auth.getUser().then(async ({data})=>{if(initialAuthRevision!==authRevision)return;if(data?.user){galleryAuthenticated=true;await health();if(initialAuthRevision!==authRevision)return;const jobs=await refreshGallery();if(initialAuthRevision!==authRevision)return;const pending=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(pending){activeId=pending.id;startPolling()}}}).catch(()=>{});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
