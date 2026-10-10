@@ -41,7 +41,7 @@ try{
    assert.ok(Math.max(...layout.frames.map(r=>r.width))-Math.min(...layout.frames.map(r=>r.width))<=2,'Uneven cards at '+width);
    assert.ok(Math.max(...layout.frames.map(r=>r.height))-Math.min(...layout.frames.map(r=>r.height))<=2,'Uneven image frames at '+width);
    assert.ok(layout.unobscured,'Heading blocked by another layer at '+width);
-   assert.match(layout.color,/rgb\\(255, 240, 220\\)/,'Heading text contrast at '+width);
+   assert.equal(layout.color,'rgb(255, 240, 220)','Heading text contrast at '+width);
    assert.equal(layout.imagesLoaded,true,'Missing step illustration at '+width);
    assert.equal(layout.overflows,false,'Horizontal page overflow at '+width);
  }
