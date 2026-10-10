@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
 const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
 let fluxMode=false,freeReady=false,premiumReady=false,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
-let galleryRevision=0,galleryAuthenticated=false,authRevision=0;
+let galleryRevision=0,galleryAuthenticated=false,authRevision=0,healthRevision=0;
 const sceneImages={
  'halloween-potions':'./assets/halloween/backdrops/potions.jpg',
  'halloween-autumn-arch':'./assets/halloween/backdrops/autumn-arch.jpg',
@@ -56,13 +56,17 @@ async function invoke(body){
  return data;
 }
 async function health(){
+ const revision=++healthRevision,sessionRevision=authRevision;
+ const isCurrent=()=>revision===healthRevision&&sessionRevision===authRevision;
  try{
   const {data:{session}}=await client.auth.getSession();
-  if(!session){freeReady=false;premiumReady=false;controlAi(false);status('Inicia sesión para crear tu fotografía.');return}
+  if(!isCurrent())return;
+  if(!session){resetStudioAvailability();status('Inicia sesión para crear tu fotografía.');return}
   const [beta,premium]=await Promise.all([
    client.functions.invoke('picgift-flux-personal',{body:{action:'health'}}),
    client.functions.invoke('picgift-generate',{body:{action:'health'}})
   ]);
+  if(!isCurrent())return;
   const halloween=document.documentElement.dataset.campaign==='halloween';
   freeReady=halloween&&!beta.error&&beta.data?.available===true;
   premiumReady=!premium.error&&premium.data?.available===true;
@@ -73,7 +77,14 @@ async function health(){
   status(freeReady||premiumReady?'Elige Foto Gratis o Foto Premium para crear tu retrato.':'No hay servicios disponibles para tu cuenta en este momento.');
   const email=$('photo-email-delivery');email.disabled=!premiumReady||premium.data?.email_available!==true;
   if(email.disabled)email.checked=false;
- }catch(e){freeReady=false;premiumReady=false;controlAi(false);status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde.')}
+ }catch(e){if(!isCurrent())return;resetStudioAvailability();status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde.')}
+}
+function resetStudioAvailability(){
+ freeReady=false;premiumReady=false;
+ window.picgiftFreeReady=false;window.picgiftPremiumReady=false;
+ window.picgiftPilot=false;window.picgiftReferencesReady=false;
+ const email=$('photo-email-delivery');email.disabled=true;email.checked=false;
+ controlAi(false);
 }
 window.picgiftChooseService=async()=>{
  await health();
@@ -332,7 +343,7 @@ function init(){
     $('progress-warning').classList.remove('hidden');
   }finally{btn.disabled=false;btn.textContent='Comprobar estado'}
  });
- window.addEventListener('picgift:auth',async e=>{const revision=++authRevision;if(e.detail.user){galleryRevision++;galleryAuthenticated=true;await health();if(revision!==authRevision)return;const jobs=await refreshGallery();if(revision!==authRevision)return;if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{galleryAuthenticated=false;galleryRevision++;stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];$('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');controlAi(false);status('Inicia sesión para acceder a la creación de retratos.');}});
+ window.addEventListener('picgift:auth',async e=>{const revision=++authRevision;if(e.detail.user){galleryRevision++;galleryAuthenticated=true;resetStudioAvailability();await health();if(revision!==authRevision)return;const jobs=await refreshGallery();if(revision!==authRevision)return;if(!activeId){const inProgress=jobs?.find(j=>['queued','analyzing','generating','reviewing'].includes(j.status));if(inProgress){activeId=inProgress.id;startPolling()}}}else{galleryAuthenticated=false;galleryRevision++;stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];$('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');resetStudioAvailability();status('Inicia sesión para acceder a la creación de retratos.');}});
  $('photo-library').addEventListener('click',async e=>{
   const id=e.target.closest('[data-delete-job]')?.dataset.deleteJob;
   if(id){await removePhoto(id);return}
