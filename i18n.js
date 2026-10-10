@@ -5,13 +5,56 @@ const english={"Falló la prueba: ":"Test failed: ","Imagen técnica creada corr
 Object.assign(english,{"Estudio PICGIFT · Retrato privado": "PICGIFT studio · Private portrait", "Estudio PICGIFT · Fotografía privada": "PICGIFT studio · Private photo", "2 · Preparación": "2 · Preparation", "Procura que se vean el cabello, las manos y los pies. Usa luz suave, un fondo sencillo y una imagen nítida, sin filtros. Estas condiciones ayudan a conservar proporciones y rasgos naturales.": "Keep the hair, hands and feet visible. Use soft light, a simple background and a clear photo without filters. This helps preserve natural proportions and facial details.", "No se pudo confirmar la solicitud. Consulta Mis fotos antes de volver a intentarlo.": "The request could not be confirmed. Check My photos before trying again.", "Informar de un problema con el retrato": "Report a problem with this portrait", "Informe recibido. Revisaremos este retrato.": "Report received. We will review this portrait.", "No se pudo enviar el informe. Inténtalo de nuevo.": "The report could not be sent. Try again."});
 Object.assign(english,{"Elegir un pack para crear": "Choose a pack to create", "Tu foto está preparada. Elige un pack para crear y guardar tu retrato.": "Your photo is prepared. Choose a pack to create and save your portrait.", "El estudio aún no admite referencias adicionales. No se enviarán hasta que puedan utilizarse.": "Extra references are not yet supported. They will not be sent until they can be used.", "Accede con tu correo y contraseña.": "Sign in with your email and password."});
 Object.assign(english,{"Foto Gratis":"Free Photo","Foto Premium":"Premium Photo","Elige tu fotografía":"Choose your photo","Elige Foto Gratis o Foto Premium para crear tu retrato.":"Choose Free Photo or Premium Photo to create your portrait.","Crea un retrato con tu fotografía. Sujeto a la cuota diaria de la beta.":"Create a portrait from your photo. Subject to the daily beta allowance.","No disponible para esta cuenta.":"Not available for this account.","Crea un retrato con el servicio Premium.":"Create a portrait with the Premium service.","El servicio Premium no está disponible ahora.":"The Premium service is currently unavailable.","No hay servicios disponibles para tu cuenta en este momento.":"No services are currently available for your account.","Inicia sesión para crear tu fotografía.":"Sign in to create your photo.","El servicio elegido no está disponible.":"The selected service is unavailable."});
+Object.assign(english,{
+ "Entrar con contraseña":"Sign in with a password",
+ "Cambia tu contraseña":"Change your password",
+ "Crea tu contraseña alternativa":"Create a backup password",
+ "¿Olvidaste tu contraseña?":"Forgot your password?",
+ "Elige una nueva contraseña para tu cuenta.":"Choose a new password for your account.",
+ "Podrás entrar con tu correo si algún día Google no está disponible.":"You can sign in with your email if Google is unavailable.",
+ "Te enviaremos un enlace para recuperar el acceso.":"We will send you a link to recover access.",
+ "Utiliza el correo de tu cuenta PICGIFT.":"Use the email address of your PICGIFT account.",
+ "acceso con correo y contraseña":"email and password sign-in",
+ "Repite la contraseña":"Confirm your password",
+ "Repite tu nueva contraseña":"Confirm your new password",
+ "Guardar contraseña":"Save password",
+ "Enviar enlace de recuperación":"Send recovery link",
+ "Entrar en mi cuenta":"Sign in to my account",
+ "Volver al acceso":"Back to sign-in",
+ "Escribe y confirma una contraseña de al menos 8 caracteres.":"Enter and confirm a password with at least 8 characters.",
+ "Escribe el correo con el que entras con Google o con contraseña.":"Enter the email you use to sign in with Google or a password.",
+ "Puedes recuperar tu contraseña aunque te registraras con Google.":"You can reset your password even if you registered with Google.",
+ "Confirma primero la autorización para utilizar las fotografías.":"First confirm that you are authorized to use the photos.",
+ "Selecciona tu cuenta en el navegador y pulsa «Volver a PICGIFT». Puedes usar tu contraseña si cancelas.":"Select your account in the browser and tap Return to PICGIFT. If you cancel, you can use your password.",
+ "No se pudo abrir Google. Puedes reintentarlo o entrar con tu correo y contraseña.":"Google could not be opened. Try again or sign in with your email and password.",
+ "Puedes reintentar Google o entrar con tu correo y contraseña.":"Try Google again or sign in with your email and password.",
+ "Comprueba tu conexión para iniciar sesión.":"Check your connection to sign in.",
+ "Respuesta de Google no válida. Vuelve a intentarlo.":"Invalid Google response. Try again.",
+ "Verificando tu cuenta de Google…":"Verifying your Google account…",
+ "No se pudo verificar la cuenta Google. Comprueba la configuración e inténtalo de nuevo.":"Your Google account could not be verified. Check the configuration and try again.",
+ "Acceso cancelado. Puedes volver a elegir Google o entrar con contraseña.":"Sign-in cancelled. Try Google again or sign in with a password.",
+ "No se pudo abrir el selector de Google. Inténtalo de nuevo o utiliza tu contraseña.":"The Google account selector could not be opened. Try again or use your password.",
+ "No se pudo abrir el navegador. Entra con tu correo y contraseña.":"The browser could not be opened. Sign in with your email and password.",
+ "Las contraseñas no coinciden.":"The passwords do not match.",
+ "Confirma la autorización para utilizar las imágenes.":"Confirm that you are authorized to use the images.",
+ "Si hay una cuenta con ese correo, recibirás un enlace para elegir una nueva contraseña. Revisa también el correo no deseado.":"If an account uses that email, you will receive a link to choose a new password. Check your spam folder too.",
+ "Volver a enviar el enlace":"Resend the link",
+ "Contraseña guardada. Ya puedes entrar con Google o con tu correo.":"Password saved. You can now sign in with Google or your email.",
+ "Revisa tu correo para confirmar la cuenta. Después podrás iniciar sesión.":"Check your email to confirm your account. You can then sign in.",
+ "No se pudo enviar el enlace. Comprueba el correo e inténtalo de nuevo dentro de unos minutos.":"The link could not be sent. Check the email address and try again in a few minutes.",
+ "No se pudo guardar la contraseña. Usa al menos 8 caracteres y vuelve a intentarlo; si tu sesión ha caducado, solicita un enlace de recuperación.":"The password could not be saved. Use at least 8 characters and try again. If your session has expired, request a recovery link.",
+ "No se pudo iniciar sesión. Comprueba tu correo y contraseña, o utiliza la recuperación.":"Sign-in failed. Check your email and password or use password recovery.",
+ "No se pudo cerrar la sesión.":"Could not sign out.",
+ "Escribe un nombre válido e inicia sesión.":"Enter a valid name and sign in.",
+ "No se pudo guardar el nombre. Inténtalo de nuevo.":"The name could not be saved. Try again."
+});
 const saved=()=>{try{return localStorage.getItem('picgift.language')||'auto'}catch{return 'auto'}};
 const device=()=>new URLSearchParams(location.search).get('device_lang')||navigator.languages?.[0]||navigator.language||'en';
 const supported=code=>String(code).toLowerCase().startsWith('es')?'es':'en';
 let preference=saved(),language=supported(preference==='auto'?device():preference);
 const texts=new WeakMap(),attributes=new WeakMap();
 const omitted='#file-name,#account-email,#account-avatar,#profile-button,[id$="-status"].reference-status:not(:empty),[data-no-translate]';
-const parts={'Escenario: ':'Scene: ','Sesión activa: ':'Signed in: ','Tiempo transcurrido: ':'Elapsed time: ','Etapa orientativa: ':'Approximate stage: ','Ver escenario ':'View scene ','Decorado de ':'Scene: ','Elegir ':'Choose ','Ver ':'View ',' · En preparación':' · Coming soon',' · Elegir este escenario':' · Scene selected',' · Decorado seleccionado':' · Scene selected','No se pudo eliminar: ':'Could not delete: ','No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde. ':'We could not connect to the studio. Check your session and try again later. ','No se pudo subir el archivo de forma privada. ':'The file could not be uploaded privately. ','No se pudo subir la referencia de rostro.':'The face reference could not be uploaded.','No se pudo subir la referencia de cuerpo.':'The body reference could not be uploaded.'};
+const parts={'Cuenta: ':'Account: ','Escenario: ':'Scene: ','Sesión activa: ':'Signed in: ','Tiempo transcurrido: ':'Elapsed time: ','Etapa orientativa: ':'Approximate stage: ','Ver escenario ':'View scene ','Decorado de ':'Scene: ','Elegir ':'Choose ','Ver ':'View ',' · En preparación':' · Coming soon',' · Elegir este escenario':' · Scene selected',' · Decorado seleccionado':' · Scene selected','No se pudo eliminar: ':'Could not delete: ','No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde. ':'We could not connect to the studio. Check your session and try again later. ','No se pudo subir el archivo de forma privada. ':'The file could not be uploaded privately. ','No se pudo subir la referencia de rostro.':'The face reference could not be uploaded.','No se pudo subir la referencia de cuerpo.':'The body reference could not be uploaded.'};
 function translate(value){
  if(language!=='en'||typeof value!=='string')return value;
  const raw=value.trim();
