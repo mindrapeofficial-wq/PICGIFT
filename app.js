@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-let scenes=[],selected=null,user=null,route='inicio',pending=null,file=null,localURL=null,filter='Todos',photoSessionRevision=0;
+let scenes=[],selected=null,user=null,route='inicio',pending=null,file=null,localURL=null,filter='Todos',photoSessionRevision=0,beautifyAfterPhoto=false;
 const staticScenes=[{"id": "halloween-potions", "name": "La escuela de magia", "description": "Pociones brillantes, libros antiguos y un pequeño gran mago.", "category": "Fantasía", "badge": "Colección Halloween", "ages": "Retratos infantiles y familiares", "poses": ["De pie tras el caldero"], "source": "picgift", "status": "pilot", "previewOnly": false, "image": "./assets/halloween/backdrops/potions.jpg", "credit": {"author": "PICGIFT", "url": null}}, {"id": "halloween-autumn-arch", "name": "El bosque encantado", "description": "Una brujita de cuento bajo un arco de hojas y farolillos.", "category": "Bosques", "badge": "Colección Halloween", "ages": "Retratos infantiles y familiares", "poses": ["De pie"], "source": "picgift", "status": "pilot", "previewOnly": false, "image": "./assets/halloween/backdrops/autumn-arch.jpg", "credit": {"author": "PICGIFT", "url": null}}, {"id": "halloween-pumpkin-bench", "name": "El rincón de las calabazas", "description": "Calabazas, gatos negros y una sonrisa que lo ilumina todo.", "category": "Clásicos", "badge": "Colección Halloween", "ages": "Retratos infantiles y familiares", "poses": ["Sentado en el banco"], "source": "picgift", "status": "pilot", "previewOnly": false, "image": "./assets/halloween/backdrops/pumpkin-bench.jpg", "credit": {"author": "PICGIFT", "url": null}}, {"id": "halloween-lantern-street", "name": "La calle de los farolillos", "description": "Un paseo de cuento entre calabazas y luces cálidas.", "category": "Fantasía", "badge": "Colección Halloween", "ages": "Retratos infantiles y familiares", "poses": ["De pie"], "source": "picgift", "status": "pilot", "previewOnly": false, "image": "./assets/halloween/backdrops/lantern-street.jpg", "credit": {"author": "PICGIFT · Fondo aportado"}}];
 function icon(id){return '<svg><use href="#i-'+id+'"></use></svg>'}
 function toast(message){const e=$('toast');e.textContent=message;e.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>e.classList.remove('on'),4200)}
@@ -170,8 +170,23 @@ if(!fromHistory && location.hash!=='#'+name)history.pushState({page:name},'','#'
 function openAuth(mode='login'){if(window.picgiftOpenAuth){window.picgiftOpenAuth(mode);return}window.picgiftAuthReturnFocus=document.activeElement;window.picgiftAuthMode=mode;$('auth-title').textContent=mode==='register'?'Crear cuenta':'Iniciar sesión';$('terms').required=mode==='register';$('terms').closest('label').classList.toggle('hidden',mode!=='register');$('auth-submit').textContent=mode==='register'?'Crear mi cuenta':'Entrar en mi cuenta';$('auth-password').autocomplete=mode==='register'?'new-password':'current-password';$('auth').classList.add('show');$('auth-msg').textContent='Puedes acceder con correo o Google.';$('auth-email').focus()}
 window.addEventListener('picgift:auth',e=>{photoSessionRevision++;const previousUserId=user?.id;user=e.detail.user||null;window.picgiftCurrentUser=user;if(previousUserId&&previousUserId!==user?.id)clearPhoto();$('signin').classList.toggle('hidden',!!user);$('signup').classList.toggle('hidden',!!user);$('profile-button').classList.toggle('hidden',!user);$('workspace').classList.remove('hidden');$('account-email').textContent=user?.email||'Sesión iniciada';$('account-avatar').textContent=(user?.email||'P')[0].toUpperCase();$('profile-button').textContent=(user?.email||'P')[0].toUpperCase();updateStudio();if(user){$('auth').classList.remove('show');if(pending){const dest=pending;pending=null;navigate(dest)}else if(!['crear','mis-fotos','resultado','cuenta'].includes(route))navigate(route,true)}else if(['mis-fotos','cuenta'].includes(route))navigate('inicio');});
 function initSnow(){if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;const n=window.innerWidth<700?27:53,container=$('snow');for(let i=0;i<n;i++){const flake=document.createElement('i');flake.className='flake';const x=((i*47.33)%101),size=1.1+((i*17)%28)/10;flake.style.left=x+'%';flake.style.width=flake.style.height=size+'px';flake.style.opacity=(.2+((i*13)%55)/100).toFixed(2);flake.style.animationDuration=(12+(i*7)%24)+'s';flake.style.animationDelay=(-((i*13)%29))+'s';container.appendChild(flake)}document.addEventListener('visibilitychange',()=>{container.style.animationPlayState=document.hidden?'paused':'running';container.querySelectorAll('.flake').forEach(el=>el.style.animationPlayState=document.hidden?'paused':'running')})}
-function acceptFile(next){if(!next)return;if(!['image/png','image/jpeg','image/webp'].includes(next.type)){toast('Solo se admiten archivos JPG, PNG o WEBP.');return}if(next.size>15*1024*1024){toast('El archivo supera el máximo de 15 MB.');return}if(localURL)URL.revokeObjectURL(localURL);localURL=URL.createObjectURL(next);file=next;window.picgiftPhotoEditor?.open(next);$('chosen-photo').src=localURL;$('file-name').textContent=next.name+' · '+(next.size/1024/1024).toFixed(1)+' MB';$('upload-empty').classList.add('hidden');$('upload-loaded').classList.remove('hidden');updateStudio()}
+function acceptFile(next){if(!next)return;if(!['image/png','image/jpeg','image/webp'].includes(next.type)){toast('Solo se admiten archivos JPG, PNG o WEBP.');return}if(next.size>15*1024*1024){toast('El archivo supera el máximo de 15 MB.');return}if(localURL)URL.revokeObjectURL(localURL);localURL=URL.createObjectURL(next);file=next;window.picgiftPhotoEditor?.open(next);$('chosen-photo').src=localURL;$('file-name').textContent=next.name+' · '+(next.size/1024/1024).toFixed(1)+' MB';$('upload-empty').classList.add('hidden');$('upload-loaded').classList.remove('hidden');updateStudio();if(beautifyAfterPhoto){beautifyAfterPhoto=false;showBeautifyEditor()}}
+function showBeautifyEditor(){
+ const editor=document.querySelector('.crop-editor');
+ if(!editor)return;
+ editor.open=true;
+ requestAnimationFrame(()=>{
+  editor.scrollIntoView({behavior:'smooth',block:'center'});
+  editor.querySelector('summary')?.focus({preventScroll:true});
+ });
+}
+function openBeautify(){
+ navigate('crear');
+ if(!file){beautifyAfterPhoto=true;$('photo').click();return;}
+ showBeautifyEditor();
+}
 function clearPhoto(){
+ beautifyAfterPhoto=false;
  if(localURL)URL.revokeObjectURL(localURL);
  localURL=null;file=null;window.picgiftPhotoEditor?.clear();$('photo').value='';
  $('chosen-photo').removeAttribute('src');$('file-name').textContent='';
@@ -191,10 +206,15 @@ function init(){
 window.addEventListener('picgift:show-auth',()=>{if(!user&&!$('auth').classList.contains('show'))openAuth('login')});
 document.addEventListener('click',e=>{if(e.target.closest('[data-open-auth]'))openAuth('login')});
 $('signin').addEventListener('click',()=>openAuth('login'));$('signup').addEventListener('click',()=>openAuth('register'));$('close').addEventListener('click',()=>$('auth').classList.remove('show'));$('auth').addEventListener('click',e=>{if(e.target===$('auth'))$('auth').classList.remove('show')});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('auth').classList.remove('show')});
-document.addEventListener('click',e=>{const select=e.target.closest('[data-select]');if(select){selectScene(select.dataset.select);return}const routeButton=e.target.closest('[data-route]');if(routeButton){e.preventDefault();navigate(routeButton.dataset.route)}});
+document.addEventListener('click',e=>{
+ const select=e.target.closest('[data-select]');if(select){selectScene(select.dataset.select);return}
+ const camera=e.target.closest('[data-camera-capture]');if(camera){e.preventDefault();navigate('crear');$('camera-photo').click();return}
+ const beautify=e.target.closest('[data-beautify]');if(beautify){e.preventDefault();openBeautify();return}
+ const routeButton=e.target.closest('[data-route]');if(routeButton){e.preventDefault();navigate(routeButton.dataset.route)}
+});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.scene-card[data-select]')){e.preventDefault();selectScene(e.target.dataset.select)} });
 $('filters').addEventListener('click',e=>{const el=e.target.closest('[data-filter]');if(!el)return;filter=el.dataset.filter;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));renderCatalog()});
-$('choose-photo').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('photo').click()}});$('change-photo').addEventListener('click',()=>$('photo').click());$('choose-drive-photo').addEventListener('click',()=>$('photo').click());$('change-drive-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));$('remove-photo').addEventListener('click',clearPhoto);
+$('choose-photo').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('photo').click()}});$('change-photo').addEventListener('click',()=>$('photo').click());$('choose-drive-photo').addEventListener('click',()=>$('photo').click());$('change-drive-photo').addEventListener('click',()=>$('photo').click());$('photo').addEventListener('change',e=>acceptFile(e.target.files[0]));$('photo').addEventListener('change',e=>{if(!e.target.files[0])beautifyAfterPhoto=false});$('camera-photo').addEventListener('change',e=>{const next=e.target.files[0];if(next){navigate('crear');acceptFile(next)}e.target.value='' });$('remove-photo').addEventListener('click',clearPhoto);
 $('studio-login').addEventListener('click',()=>openAuth('login'));
 $('photo-ai-consent').addEventListener('change',updateStudio);
 $('studio-advanced').open=!window.matchMedia('(max-width:960px)').matches;
