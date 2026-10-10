@@ -14,7 +14,7 @@ test('creator keeps real, unique DOM controls after Halloween mobile redesign',(
  for(const id of needed)assert.ok(ids.includes(id),'missing control: '+id);
  assert.ok(html.includes('mobile-app.css?v='),'mobile CSS linked');
  assert.ok(html.includes('class="mobile-app-hero"'),'branded hero present');
- const welcome=html.match(/<section class="welcome-story"[\\s\\S]*?<\\/section>/)?.[0]||'';
+ const welcome=html.match(/<section class="welcome-story"[\s\S]*?<\/section>/)?.[0]||'';
  assert.equal((welcome.match(/class="welcome-art__frame"/g)||[]).length,3,'three equal tutorial frames');
  assert.equal((welcome.match(/class="welcome-art__image"/g)||[]).length,3,'three uncropped illustrations');
  assert.equal((welcome.match(/class="welcome-art__backdrop"/g)||[]).length,3,'decorative frame fills');
