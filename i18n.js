@@ -29,6 +29,7 @@ Object.assign(english,{
  "No se pudo abrir Google. Puedes reintentarlo o entrar con tu correo y contraseña.":"Google could not be opened. Try again or sign in with your email and password.",
  "Puedes reintentar Google o entrar con tu correo y contraseña.":"Try Google again or sign in with your email and password.",
  "Comprueba tu conexión para iniciar sesión.":"Check your connection to sign in.",
+ "No se pudo comprobar tu sesión. Vuelve a intentarlo.":"Your session could not be checked. Try again.",
  "Respuesta de Google no válida. Vuelve a intentarlo.":"Invalid Google response. Try again.",
  "Verificando tu cuenta de Google…":"Verifying your Google account…",
  "No se pudo verificar la cuenta Google. Comprueba la configuración e inténtalo de nuevo.":"Your Google account could not be verified. Check the configuration and try again.",

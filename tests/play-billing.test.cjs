@@ -49,6 +49,101 @@ async function readyStore(){
  return env;
 }
 const clickPack=(env,id)=>env.listeners['document:click']({target:{closest:()=>env.buttons.find(b=>b.dataset.buy===id)}});
+function deferred(){let resolve;const promise=new Promise(done=>{resolve=done});return {promise,resolve};}
+function logout(env){
+ env.client.auth.getSession=async()=>({data:{session:null}});
+ env.client.auth.getUser=async()=>({data:{user:null}});
+ env.listeners['picgift:auth']({detail:{user:null}});
+}
+
+test('payment availability and credits cannot return after logout during a status request',async()=>{
+ const env=await readyStore(),pending=deferred();
+ env.client.functions.invoke=()=>pending.promise;
+ env.listeners['document:visibilitychange']();await settle();
+ logout(env);await settle();
+ pending.resolve({data:{google_play_available:true,credits:77},error:null});await settle();
+ assert.equal(env.context.window.picgiftCreditsAvailable,null);
+ assert.equal(env.el('account-credits').textContent,'—');
+ assert.equal(env.el('account-orders').textContent,'—');
+ assert.ok(env.buttons.every(b=>b.disabled));
+ assert.match(env.el('payment-status').textContent,/Inicia sesión/);
+});
+
+test('a delayed order list does not put the previous account totals in the new account',async()=>{
+ const env=await readyStore(),pending=deferred();
+ env.client.from=()=>({select:()=>({order:()=>({limit:()=>pending.promise})})});
+ env.listeners['document:visibilitychange']();await settle();
+ const user={id:'22222222-2222-4222-8222-222222222222'};
+ env.client.auth.getSession=async()=>({data:{session:{user}}});
+ env.client.from=()=>({select:()=>({order:()=>({limit:async()=>({data:[]})})})});
+ env.listeners['picgift:auth']({detail:{user}});await settle();
+ pending.resolve({data:[{status:'paid'},{status:'paid'}]});await settle();
+ assert.equal(env.el('account-orders').textContent,'0 pagos confirmados');
+ assert.equal(env.sent.filter(x=>x.action==='account').at(-1).user_id,user.id);
+});
+
+test('logout while checking a purchase identity prevents opening a Play dialog',async()=>{
+ const env=await readyStore(),pending=deferred();
+ env.client.auth.getUser=()=>pending.promise;
+ clickPack(env,'esencial');logout(env);await settle();
+ pending.resolve({data:{user:{id:'11111111-1111-4111-8111-111111111111'}}});await settle();
+ assert.equal(env.sent.filter(x=>x.action==='purchase').length,0);
+ assert.ok(env.buttons.every(b=>b.disabled));
+});
+
+test('an old receipt response cannot overwrite logout or release another account controls',async()=>{
+ const env=await readyStore(),pending=deferred();
+ env.client.functions.invoke=()=>pending.promise;
+ env.listeners['picgift:play-purchase']({detail:{product_id:'esencial',purchase_token:'old-token'}});
+ logout(env);await settle();
+ pending.resolve({data:{success:true},error:null});await settle();await settle();
+ assert.match(env.el('payment-status').textContent,/Inicia sesión/);
+ assert.ok(env.buttons.every(b=>b.disabled));
+ assert.equal(env.context.window.picgiftCreditsAvailable,null);
+});
+
+test('the latest payment refresh wins when status replies arrive in reverse order',async()=>{
+ const env=await readyStore(),first=deferred(),second=deferred();let calls=0;
+ env.client.functions.invoke=()=>++calls===1?first.promise:second.promise;
+ env.listeners['document:visibilitychange']();await settle();
+ env.listeners['document:visibilitychange']();await settle();
+ second.resolve({data:{google_play_available:true,credits:3},error:null});await settle();
+ first.resolve({data:{google_play_available:true,credits:50},error:null});await settle();
+ assert.equal(env.context.window.picgiftCreditsAvailable,3);
+ assert.equal(env.el('account-credits').textContent,'3 fotografías');
+});
+
+test('a Stripe checkout response cannot redirect the browser after logout',async()=>{
+ const env=await readyStore(),pending=deferred(),redirects=[];
+ delete env.context.window.PicgiftNative;
+ env.context.window.location={assign:url=>redirects.push(url)};
+ env.client.functions.invoke=async(name,opts)=>opts.body.action==='checkout'
+  ?pending.promise:{data:{checkout_available:true,credits:0},error:null};
+ env.listeners['document:visibilitychange']();await settle();
+ clickPack(env,'esencial');await settle();
+ logout(env);await settle();
+ pending.resolve({data:{url:'https://checkout.stripe.com/c/pay/test'},error:null});await settle();
+ assert.equal(redirects.length,0);
+ assert.ok(env.buttons.every(b=>b.disabled));
+});
+
+test('a delayed initial identity check does not disable the current account',async()=>{
+ const env=mockStore(),pending=deferred();env.client.auth.getUser=()=>pending.promise;
+ vm.runInNewContext(fs.readFileSync('payments.js','utf8').replace(/^import .*;\s*$/gm,''),env.context);
+ env.listeners['document:DOMContentLoaded']();
+ env.listeners['picgift:auth']({detail:{user:{id:'11111111-1111-4111-8111-111111111111'}}});await settle();
+ env.listeners['picgift:play-prices']({detail:{esencial:'7,90 €',magico:'19,92 €',familiar:'31,92 €'}});
+ pending.resolve({data:{user:null}});await settle();
+ assert.ok(env.buttons.every(b=>!b.disabled));
+});
+
+test('failed identity lookup gives a retry message without opening a payment',async()=>{
+ const env=await readyStore();env.client.auth.getUser=async()=>{throw Error('offline')};
+ clickPack(env,'esencial');await settle();
+ assert.equal(env.sent.filter(x=>x.action==='purchase').length,0);
+ assert.match(env.el('payment-status').textContent,/Vuelve a intentarlo/);
+ assert.ok(env.buttons.every(b=>!b.disabled));
+});
 
 test('cancelled and pending Play dialogs release the checkout without granting credits',async()=>{
  const env=await readyStore();
