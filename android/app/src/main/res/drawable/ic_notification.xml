@@ -1,5 +1,6 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#FFFFFFFF"
-        android:pathData="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.9,2 2,2zM18,16V11c0,-3.07 -1.63,-5.64 -4.5,-6.32V4a1.5,1.5 0,0 0,-3 0v0.68C7.64,5.36 6,7.92 6,11v5l-2,2v1h16v-1z"/>
+    <!-- PicGift: gift bow and camera lens, in Android's monochrome small-icon format. -->
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M11,8C7,8 3,6 4,3C5,0 10,2 12,6C14,2 19,0 20,3C21,6 17,8 13,8ZM10,6C8,3 6,3 6,4C6,5 8,6 10,6ZM14,6C16,3 18,3 18,4C18,5 16,6 14,6ZM4,8H20A2,2 0,0 1,22,10V21A2,2 0,0 1,20,23H4A2,2 0,0 1,2,21V10A2,2 0,0 1,4,8ZM4,10V21H20V10ZM12,11A4.5,4.5 0,1 1,12,20A4.5,4.5 0,1 1,12,11ZM12,13A2.5,2.5 0,1 0,12,18A2.5,2.5 0,1 0,12,13Z"/>
 </vector>

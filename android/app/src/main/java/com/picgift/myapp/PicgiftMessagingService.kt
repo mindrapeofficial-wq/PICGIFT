@@ -6,6 +6,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -56,6 +58,7 @@ class PicgiftMessagingService : FirebaseMessagingService() {
         )
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
+            .setLargeIcon(notificationBrand())
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
@@ -69,5 +72,17 @@ class PicgiftMessagingService : FirebaseMessagingService() {
         } catch (_: SecurityException) {
             // The user can revoke Android notification permission after enabling the preference.
         }
+    }
+
+    private fun notificationBrand(): Bitmap? {
+        val artwork = BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_official) ?: return null
+        // The supplied square artwork has a wide black border. Use its central
+        // half so the gift/camera mark stays legible in the notification card.
+        val side = minOf(artwork.width, artwork.height) / 2
+        val cropped = Bitmap.createBitmap(artwork, (artwork.width - side) / 2, (artwork.height - side) / 2, side, side)
+        val icon = Bitmap.createScaledBitmap(cropped, 128, 128, true)
+        if (cropped !== artwork && cropped !== icon) cropped.recycle()
+        if (artwork !== icon) artwork.recycle()
+        return icon
     }
 }

@@ -1,0 +1,8 @@
+.pg-icon{display:inline-block;width:20px;height:20px;flex:0 0 20px;vertical-align:middle;color:currentColor;fill:none;pointer-events:none}
+.pg-icon-control{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.welcome-story .pg-icon-control{display:flex}
+.photo-menu .pg-icon-control{justify-content:flex-start;width:100%}
+.panel-close.pg-icon-control{padding:8px;min-width:44px;min-height:44px}
+.admin-shortcuts .pg-icon{color:#ffb45c}
+.mobile-nav svg{width:26px;height:26px;flex-shrink:0}
+@media(prefers-reduced-motion:no-preference){.pg-icon-control .pg-icon{transition:color .15s ease}}

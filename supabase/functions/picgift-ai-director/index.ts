@@ -35,6 +35,32 @@ function parseTextJSON(value:string){
  if(!data||typeof data!=="object"||Array.isArray(data))throw Error("ai_invalid_json");
  return data;
 }
+async function freeCreativeIdea(catalogue:string[]):Promise<string>{
+ const account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")||"";
+ const token=Deno.env.get("CLOUDFLARE_API_TOKEN")||"";
+ const model=Deno.env.get("PICGIFT_FREE_CREATIVE_MODEL")||"@cf/meta/llama-3.1-8b-instruct-fast";
+ if(!/^[a-f0-9]{32}$/i.test(account)||!token)throw Error("free_ai_not_configured");
+ if(!/^@cf\/[a-z0-9./_-]{3,100}$/.test(model))throw Error("free_ai_model_invalid");
+ const prompt=[
+  "Eres el segundo director creativo de PICGIFT: revisas el catálogo Halloween activo y propones UNA dirección fotográfica distinta que conserve la estética familiar fine art.",
+  "Trabajas como revisor independiente ANTES de que la IA Premium cree la propuesta definitiva. Evalúa nombres y descripciones, NO afirmes haber examinado píxeles de fotos.",
+  "Evita repetir sujeto, escena, perspectiva o accesorios dominantes de las escenas existentes. Mantén un escenario vacío apto para retrato, fotorrealista, luz y suelo físicos coherentes.",
+  "No inventes ofertas ni personajes protegidos. Devuelve un brief en español de 3 a 5 frases: qué se repite, qué proponer, cómo diferenciar composición, luz y atrezo.",
+  "Catálogo existente: "+catalogue.join("; ")
+ ].join("\n");
+ const response=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/ai/run/"+model,{
+  method:"POST",
+  headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
+  body:JSON.stringify({messages:[{role:"system",content:"Director creativo revisor. Conciso, específico, respetuoso y profesional."},{role:"user",content:prompt}],max_tokens:390,temperature:0.5}),
+  signal:AbortSignal.timeout(35000)
+ });
+ if(!response.ok)throw Error("free_ai_api_"+response.status);
+ const body=await response.json();
+ const brief=body?.result?.response;
+ if(body?.success!==true||typeof brief!=="string"||brief.trim().length<45)throw Error("free_ai_invalid_response");
+ return brief.trim().slice(0,1800);
+}
+
 async function creativePlan(){
  const key=Deno.env.get("OPENAI_API_KEY");
  if(!key)throw Error("openai_not_configured");
@@ -44,6 +70,23 @@ async function creativePlan(){
   db.from("picgift_photo_jobs").select("id",{head:true,count:"exact"}),
   db.from("picgift_orders").select("id",{head:true,count:"exact"}).eq("status","paid")
  ]);
+ const {data:published,error:catalogueError}=await db.from("picgift_catalog_scenes")
+   .select("name,description,category").order("published_at",{ascending:false}).limit(60);
+ if(catalogueError)throw Error("catalogue_read_failed");
+ // The existing visual samples live in the static frontend catalogue.
+ const catalogue=[
+  "Bosque de calabazas: bosque otoñal, calabazas iluminadas, senderos y luces naranjas",
+  "Castillo embrujado: castillo gótico al atardecer y luna",
+  "Salón de retratos: retratos antiguos, madera, velas",
+  "Ciudad encantada: calle empedrada nocturna y faroles",
+  "La escuela de magia: pociones y libros antiguos",
+  "El bosque encantado: hojas otoñales y farolillos",
+  "El rincón de las calabazas: banco, calabazas y gatos negros",
+  "La calle de los farolillos: paseo otoñal entre faroles",
+  ...(published||[]).map(x=>[x.name,x.category,x.description].filter(Boolean).join(": ")),
+  ...(recent||[]).map(x=>x.title)
+ ].map(x=>safe(x,200)).slice(0,95);
+ const freeBrief=await freeCreativeIdea(catalogue);
  const prompt=[
   "Actúas como director creativo y responsable ético del crecimiento de PICGIFT, app española de retratos fotográficos familiares de fantasía.",
   "Objetivo: excelente calidad, confianza, retención, recomendaciones y conversiones genuinas, sin publicidad engañosa ni spam.",
@@ -53,7 +96,9 @@ async function creativePlan(){
   "La promoción debe ser una campaña editorial o propuesta de uso creativo SIN DESCUENTOS, OFERTAS DE PRECIO, CUPONES, REGALOS, DISPONIBILIDAD GARANTIZADA ni cifras falsas.",
   "La notificación debe aportar valor real, estar ligada a la colección y no dar a entender que ya se ha publicado lo que aún está pendiente.",
   "Títulos <=70 caracteres, mensaje notificación <=180, body promoción <=240. Categorías cortas en español. Ideas respetuosas con familias.",
-  "Escenas anteriores: "+(recent||[]).map(x=>x.title).join("; "),
+  "Catálogo existente. No repitas estos escenarios, sus composiciones ni su atrezo: "+catalogue.join("; "),
+  "Brief independiente de la IA gratuita de PICGIFT: "+freeBrief,
+  "Colabora con esa revisión, pero tú decides la propuesta final. El concepto debe ser distinto incluso si el brief inicial es repetitivo.",
   "Indicadores agregados disponibles (no deduzcas comportamiento de usuarios individuales): trabajos="+(jobs||0)+", ventas="+(orders||0)+", admins="+(users||0),
   "No exageres resultados de IA ni inventes testimonios."
  ].join("\n");
@@ -65,7 +110,7 @@ async function creativePlan(){
  });
  if(!response.ok)throw Error("creative_api_"+response.status);
  const result=await response.json();
- return parseTextJSON(result.choices?.[0]?.message?.content||"");
+ return {idea:parseTextJSON(result.choices?.[0]?.message?.content||""),freeBrief};
 }
 function sceneRecipe(title:string,description:string,category:string,prompt:string){
  return {version:"picgift-ai-2026.1",
@@ -82,7 +127,7 @@ async function createDaily(){
  const day=formatDay();
  const {data:existing}=await db.from("picgift_ai_proposals").select("id").eq("kind","scene").eq("day_key",day).maybeSingle();
  if(existing)return {already_created:true,day};
- const idea=await creativePlan();
+ const {idea,freeBrief}=await creativePlan();
  const sceneTitle=safe(idea.scene_title,70),description=safe(idea.scene_description,260);
  const category=safe(idea.category,40)||"Fantasía";
  const imagePrompt=safe(idea.prompt_en,1700);
@@ -104,7 +149,10 @@ async function createDaily(){
  const path="halloween/"+day+"/"+id+".png";
  const {error:uploadError}=await db.storage.from("picgift-ai-drafts").upload(path,image,{contentType:"image/png",upsert:false});
  if(uploadError)throw Error("draft_image_upload_failed");
- const recipe=sceneRecipe(sceneTitle,description,category,imagePrompt);
+ const recipe={...sceneRecipe(sceneTitle,description,category,imagePrompt),ai_collaboration:{
+  premium_model:"gpt-4.1-mini",free_model:"cloudflare-workers-ai",free_brief:freeBrief,
+  catalogue_sources:["static_visual_scenes","approved_ai_scenes","prior_proposals"]
+ }};
  const {error:sceneError}=await db.from("picgift_ai_proposals").insert({
    id,kind:"scene",day_key:day,title:sceneTitle,description,category,image_path:path,creative_prompt:imagePrompt,
    recipe,status:"pending",route:"inspiracion"
@@ -147,7 +195,9 @@ async function createDaily(){
  return {ok:true,day,scene_id:id,proposals:3,strategy:safe(idea.strategy,240)};
 }
 async function fcmAuth(){
- const config=JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON")||"null");
+ let config;
+ try{config=JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON")||"null")}
+ catch{throw Error("firebase_config_invalid_json")}
  if(config?.project_id!=="picgift-a7fda"||!config?.private_key||!config?.client_email)throw Error("firebase_not_configured");
  const key=await importPKCS8(config.private_key,"RS256");
  const assertion=await new SignJWT({scope:"https://www.googleapis.com/auth/firebase.messaging"})
@@ -185,6 +235,7 @@ async function sendOutbox(limit=6){
    if(deviceError)throw Error("devices_unavailable");
    if((devices||[]).length>500)throw Error("batch_requires_pagination");
    let delivered=0;
+   let lastFailure:string|null=null;
    if(devices?.length){
     const access=await fcmAuth();
     for(const device of devices){
@@ -196,13 +247,32 @@ async function sendOutbox(limit=6){
        },android:{priority:"HIGH",ttl:"86400s",collapse_key:item.id}}}),
        signal:AbortSignal.timeout(15000)});
       if(response.ok)delivered++;
-      else if(response.status===404)await db.from("picgift_notification_devices").delete().eq("installation_id",device.installation_id);
-     }catch{ /* one device cannot block the rest of the campaign */ }
+      else{
+       lastFailure="fcm_rejected_"+response.status;
+       // A generic 404 can also be an endpoint/project error; only retire a
+       // token when FCM explicitly reports it as unregistered.
+       if(response.status===404){
+        const rejection=await response.json().catch(()=>null);
+        if(rejection?.error?.details?.some((detail:{errorCode?:string})=>detail.errorCode==="UNREGISTERED")){
+         const {error:retireError}=await db.from("picgift_notification_devices").update({enabled:false})
+          .eq("installation_id",device.installation_id).eq("token",device.token);
+         if(retireError)lastFailure="fcm_unregistered_retirement_failed";
+        }
+       }
+      }
+     }catch{lastFailure="fcm_network_error"}
     }
    }
-   await db.from("picgift_ai_notifications_outbox").update({state:"sent",recipient_count:devices?.length||0,
-    delivered_count:delivered,sent_at:new Date().toISOString(),last_error:null}).eq("id",item.id);
-   outcome.push({id:item.id,state:"sent",delivered});
+   const recipients=devices?.length||0;
+   const state=recipients>0&&delivered===0?"failed":"sent";
+   // Preserve accepted counts for partial delivery. Retrying the whole partial
+   // campaign would duplicate notifications on devices that already accepted it.
+   const deliveryError=recipients===0?"no_eligible_devices":
+    delivered<recipients?(lastFailure||"fcm_delivery_failed"):null;
+   const {error:saveError}=await db.from("picgift_ai_notifications_outbox").update({state,recipient_count:recipients,
+    delivered_count:delivered,sent_at:delivered>0?new Date().toISOString():null,last_error:deliveryError}).eq("id",item.id);
+   if(saveError)throw Error("delivery_status_save_failed");
+   outcome.push({id:item.id,state,delivered});
   }catch(e){
    const reason=e instanceof Error?e.message:"send_failed";
    await db.from("picgift_ai_notifications_outbox").update({state:"failed",last_error:reason.slice(0,200)})
@@ -212,9 +282,23 @@ async function sendOutbox(limit=6){
  }
  return outcome;
 }
+async function checkProviders(){
+ const free=await freeCreativeIdea(["Bosque de calabazas, Halloween", "Castillo embrujado, Halloween"]);
+ const key=Deno.env.get("OPENAI_API_KEY")||"";
+ if(!key)throw Error("premium_ai_not_configured");
+ const response=await fetch("https://api.openai.com/v1/chat/completions",{
+  method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json"},
+  body:JSON.stringify({model:"gpt-4.1-mini",messages:[{role:"user",content:"Responde solamente OK"}],max_tokens:8}),
+  signal:AbortSignal.timeout(18000)
+ });
+ if(!response.ok)throw Error("premium_ai_api_"+response.status);
+ const result=await response.json();
+ if(!result.choices?.[0]?.message?.content)throw Error("premium_ai_invalid_response");
+ return {ok:true,free:"ready",premium:"ready",free_response_length:free.length};
+}
 async function dashboard(){
  const [{data:records,error},{data:outbox}]=await Promise.all([
-  db.from("picgift_ai_proposals").select("id,kind,day_key,title,description,category,image_path,message,route,status,error_message,created_at,reviewed_at")
+  db.from("picgift_ai_proposals").select("id,kind,day_key,title,description,category,image_path,message,route,status,error_message,created_at,reviewed_at,recipe")
    .order("created_at",{ascending:false}).limit(50),
   db.from("picgift_ai_notifications_outbox").select("id,proposal_id,target,title,state,recipient_count,delivered_count,last_error,created_at")
    .order("created_at",{ascending:false}).limit(30)
@@ -227,14 +311,23 @@ async function dashboard(){
    const {data}=await db.storage.from("picgift-ai-drafts").createSignedUrl(record.image_path,900);
    preview_url=data?.signedUrl||null;
   }
-  proposals.push({...record,preview_url});
+  const {recipe,...visible}=record;
+  proposals.push({...visible,review_summary:safe(recipe?.ai_collaboration?.free_brief,700),preview_url});
  }
- return {proposals,outbox:outbox||[],pending:proposals.filter(p=>p.status==="pending").length};
+ return {proposals,outbox:outbox||[],pending:proposals.filter(p=>p.status==="pending").length,
+  providers:{premium_configured:!!Deno.env.get("OPENAI_API_KEY"),
+   free_configured:!!Deno.env.get("CLOUDFLARE_ACCOUNT_ID")&&!!Deno.env.get("CLOUDFLARE_API_TOKEN")}};
 }
 async function review(id:string,decision:string,adminId:string,overrides:Record<string,unknown>){
  if(!/^[a-f0-9-]{36}$/i.test(id)||!["approve","reject"].includes(decision))throw Error("invalid_review");
  const {data:proposal,error:lookupError}=await db.from("picgift_ai_proposals").select("*").eq("id",id).maybeSingle();
  if(lookupError||!proposal||proposal.status!=="pending")throw Error("proposal_not_pending");
+ // Communication for a new scene cannot be approved before that scene is published.
+ if(decision==="approve"&&["notification","promotion"].includes(proposal.kind)){
+  const {data:scene,error:sceneError}=await db.from("picgift_ai_proposals")
+   .select("status").eq("kind","scene").eq("day_key",proposal.day_key).maybeSingle();
+  if(sceneError||scene?.status!=="approved")throw Error("approve_scene_first");
+ }
  const {data:claimed,error:claimError}=await db.from("picgift_ai_proposals").update({status:"processing"})
   .eq("id",id).eq("status","pending").select("id").maybeSingle();
  if(claimError||!claimed)throw Error("already_reviewed");
@@ -294,7 +387,7 @@ Deno.serve(async(request:Request)=>{
  let body:Record<string,unknown>;
  try{body=await request.json();if(!body||typeof body!=="object"||Array.isArray(body))throw Error()}catch{return reply({error:"invalid_json"},400)}
  const action=safe(body.action,30);
- const isCron=(action==="daily" || action==="dispatch") && await requireCron(request);
+ const isCron=(["daily","dispatch","check_providers"].includes(action)) && await requireCron(request);
  let adminId:string|null=null;
  if(!isCron){
   const admin=await requireAdmin(request);
@@ -303,6 +396,7 @@ Deno.serve(async(request:Request)=>{
  }
  try{
   if(action==="dashboard")return reply(await dashboard());
+  if(action==="check_providers")return reply(await checkProviders());
   if(action==="daily"){
    const result=await createDaily();
    const dispatch=await sendOutbox(8);

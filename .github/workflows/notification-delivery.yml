@@ -1,0 +1,24 @@
+name: PICGIFT notification delivery checks
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/picgift-ai-director/**'
+      - 'tests/notification-delivery.test.cjs'
+      - '.github/workflows/notification-delivery.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/picgift-ai-director/**'
+      - 'tests/notification-delivery.test.cjs'
+      - '.github/workflows/notification-delivery.yml'
+permissions:
+  contents: read
+jobs:
+  delivery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/notification-delivery.test.cjs
