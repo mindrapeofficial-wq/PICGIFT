@@ -124,6 +124,7 @@ if (window.PicgiftNative && typeof window.PicgiftNative.postMessage === 'functio
       if(isEnabled()){post('notifications-status');return;}
       if(localStorage.getItem(ASKED)==='yes')return;
       if(document.getElementById('first-steps')?.open)return;
+      if(document.getElementById('auth')?.classList.contains('show'))return;
       localStorage.setItem(ASKED,'yes');
       setEnabled(true);
       status('Solicitando permiso para avisos diarios y novedades de PICGIFT…');
@@ -132,6 +133,10 @@ if (window.PicgiftNative && typeof window.PicgiftNative.postMessage === 'functio
     finally {startupPending=false;}
   }
   window.addEventListener('picgift:onboarding-complete',()=>{void requestOnEntry();});
+  const authPanel=document.getElementById('auth');
+  if(authPanel)new MutationObserver(()=>{
+    if(!authPanel.classList.contains('show'))void requestOnEntry();
+  }).observe(authPanel,{attributes:true,attributeFilter:['class']});
   client.auth.onAuthStateChange((event,session) => {
     if (session?.user) setTimeout(()=>void requestOnEntry(),400);
   });
