@@ -52,7 +52,7 @@ NOTA: La carpeta es código fuente para el proyecto de Android Studio; no contie
 - Los cambios en el WebView nativo requieren una **nueva actualización de Google Play**. Los archivos web y CSS se sirven directamente desde Render, pero Android instalado conserva su versión del selector hasta actualizar.
 
 
-## Android nativo v1.8.0 (versionCode 9)
+## Android beta v1.8.1 (versionCode 10)
 
 PICGIFT sigue siendo una arquitectura híbrida con interfaz web alojada en Render y funciones Android nativas dentro de `MainActivity`. No se ha sustituido toda la interfaz por Jetpack Compose.
 
@@ -67,4 +67,4 @@ PICGIFT sigue siendo una arquitectura híbrida con interfaz web alojada en Rende
 
 El workflow `android-debug.yml` ejecuta pruebas Node, compilación Android, Lint y crea un APK de diagnóstico y AAB sin firma de subida. En un Android real deben probarse: selección Drive y galería, captura con cámara, cancelar el selector, abrir notificación con la app cerrada y abierta, recibir una actualización del token FCM, guardar JPG/PNG en Galería, red lenta y sin conexión, cuenta Google y compras de prueba.
 
-**El código compilado no equivale a una publicación en Google Play.** La actualización requiere `app-release.aab` firmado con la clave de subida registrada de PICGIFT y las credenciales privadas en GitHub Actions. No sustituir con otra clave desconocida. El artefacto de la nueva versión se llama `picgift-v1.8.0-code9-android-native-play-signed` solo cuando el workflow de firma termina correctamente.
+**El código compilado no equivale a una publicación en Google Play.** La actualización requiere `app-release.aab` firmado con la clave de subida registrada de PICGIFT y las credenciales privadas en GitHub Actions. No sustituir con otra clave desconocida. El artefacto de la nueva versión se llama `picgift-v1.8.1-beta-code10-play-signed` solo cuando el workflow de firma termina correctamente.

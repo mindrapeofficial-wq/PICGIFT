@@ -24,7 +24,7 @@ Run `node --test tests/experience.test.cjs` and `node --check` on the applicatio
 
 ## Android
 
-Package `com.picgift.myapp` matches the existing Play Console draft. Compile/target SDK 36, minimum 26, version 1.2.0/code 3. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0.
+Package `com.picgift.myapp` matches the existing Play Console draft. Compile/target SDK 36, minimum 26, version 1.8.1-beta/code 10. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0.
 
 Build: `gradle -p android --no-daemon :app:lintRelease :app:assembleDebug :app:bundleRelease`.
 
