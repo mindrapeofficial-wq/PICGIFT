@@ -7,7 +7,7 @@ body.studio-has-photo .welcome-story{display:none}
  .mobile-signin{justify-content:center;flex-wrap:wrap;gap:6px;margin:8px 0 16px}.mobile-signin .google-signin{width:auto;min-width:0;max-width:240px;flex:none;font-size:14px;padding:10px 16px;min-height:44px}.mobile-signin .text-btn{font-size:12px;min-height:44px;padding:8px}
  html[data-campaign="halloween"] body:not(.studio-has-photo) .mobile-app-hero__art{height:90px}.mobile-app-hero__brand{width:155px!important;height:90px!important}
  html[data-campaign="halloween"] body:not(.studio-has-photo) .mobile-app-hero__copy h1{font-size:clamp(28px,8vw,36px);white-space:normal}.mobile-app-hero__copy p{font-size:14px!important;max-width:340px!important;line-height:1.5!important}
- .welcome-story{grid-template-columns:1fr 1fr;padding:13px;gap:10px}.welcome-story h2{font-size:21px}.welcome-art img{height:145px}.welcome-story p{font-size:12px}.studio-session{overflow-wrap:anywhere}
+ .welcome-story{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:20px 13px 16px;gap:10px;flex-shrink:0;margin-top:8px}.welcome-story h2{font-size:21px;line-height:1.25}.welcome-story>div{min-width:0}.welcome-art{align-self:start}.welcome-art img{display:block;height:145px;object-fit:contain;object-position:center top;background:#150c08}.welcome-story p{font-size:12px}.studio-session{overflow-wrap:anywhere}
 }
 @media(max-width:360px){.welcome-story{grid-template-columns:1fr}.welcome-art img{height:140px}}
 /* Use the full mobile viewport, with small gutters for readable, tappable content. */
