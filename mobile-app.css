@@ -273,7 +273,7 @@
  .mobile-app-hero:after{display:none}
  .mobile-app-hero__art{height:143px;align-items:flex-start;position:relative}
  .mobile-app-hero__brand{display:block;width:177px;height:143px;object-fit:contain;object-position:left top;margin-left:-6px;filter:drop-shadow(0 2px 8px #ff6a1420)}
- .mobile-app-hero__settings{width:32px;height:36px;min-width:32px;min-height:36px;padding:4px;border:0;border-radius:0;background:transparent;margin-top:7px;color:#fff0d8}
+ .mobile-app-hero__settings{width:44px;height:44px;min-width:44px;min-height:44px;padding:10px;border:0;border-radius:0;background:transparent;margin-top:7px;color:#fff0d8}
  .mobile-app-hero__settings svg{width:25px;height:25px}
  .mobile-app-hero__copy{margin-top:1px}
  .mobile-app-hero__season{display:none}
@@ -298,7 +298,7 @@
  html[data-campaign="halloween"] .mobile-scene-selector{margin-top:16px}
  html[data-campaign="halloween"] .mobile-scene-selector .studio-section-title{margin:0 0 8px}
  html[data-campaign="halloween"] .mobile-scene-selector h2{font:700 clamp(24px,6.3vw,31px)/1.2 Georgia,serif;letter-spacing:-.8px;padding-right:90px}
- html[data-campaign="halloween"] .mobile-app-all-scenes{top:0;font-size:9px;color:#ffa839;gap:3px;min-height:30px;padding:4px 0;letter-spacing:1px}
+ html[data-campaign="halloween"] .mobile-app-all-scenes{top:0;font-size:9px;color:#ffa839;gap:3px;min-height:44px;padding:4px 0;letter-spacing:1px}
  html[data-campaign="halloween"] .mobile-scene-grid{gap:8px;margin-left:-3px;margin-right:-16px;padding:3px 3px 6px;overflow-y:hidden}
  html[data-campaign="halloween"] .mobile-scene-option{flex:0 0 34.3%;min-height:0;border:1px solid #66472f;border-radius:11px;background:#100906;box-shadow:none;overflow:hidden}
  html[data-campaign="halloween"] .mobile-scene-option img{width:100%;height:auto;aspect-ratio:1.02;object-fit:cover;filter:none}
