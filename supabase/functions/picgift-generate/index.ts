@@ -32,7 +32,7 @@ const allowedPoses:Record<string,string[]>={
 "winter-window":["Asomado a la ventana","Sentado delante"],
 "cozy-cabinet":["Sentado en suelo","Tumbado sobre manta","De pie"]
 };
-Object.assign(allowedPoses,{"halloween-potions":["De pie tras el caldero"],"halloween-autumn-arch":["De pie"],"halloween-pumpkin-bench":["Sentado en el banco"],"halloween-lantern-street":["De pie"]});
+Object.assign(allowedPoses,{"halloween-potions":["De pie tras el caldero"],"halloween-autumn-arch":["De pie"],"halloween-pumpkin-bench":["Sentado en el banco"],"halloween-lantern-street":["De pie"],"halloween-pumpkin-forest":["De pie"],"halloween-haunted-castle":["De pie"],"halloween-portrait-hall":["De pie"],"halloween-enchanted-city":["De pie"]});
 const halloweenOutfits=["Automático para la escena","Brujita de cuento","Pequeño mago","Conservar ropa original"];
 const allowedOutfits=["Automático para la escena","Invierno elegante","Navidad clásica","Pequeño elfo"];
 async function classifiedOpenAiError(response:Response):Promise<string>{
@@ -115,7 +115,7 @@ async function run(jobId:string,owner:string,email:string){
   phase="generating";
   await db.from("picgift_photo_jobs").update({status:"generating",updated_at:new Date().toISOString()}).eq("id",jobId);
   const sceneURL=String(recipe.scene_image_url);
-  if(!/^https:\/\/picgift\.onrender\.com\/assets\/(?:scenes|halloween\/backdrops)\/[a-z-]+\.(?:jpg|webp)$/.test(sceneURL))throw new Error("Escenario no verificado");
+  if(!/^https:\/\/picgift\.onrender\.com\/assets\/(?:scenes|halloween\/(?:backdrops|reference))\/[a-z-]+\.(?:jpg|webp)$/.test(sceneURL))throw new Error("Escenario no verificado");
   const response=await fetch(sceneURL,{signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error("Escenario no accesible");
   const scene=await response.blob();
   const prompt=buildPortraitPrompt(recipe,traits,j,references);

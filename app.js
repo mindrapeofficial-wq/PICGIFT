@@ -10,13 +10,14 @@ function card(s){
  const available=s.source==='picgift',previewable=available||['concept','sample'].includes(s.source),isNew=s.aiNew===true;
  return '<article class="scene-card'+(available?'':' scene-unavailable')+'"'+(previewable?' data-select="'+escapeHTML(s.id)+'" tabindex="0" role="button" aria-label="Ver escenario '+escapeHTML(s.name)+'"':'')+'><div class="scene-pic"><img src="'+imageRef(s)+'" loading="lazy" alt="Decorado de '+escapeHTML(s.name)+'" onerror="this.style.opacity=.1"><span class="scene-label">'+escapeHTML(isNew?'Nueva inspiración':available?'Colección Halloween':'Próximamente')+'</span></div><div class="scene-body"><h3>'+escapeHTML(s.name)+'</h3><p>'+escapeHTML(s.description)+'</p><div class="scene-bottom"><span>'+(available?'Elegir este escenario':isNew?'Ver nueva inspiración':'Decorado de la colección')+'</span>'+(previewable?'<button class="round-arrow" type="button" aria-label="Ver '+escapeHTML(s.name)+'" data-select="'+escapeHTML(s.id)+'">→</button>':'')+'</div></div></article>'
 }
-const referenceScenes=[{"id":"reference-enchanted-city","name":"Ciudad encantada","category":"Fantasía","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/enchanted-city.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-pumpkin-forest","name":"Bosque de calabazas","category":"Bosques","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/pumpkin-forest.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-haunted-castle","name":"Castillo embrujado","category":"Fantasía","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/haunted-castle.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"reference-portrait-hall","name":"Salón de retratos","category":"Clásicos","description":"Nuevo escenario de Halloween. Próximamente disponible para crear retratos.","source":"concept","status":"coming-soon","previewOnly":true,"image":"./assets/halloween/reference/portrait-hall.webp","poses":["De pie"],"ages":"Retratos familiares"}];
+const referenceScenes=[{"id":"halloween-enchanted-city","name":"Ciudad encantada","category":"Fantasía","description":"Escenario de Halloween disponible para crear tu retrato personalizado.","source":"picgift","status":"pilot","previewOnly":false,"image":"./assets/halloween/reference/enchanted-city.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"halloween-pumpkin-forest","name":"Bosque de calabazas","category":"Bosques","description":"Escenario de Halloween disponible para crear tu retrato personalizado.","source":"picgift","status":"pilot","previewOnly":false,"image":"./assets/halloween/reference/pumpkin-forest.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"halloween-haunted-castle","name":"Castillo embrujado","category":"Fantasía","description":"Escenario de Halloween disponible para crear tu retrato personalizado.","source":"picgift","status":"pilot","previewOnly":false,"image":"./assets/halloween/reference/haunted-castle.webp","poses":["De pie"],"ages":"Retratos familiares"},{"id":"halloween-portrait-hall","name":"Salón de retratos","category":"Clásicos","description":"Escenario de Halloween disponible para crear tu retrato personalizado.","source":"picgift","status":"pilot","previewOnly":false,"image":"./assets/halloween/reference/portrait-hall.webp","poses":["De pie"],"ages":"Retratos familiares"}];
 function renderCatalog(){
- scenes=[...referenceScenes,...scenes.filter(s=>!s.id.startsWith("reference-"))];
+ const featuredIds=new Set(referenceScenes.map(scene=>scene.id));
+  scenes=[...referenceScenes,...scenes.filter(scene=>!featuredIds.has(scene.id)&&!scene.id.startsWith("reference-"))];
  $('home-scenes').innerHTML=[...scenes.filter(s=>s.aiNew),...scenes.filter(s=>!s.aiNew)].slice(0,3).map(card).join('');
  $('collection-scenes').innerHTML=scenes.filter(s=>filter==='Todos'||s.category===filter).map(card).join('')||'<div class="notice">No hay escenarios en esta categoría.</div>';
  $('credits-list').innerHTML='<p>Fotografías de muestra autorizadas y decorados de la colección PICGIFT. Las imágenes ilustran el estilo; cada retrato personalizado puede variar.</p>';
- if(!selected&&scenes.length)selectScene("reference-pumpkin-forest",false);
+ if(!selected&&scenes.length)selectScene("halloween-pumpkin-forest",false);
  renderMobileScenes();updateStudio();
 }
 async function availablePublicWebp(path){
@@ -123,8 +124,8 @@ async function loadCatalog(){
 }
 function renderMobileScenes(){
  const wrap=$('mobile-scenes');if(!wrap)return;
- const order=['reference-pumpkin-forest','reference-haunted-castle','reference-portrait-hall','reference-enchanted-city','halloween-pumpkin-bench','halloween-autumn-arch','halloween-lantern-street','halloween-potions'];
- const available=[...scenes].sort((a,b)=>(order.indexOf(a.id)===-1?99:order.indexOf(a.id))-(order.indexOf(b.id)===-1?99:order.indexOf(b.id)));
+ const order=['halloween-pumpkin-forest','halloween-haunted-castle','halloween-portrait-hall','halloween-enchanted-city','halloween-pumpkin-bench','halloween-autumn-arch','halloween-lantern-street','halloween-potions'];
+ const available=scenes.filter(scene=>scene.source==='picgift').sort((a,b)=>(order.indexOf(a.id)===-1?99:order.indexOf(a.id))-(order.indexOf(b.id)===-1?99:order.indexOf(b.id)));
  wrap.innerHTML=available.map(s=>'<button type="button" class="mobile-scene-option'+(selected?.id===s.id?' is-selected':'')+'" data-select="'+escapeHTML(s.id)+'" aria-pressed="'+(selected?.id===s.id)+'" aria-label="Elegir '+escapeHTML(s.name)+'"><img loading="lazy" src="'+imageRef(s)+'" alt=""><span>'+escapeHTML(s.name)+'</span><span class="mobile-scene-check" aria-hidden="true">✓</span></button>').join('');
 }
 function updateStudio(){
@@ -153,6 +154,7 @@ function updateStudio(){
 window.picgiftStudioUpdate=updateStudio;
 function selectScene(id,goToCreate=true){
  const scene=scenes.find(x=>x.id===id);if(!scene)return;
+  if(scene.source!=='picgift'){toast('Este escenario es solo de inspiración y todavía no admite fotografías. Elige un decorado disponible.');return;}
  selected=scene;
  $('selected-scene-image').src=scene.image;
  $('selected-scene-title').textContent=scene.name;
