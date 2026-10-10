@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}};
 function harness(){
  const elements=new Map(),events={},renders=[],queries=[],links=[];
- const element=id=>{if(!elements.has(id))elements.set(id,{style:{},dataset:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},setAttribute(){},removeAttribute(name){delete this[name]},replaceChildren(){}});return elements.get(id)};
+ const element=id=>{if(!elements.has(id))elements.set(id,{style:{},dataset:{},listeners:{},classList:{add(){},remove(){},toggle(){}},addEventListener(name,fn){this.listeners[name]=fn},setAttribute(){},removeAttribute(name){delete this[name]},replaceChildren(){}});return elements.get(id)};
  const client={from(){return {select(){return this},order(){return this},limit(){const request=deferred();queries.push(request);return request.promise}}},storage:{from(){return {createSignedUrl(){const request=deferred();links.push(request);return request.promise}}}},auth:{getUser:()=>new Promise(()=>{})}};
  const context=vm.createContext({createClient:()=>client,SUPABASE_URL:'test',SUPABASE_PUBLISHABLE_KEY:'test',document:{readyState:'loading',hidden:false,getElementById:element,querySelectorAll:()=>[],addEventListener:(name,fn)=>events[name]=fn},window:{addEventListener:(name,fn)=>events[name]=fn,picgiftRenderGallery:items=>renders.push(items)},console:{warn(){}},setInterval(){},clearInterval(){},Date});
  vm.runInContext(fs.readFileSync('generator.js','utf8').replace(/^import .*;\r?\n/gm,''),context);
@@ -14,6 +14,41 @@ function harness(){
 }
 const job=id=>({id,scene_id:'halloween-potions',status:'completed',result_path:id+'.jpg',created_at:new Date().toISOString()});
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
+
+test('an empty gallery clears the previous portrait and download',async()=>{
+ const h=harness();h.element('result-sample').src='https://old/photo';h.element('download-result').href='https://old/download';
+ h.run('currentJob={id:"deleted-photo"};activeId="deleted-photo"');
+ const pending=h.run('refreshGallery()');h.queries[0].resolve({data:[],error:null});await pending;
+ assert.equal(h.element('result-sample').src,undefined);assert.equal(h.element('download-result').href,undefined);
+ assert.equal(h.run('currentJob'),null);assert.equal(h.run('activeId'),null);
+});
+test('a delete completing after logout does not refresh or show success in the new session',async()=>{
+ const h=harness(),request=deferred();h.context.confirm=()=>true;h.context.window.picgiftI18n={t:text=>text};
+ h.context.deleteWait=request.promise;h.run('init();invoke=()=>deleteWait');
+ const pending=h.run('removePhoto("old-photo")');await h.events['picgift:auth']({detail:{user:null}});
+ request.resolve({});await settle();for(const query of h.queries)query.resolve({data:[],error:null});await pending;
+ assert.equal(h.queries.length,0);assert.match(h.element('generator-status').textContent,/Inicia sesión/);
+});
+test('a status failure after logout cannot put a warning into the new session',async()=>{
+ const h=harness(),request=deferred();h.context.statusWait=request.promise;h.run('init();invoke=()=>statusWait');
+ const pending=h.element('refresh-job').listeners.click();await h.events['picgift:auth']({detail:{user:null}});
+ request.resolve(Promise.reject(Error('old-session failure')));await pending;
+ assert.equal(h.element('progress-warning').textContent,undefined);assert.equal(h.queries.length,0);
+ assert.equal(h.element('refresh-job').disabled,false);
+});
+test('a delayed identity lookup cannot submit an old portrait report after logout',async()=>{
+ const h=harness(),identity=deferred(),inserts=[];h.client.auth.getUser=()=>identity.promise;
+ h.context.document.querySelector=()=>h.element('report');h.client.from=()=>({insert:async value=>{inserts.push(value);return {}}});h.run('init()');
+ const pending=h.run('reportPortrait("old-photo")');await h.events['picgift:auth']({detail:{user:null}});
+ identity.resolve({data:{user:{id:'old-account'}}});await pending;
+ assert.equal(inserts.length,0);
+});
+test('a failed portrait report is retryable and does not reject its click handler',async()=>{
+ const h=harness();h.client.auth.getUser=async()=>({data:{user:{id:'account'}}});
+ h.context.document.querySelector=()=>h.element('report');h.client.from=()=>({insert:async()=>{throw Error('offline')}});
+ await h.run('reportPortrait("photo")');assert.equal(h.element('report').disabled,false);
+ assert.match(h.element('report').textContent,/Inténtalo de nuevo/);
+});
 test('returning to a visible app and reconnecting refresh completed photos without an active job',async()=>{
  const h=harness();h.run('init(); galleryAuthenticated=true; activeId=null');
  h.events.visibilitychange();assert.equal(h.queries.length,1);

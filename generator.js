@@ -319,6 +319,10 @@ async function refreshGallery(){
   }else{
     $('download-result').classList.add('hidden');
   }
+ }else if(!(activeId&&(!currentJob||['queued','analyzing','generating','reviewing'].includes(currentJob.status)))){
+  activeId=null;currentJob=null;stopPolling();
+  $('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');
+  $('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');
  }
  return lastJobs;
  }catch(e){
@@ -336,6 +340,7 @@ function clearPrivateGallery(){
  galleryRevision++;stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];
  $('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');
  $('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden');
+ $('refresh-job').disabled=false;$('refresh-job').textContent='Comprobar estado';
 }
 function stopPolling(){if(poller){clearInterval(poller);poller=null}if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}}
 function startPolling(){
@@ -356,20 +361,28 @@ function startPolling(){
 }
 async function removePhoto(id){
  if(!confirm(window.picgiftI18n.t('¿Eliminar de forma definitiva esta fotografía, el original subido y su resultado?')))return;
- try{await invoke({action:'delete',job_id:id});if(id===activeId){activeId=null;currentJob=null;stopPolling();$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden')}await refreshGallery();status('Fotografía eliminada de tu espacio privado.')}catch(e){status('No se pudo eliminar: '+e.message)}
+ const revision=authRevision;
+ try{
+  await invoke({action:'delete',job_id:id});if(revision!==authRevision)return;
+  if(id===activeId){activeId=null;currentJob=null;stopPolling();$('real-result').classList.add('hidden');$('result-empty').classList.remove('hidden')}
+  await refreshGallery();if(revision===authRevision)status('Fotografía eliminada de tu espacio privado.');
+ }catch(e){if(revision===authRevision)status('No se pudo eliminar: '+e.message)}
 }
 function init(){
  window.addEventListener('picgift:generate',create);
 
  $('refresh-job').addEventListener('click',async()=>{
-  const btn=$('refresh-job');btn.disabled=true;btn.textContent='Comprobando…';
+  const btn=$('refresh-job');if(btn.disabled)return;
+  const revision=authRevision;btn.disabled=true;btn.textContent='Comprobando…';
   try{
     await invoke({action:'status'});
+    if(revision!==authRevision)return;
     await refreshGallery();
   }catch{
+    if(revision!==authRevision)return;
     $('progress-warning').textContent='No se ha podido contactar con el servidor. Vuelve a intentarlo en unos segundos.';
     $('progress-warning').classList.remove('hidden');
-  }finally{btn.disabled=false;btn.textContent='Comprobar estado'}
+  }finally{if(revision===authRevision){btn.disabled=false;btn.textContent='Comprobar estado'}}
  });
  window.addEventListener('picgift:auth',async e=>{
   const revision=++authRevision;
@@ -389,8 +402,10 @@ function init(){
   if(!job)return;
   $('result-name').textContent=labels[job.scene_id]||'PICGIFT';
   window.dispatchEvent(new CustomEvent('picgift:route',{detail:{name:'resultado'}}));
-  await refreshGallery();
-  if(['queued','analyzing','generating','reviewing'].includes(job.status))startPolling();
+  const revision=authRevision;
+  const jobs=await refreshGallery();if(revision!==authRevision||activeId!==open)return;
+  const latest=jobs?.find(j=>j.id===open);
+  if(latest&&['queued','analyzing','generating','reviewing'].includes(latest.status))startPolling();
  });
  document.addEventListener('visibilitychange',resumeGallery);
  window.addEventListener('online',resumeGallery);
@@ -400,11 +415,20 @@ function init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
 async function reportPortrait(id){
- const {data:{user}}=await client.auth.getUser();if(!user)return;
- const btn=document.querySelector('[data-report-job="'+id+'"]');if(!btn)return;btn.disabled=true;
- const {error}=await client.from('picgift_content_reports').insert({user_id:user.id,job_id:id,reason:'other'});
- btn.textContent=!error||error.code==='23505'?'Informe recibido. Revisaremos este retrato.':'No se pudo enviar el informe. Inténtalo de nuevo.';
- btn.disabled=!error||error.code==='23505';
+ const revision=authRevision;
+ const btn=document.querySelector('[data-report-job="'+id+'"]');if(!btn||btn.disabled)return;btn.disabled=true;
+ try{
+  const {data:{user}}=await client.auth.getUser();if(revision!==authRevision)return;
+  if(!user){btn.disabled=false;return}
+  const {error}=await client.from('picgift_content_reports').insert({user_id:user.id,job_id:id,reason:'other'});
+  if(revision!==authRevision)return;
+  const received=!error||error.code==='23505';
+  btn.textContent=received?'Informe recibido. Revisaremos este retrato.':'No se pudo enviar el informe. Inténtalo de nuevo.';
+  btn.disabled=received;
+ }catch{
+  if(revision!==authRevision)return;
+  btn.textContent='No se pudo enviar el informe. Inténtalo de nuevo.';btn.disabled=false;
+ }
 }
 document.addEventListener('click',event=>{const btn=event.target.closest('[data-report-job]');if(btn)reportPortrait(btn.dataset.reportJob)});
 window.addEventListener('picgift:language',()=>{if(lastJobs.length)refreshGallery()});
