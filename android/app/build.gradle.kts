@@ -18,8 +18,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.8.0-android-native"
+        versionCode = 10
+        versionName = "1.8.1-beta"
     }
     buildFeatures { buildConfig = true }
     defaultConfig {
@@ -27,6 +27,9 @@ android {
         buildConfigField("String", "PICGIFT_GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
     val uploadStore = System.getenv("PICGIFT_UPLOAD_STORE")
+    if (!uploadStore.isNullOrBlank() && googleWebClientId.isBlank()) {
+        throw GradleException("Google OAuth web client ID is required for signed PICGIFT releases.")
+    }
     if (!uploadStore.isNullOrBlank() && !firebaseConfigPresent) {
         throw GradleException("Firebase Android configuration is required for signed PICGIFT releases.")
     }

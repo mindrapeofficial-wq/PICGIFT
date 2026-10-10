@@ -40,7 +40,7 @@ jobs:
               p=f'assets/halloween/icon-{sz}.png'
               os.makedirs(os.path.dirname(p),exist_ok=True)
               square(sz).save(p,optimize=True)
-          p='android/app/src/main/res/drawable/ic_launcher_official.png'
+          p='android/app/src/main/res/drawable-nodpi/ic_launcher_official.png'
           os.makedirs(os.path.dirname(p),exist_ok=True)
           square(512).save(p,optimize=True)
           print('Generated icon-192.png, icon-512.png, and Android official launcher asset')
@@ -49,7 +49,7 @@ jobs:
         run: |
           git config user.name "PICGIFT Asset Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/halloween/icon-192.png assets/halloween/icon-512.png android/app/src/main/res/drawable/ic_launcher_official.png
+          git add assets/halloween/icon-192.png assets/halloween/icon-512.png android/app/src/main/res/drawable-nodpi/ic_launcher_official.png
           if ! git diff --cached --quiet; then
             git commit -m "assets: official PICGIFT Halloween logo used by PWA and Android icons"
             git push origin HEAD:main

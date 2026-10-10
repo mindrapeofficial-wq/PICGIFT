@@ -49,8 +49,8 @@ test('push notifications open allowed Android routes and deliver them into the w
 test('Android integration increments version while preserving existing package and secure auth',()=>{
  const gradle=read('android/app/build.gradle.kts');
  assert.match(gradle,/applicationId = "com.picgift.myapp"/);
- assert.match(gradle,/versionCode = 9/);
- assert.match(gradle,/versionName = "1.8.0-android-native"/);
+ assert.match(gradle,/versionCode = 10/);
+ assert.match(gradle,/versionName = "1.8.1-beta"/);
  assert.match(android,/trustedPicgiftPage\(\)/);
  assert.match(android,/GoogleCredentialSignIn/);
  assert.match(android,/connectBilling\(\)/);

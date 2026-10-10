@@ -1,6 +1,7 @@
 package com.picgift.myapp
 
 import androidx.appcompat.app.AppCompatActivity
+import android.os.CancellationSignal
 import androidx.core.content.ContextCompat
 import androidx.credentials.CustomCredential
 import androidx.credentials.CredentialManager
@@ -30,24 +31,28 @@ internal class GoogleCredentialSignIn(
 ) {
     private val credentialManager by lazy { CredentialManager.create(activity) }
     private val random = SecureRandom()
-    private val clientId: String by lazy {
-        BuildConfig.PICGIFT_GOOGLE_WEB_CLIENT_ID.ifBlank {
-            val resource = activity.resources.getIdentifier("default_web_client_id", "string", activity.packageName)
-            if (resource != 0) activity.getString(resource) else ""
-        }
-    }
+    private val clientId = BuildConfig.PICGIFT_GOOGLE_WEB_CLIENT_ID
     val isConfigured get() = clientId.endsWith(".apps.googleusercontent.com") &&
         clientId.length < 256
 
     private var busy = false
+    private var cancellation: CancellationSignal? = null
+
+    fun cancel() {
+        val previous = cancellation
+        cancellation = null
+        busy = false
+        previous?.cancel()
+    }
 
     fun signIn(automatic: Boolean) {
-        if (busy) return
+        if (busy || activity.isFinishing || activity.isDestroyed) return
         if (!isConfigured) {
             onFailure("unavailable")
             return
         }
         busy = true
+        cancellation = CancellationSignal()
         val nonce = ByteArray(32).also { random.nextBytes(it) }
             .joinToString("") { "%02x".format(it.toInt() and 0xff) }
         val hashedNonce = MessageDigest.getInstance("SHA-256")
@@ -87,36 +92,51 @@ internal class GoogleCredentialSignIn(
         nonce: String,
         onCredentialError: (GetCredentialException) -> Unit
     ) {
+        val signal = cancellation ?: return
+        try {
         credentialManager.getCredentialAsync(
-            activity, request, null, ContextCompat.getMainExecutor(activity),
+            activity, request, signal, ContextCompat.getMainExecutor(activity),
             object : CredentialManagerCallback<GetCredentialResponse, GetCredentialException> {
                 override fun onResult(result: GetCredentialResponse) {
+                    if (cancellation !== signal || activity.isFinishing || activity.isDestroyed) return
                     val credential = result.credential
                     if (credential !is CustomCredential ||
                         credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                         busy = false
+                        cancellation = null
                         onFailure("invalid-credential")
                         return
                     }
                     try {
                         val token = GoogleIdTokenCredential.createFrom(credential.data).idToken
                         busy = false
+                        cancellation = null
                         onToken(token, nonce)
                     } catch (_: Exception) {
                         busy = false
+                        cancellation = null
                         onFailure("invalid-credential")
                     }
                 }
 
                 override fun onError(e: GetCredentialException) {
+                    if (cancellation !== signal || activity.isFinishing || activity.isDestroyed) return
                     onCredentialError(e)
                 }
             }
         )
+        } catch (_: Exception) {
+            if (cancellation === signal) {
+                busy = false
+                cancellation = null
+                onFailure("unavailable")
+            }
+        }
     }
 
     private fun finishFailure(error: GetCredentialException) {
         busy = false
+        cancellation = null
         onFailure(if (error is GetCredentialCancellationException) "cancelled" else "failed")
     }
 }

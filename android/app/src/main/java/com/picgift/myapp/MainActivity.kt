@@ -47,6 +47,12 @@ class MainActivity : AppCompatActivity() {
     private var currentAccount: String? = null
     private var pageReady = false
     private val googleSignIn by lazy { GoogleCredentialSignIn(this, ::deliverGoogleToken, ::googleSignInError) }
+    private val nativePush by lazy {
+        NativePushController(this) { detail ->
+            if (::web.isInitialized && trustedPicgiftPage())
+                web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:native-push',{detail:$detail}));", null)
+        }
+    }
     private lateinit var loading: ProgressBar
     private lateinit var failure: LinearLayout
     private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
@@ -131,6 +137,8 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         setContentView(root)
+        // Register permission callbacks before the activity reaches STARTED.
+        nativePush
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.allowFileAccess = false
@@ -229,6 +237,9 @@ class MainActivity : AppCompatActivity() {
                             return@addWebMessageListener
                         }
                         "products" -> { runOnUiThread { queryPrices() }; return@addWebMessageListener }
+                        "notifications-enable" -> { runOnUiThread { nativePush.enable() }; return@addWebMessageListener }
+                        "notifications-disable" -> { runOnUiThread { nativePush.disable() }; return@addWebMessageListener }
+                        "notifications-status" -> { runOnUiThread { nativePush.status() }; return@addWebMessageListener }
                         "google-native" -> {
                             val automatic = req.optString("mode") == "auto"
                             runOnUiThread { googleSignIn.signIn(automatic) }
@@ -253,10 +264,12 @@ class MainActivity : AppCompatActivity() {
         }
         web.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                googleSignIn.cancel()
                 pageReady = false
                 currentAccount = null
             }
             override fun onPageFinished(view: WebView?, url: String?) {
+                if (!trustedPicgiftPage()) return
                 val supported = googleSignIn.isConfigured
                 web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
                 dispatchNativeRoute()
@@ -439,6 +452,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (::web.isInitialized) web.onResume()
         if (::billing.isInitialized) restorePurchases()
+        if (::web.isInitialized && trustedPicgiftPage()) nativePush.status()
     }
 
     override fun onPause() {
@@ -492,6 +506,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        googleSignIn.cancel()
         pendingFileUpload?.onReceiveValue(null)
         pendingFileUpload = null
         if (::billing.isInitialized) billing.endConnection()
