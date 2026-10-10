@@ -1,7 +1,7 @@
 /* PICGIFT Halloween 2026: only public static assets are cached.
    Never intercept cross-origin Supabase / OpenAI requests, authenticated API responses,
    private photos, signed URLs, POST requests or non-public objects. */
-const VERSION="picgift-shell-icons-20261010-v1";
+const VERSION="picgift-shell-payments-20261010-v1";
 const SHELL=["/app-icons.js","/app-icons.css","/assets/icons/picgift.svg","/mobile-scrollbars.css","/welcome.css","/first-steps.js",
  "/google-native.js","/assets/google-g.svg","/native-auth-return.js","/native-auth.css","/native-notifications.js",
  "/app-shell.css","/app-shell.js","/assets/halloween/reference/enchanted-city.webp",

@@ -37,8 +37,57 @@ function mockStore() {
   from:()=>({select:()=>({order:()=>({limit:async()=>({data:[],error:null})})})})
  };
  const context={document,window,createClient:()=>client,SUPABASE_URL:'https://test.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',setInterval:()=>{},Intl,Date,URL};
- return {context,listeners,buttons,amounts,sent,el};
+ return {context,listeners,buttons,amounts,sent,el,client};
 }
+
+const settle=()=>new Promise(resolve=>setImmediate(resolve));
+async function readyStore(){
+ const env=mockStore();
+ vm.runInNewContext(fs.readFileSync('payments.js','utf8').replace(/^import .*;\s*$/gm,''),env.context,{filename:'payments.js'});
+ env.listeners['document:DOMContentLoaded']();await settle();await settle();
+ env.listeners['picgift:play-prices']({detail:{esencial:'7,90 €',magico:'19,92 €',familiar:'31,92 €'}});
+ return env;
+}
+const clickPack=(env,id)=>env.listeners['document:click']({target:{closest:()=>env.buttons.find(b=>b.dataset.buy===id)}});
+
+test('cancelled and pending Play dialogs release the checkout without granting credits',async()=>{
+ const env=await readyStore();
+ let verifications=0;
+ const invoke=env.client.functions.invoke;
+ env.client.functions.invoke=async(name,opts)=>{if(name==='picgift-google-play')verifications++;return invoke(name,opts)};
+ clickPack(env,'esencial');clickPack(env,'magico');await settle();
+ assert.equal(env.sent.filter(x=>x.action==='purchase').length,1,'only one dialog can start');
+ assert.ok(env.buttons.every(b=>b.disabled));
+ env.listeners['picgift:play-prices']({detail:{esencial:'7,90 €',magico:'19,92 €',familiar:'31,92 €'}});
+ assert.ok(env.buttons.every(b=>b.disabled),'a catalog callback cannot release an active checkout');
+ assert.match(env.el('payment-status').textContent,/Solicitando/);
+ env.listeners['picgift:play-cancelled']();
+ assert.ok(env.buttons.every(b=>!b.disabled));
+ assert.match(env.el('payment-status').textContent,/cancelada/);
+ clickPack(env,'esencial');await settle();env.listeners['picgift:play-pending']();
+ assert.ok(env.buttons.every(b=>!b.disabled));
+ assert.match(env.el('payment-status').textContent,/Pendiente/);
+ assert.equal(verifications,0,'cancelled and pending payments are never credited');
+ assert.equal(env.context.window.picgiftCreditsAvailable,0);
+});
+
+test('failed receipt validation unlocks retry and duplicate callbacks do not revalidate concurrently',async()=>{
+ const env=await readyStore();
+ let finish,verifications=0;
+ const invoke=env.client.functions.invoke;
+ env.client.functions.invoke=(name,opts)=>name==='picgift-google-play'
+  ?(verifications++,new Promise(resolve=>{finish=resolve})):invoke(name,opts);
+ const detail={product_id:'esencial',purchase_token:'test-token'};
+ env.listeners['picgift:play-purchase']({detail});env.listeners['picgift:play-purchase']({detail});
+ assert.equal(verifications,1);assert.ok(env.buttons.every(b=>b.disabled));
+ finish({data:null,error:{message:'provider unavailable'}});await settle();
+ assert.ok(env.buttons.every(b=>!b.disabled));
+ assert.match(env.el('payment-status').textContent,/Conserva el recibo/);
+ assert.equal(env.context.window.picgiftCreditsAvailable,0);
+ env.listeners['picgift:play-purchase']({detail});assert.equal(verifications,2,'the restored token can be retried');
+ finish({data:{success:true},error:null});await settle();await settle();
+ assert.match(env.el('payment-status').textContent,/Compra verificada/,'refresh must not erase the verified message');
+});
 test('native purchases stay disabled until Play returns each product price',async()=>{
  const env=mockStore();
  const source=fs.readFileSync('payments.js','utf8').replace(/^import .*;\s*$/gm,'');

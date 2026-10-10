@@ -99,7 +99,9 @@ class MainActivity : AppCompatActivity() {
             .setListener { result, purchases ->
                 if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
                     deliverPurchases(purchases)
-                } else if (result.responseCode != BillingClient.BillingResponseCode.USER_CANCELED) {
+                } else if (result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
+                    if (::web.isInitialized) web.post { web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:play-cancelled'));", null) }
+                } else {
                     if (::web.isInitialized) web.post { web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:play-error'));", null) }
                 }
             }

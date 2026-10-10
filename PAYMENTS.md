@@ -7,7 +7,7 @@
 | magico | PICGIFT Mágico | 24,90 € | 5 | picgift_magico_5 |
 | familiar | PICGIFT Familiar | 39,90 € | 10 | picgift_familiar_10 |
 
-La web muestra precios públicos desde octubre de 2026. Los botones de compra se desbloquean **solo** con PICGIFT_SALES_ENABLED=true y proveedor de cobro configurado. Mantener el flag **desactivado** hasta que la generación IA se haya probado, estén aprobadas las condiciones de venta, y existan contratos/consentimientos para fotos infantiles.
+La web muestra precios públicos desde octubre de 2026. `PICGIFT_SALES_ENABLED` controla Stripe y `PICGIFT_GOOGLE_PLAY_ENABLED` controla Android; ambos requieren su proveedor configurado. Mantener las ventas desactivadas hasta completar la validación de generación y compra.
 
 ## Pagos web: Stripe Checkout
 Supabase PICGIFT: https://supabase.com/dashboard/project/uimrvgrpenccijumyiek/functions
@@ -19,7 +19,7 @@ Supabase PICGIFT: https://supabase.com/dashboard/project/uimrvgrpenccijumyiek/fu
 **Atención:** la conexión de Stripe en ChatGPT no equivale a configurar automáticamente las claves de Stripe en Supabase. Hasta que estén disponibles esos secretos y se haga una compra de prueba, la integración no está validada de extremo a extremo.
 
 ## Compras Android mediante Google Play Billing
-- Proyecto fuente Android Studio en android/; **sin APK compilado ni firmado**.
+- Proyecto fuente Android Studio en android/; AAB beta firmadas disponibles en las entregas del proyecto. La versión 1.8.4-beta usa el código 13 y añade aviso de cancelación de Google Play; necesita instalación para probar ese cambio nativo.
 - Play Billing Library 9.1.0, productos consumibles de compra única. Se necesita una aplicación creada en Play Console, productos configurados y canal interno de pruebas.
 - Supabase Edge Function picgift-google-play valida la compra contra Google Play Android Publisher API v2, estado PURCHASED, producto y huella SHA256 de la cuenta PICGIFT; rechaza el token ya asociado a otra cuenta; acredita una sola vez y consume el token.
 - Secretos adicionales requeridos: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON (cuenta de servicio con Android Publisher API) y GOOGLE_PLAY_PACKAGE_NAME (mismo applicationId de la app). No incluir el JSON de cuenta de servicio en Android, repositorio ni frontend.
@@ -35,13 +35,21 @@ Supabase PICGIFT: https://supabase.com/dashboard/project/uimrvgrpenccijumyiek/fu
 - Antes del lanzamiento: conciliación diaria con Stripe y Google, alertas sobre pagos/reembolsos, política de expiración/reembolsos, impuestos, facturas y configuración del tratamiento de datos de menores.
 
 ## Activación comercial (pendiente)
-1. Activar primero la generación real en Supabase con la OpenAI API y hacer pruebas con un adulto autorizado.
+1. Completar el recorrido de generación y descarga con un participante autorizado. Hay generación habilitada para participantes de prueba; eso no acredita el recorrido después de comprar.
 2. Conectar Stripe, obtener STRIPE_SECRET_KEY, crear el endpoint de webhook y guardar STRIPE_WEBHOOK_SECRET.
-3. Crear la app en Google Play Console, definir productos, firmar/AAB, configurar service account y ejecutar compra de prueba.
+3. En la app existente de Google Play Console, definir los productos, configurar la cuenta de servicio y ejecutar una compra de prueba desde la beta firmada.
 4. Realizar pruebas de pago, crédito, consumo, error, reembolso, duplicado, logout y acceso desde otra sesión.
 5. Solo entonces establecer PICGIFT_SALES_ENABLED=true en Supabase (preferiblemente primero con Stripe en test mode).
 
 Hasta ese momento **no hay sistema de cobro real habilitado** y no se entregará ninguna prestación de pago.
+
+## Verificación del 10 de octubre de 2026
+
+Play Console → Productos únicos muestra el catálogo vacío. El inventario de secretos de Supabase no contiene las cuatro variables de Google Play indicadas abajo. No se ha activado ningún cobro ni concedido permisos nuevos a una cuenta de servicio en esta revisión.
+
+Una prueba real de base de datos con rollback comprobó la acreditación, repetición idempotente, una única entrada de crédito y rechazo de pedidos reembolsados e inexistentes. La validación completa aún necesita el recibo de Google, crédito, consumo del producto, reinicio sin duplicados y creación/descarga de una foto.
+
+La interfaz bloquea nuevos pagos mientras está abierto el diálogo o se valida el recibo, comunica cancelaciones y libera los botones ante fallos. Una compra pendiente no concede créditos. Un token cuya validación falla puede recuperarse y volver a verificarse al restaurar compras; no se considera pagado por un evento del navegador.
 
 
 ## Activación independiente de Google Play (9 de octubre de 2026)
