@@ -13,7 +13,7 @@ try{
  await page.waitForSelector('#mobile-scenes button',{timeout:12000});
  await page.locator('#splash').waitFor({state:'hidden',timeout:8000});
  await page.waitForTimeout(150);
- assert.equal(await page.locator('.mobile-nav button').count(),6);
+ assert.equal(await page.locator('.mobile-nav button').count(),5);
  assert.ok(await page.locator('.mobile-app-hero').isVisible());
  assert.ok(await page.locator('#generate').isVisible());
  assert.ok(await page.locator('#mobile-scenes button').count()>=3);
@@ -84,7 +84,7 @@ try{
  await page.locator('.mobile-nav button[data-route="crear"]').click();
  await page.waitForSelector('#picgift-studio:visible',{timeout:8000});
  assert.equal(errors.filter(e=>!e.includes('Failed to fetch')).length,0,errors.join('; ').slice(0,350));
- console.log('PASS: mobile creator, 6 nav actions, aligned three-step welcome, carousel, file picker, preview, login gate, route restore');
+ console.log('PASS: mobile creator, 5 nav actions, aligned three-step welcome, carousel, file picker, preview, login gate, route restore');
  console.log('Screenshot: artifacts/picgift-mobile-halloween.png');
 } finally{
  await page.close();

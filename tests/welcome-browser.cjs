@@ -8,10 +8,13 @@ const mock=`export function createClient(){const user={id:'11111111-1111-1111-11
 await page.route(/^https?:\/\/(?!127\.0\.0\.1)/,r=>r.request().url().startsWith('https://esm.sh/@supabase/supabase-js@')?r.fulfill({contentType:'text/javascript',body:mock}):r.abort());
 await page.addInitScript(()=>{localStorage.setItem('picgift.language','es');window.nativeRequests=[];window.PicgiftNative={postMessage:message=>window.nativeRequests.push(JSON.parse(message))};window.picgiftNativeGoogleSupported=true});
 await page.goto('http://127.0.0.1:8133/#crear');await page.waitForSelector('#first-steps[open]');await page.waitForFunction(()=>[...document.querySelectorAll('#first-steps img')].length===3&&[...document.querySelectorAll('#first-steps img')].every(i=>i.complete&&i.naturalWidth>0));await page.screenshot({path:path.join(out,'01-primeros-pasos.png')});assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);
-await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();await page.waitForFunction(()=>window.nativeRequests.some(x=>x.action==='notifications-enable'));await page.waitForTimeout(1600);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,1);assert.equal(await page.locator('#mobile-signin').isVisible(),false);await page.screenshot({path:path.join(out,'02-bienvenida.png')});
+await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();await page.waitForFunction(()=>window.nativeRequests.some(x=>x.action==='notifications-enable'));await page.waitForTimeout(1600);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,1);assert.equal(await page.locator('#mobile-signin').isVisible(),false);await page.screenshot({path:path.join(out,'02-bienvenida.png')});await page.locator('.mobile-nav').screenshot({path:path.join(out,'barra-centrada.png')});
 // The actual app must not submit the previous account's photo when editing finishes late.
 await page.locator('#photo').setInputFiles(path.join(root,'assets/halloween/journey/result.webp'));
 await page.waitForSelector('#upload-loaded:not(.hidden)');
+await page.locator('.crop-editor summary').click();
+assert.equal(await page.locator('.crop-editor').evaluate(e=>e.open),true);
+assert.equal(await page.locator('#crop-canvas').isVisible(),true);
 await page.locator('.mobile-scene-option[data-select="halloween-pumpkin-bench"]').click();
 await page.locator('#photo-ai-consent').check();
 await page.evaluate(()=>{
@@ -37,6 +40,12 @@ await page.evaluate(()=>{window.picgiftPhotoEditor.exportFile=window.testOrigina
 if(await page.locator('#first-steps').evaluate(e=>e.open))await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();
 for(const width of [320,390,768]){
  await page.setViewportSize({width,height:640});
+ const geometry=await page.locator('.mobile-nav').evaluate(nav=>{const buttons=[...nav.querySelectorAll('button')],icons=buttons.map(b=>{const r=b.querySelector('svg').getBoundingClientRect();return r.y+r.height/2}),camera=buttons[2].getBoundingClientRect();return {count:buttons.length,center:camera.x+camera.width/2,width:innerWidth,icons,targets:buttons.map(b=>{const r=b.getBoundingClientRect();return {width:r.width,height:r.height}})}});
+ assert.equal(geometry.count,5);
+ assert.ok(Math.abs(geometry.center-geometry.width/2)<1,'Camera must be centered: '+JSON.stringify(geometry));
+ assert.ok(Math.max(...geometry.icons)-Math.min(...geometry.icons)<1,'Icons must share one baseline');
+ assert.ok(geometry.targets.every(r=>r.width>=44&&r.height>=44),'Navigation touch targets must be at least 44px');
+
  await page.locator('body').press('Control+End');await page.waitForTimeout(300);
  const layout=await page.evaluate(()=>{const scenes=document.querySelector('.mobile-scene-grid').getBoundingClientRect(),nav=document.querySelector('.mobile-nav').getBoundingClientRect();return {sceneBottom:scenes.bottom,navTop:nav.top,navBottom:nav.bottom,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth}});
  assert.ok(layout.sceneBottom<=layout.navTop,'Scenarios covered by navigation at '+width+': '+JSON.stringify(layout));assert.ok(Math.abs(layout.navBottom-layout.height)<1,'Gap below the menu: '+JSON.stringify(layout));assert.equal(layout.overflow,false);
