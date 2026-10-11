@@ -48,8 +48,8 @@ html[data-campaign="halloween"] .upload-zone:focus-within{
  html[data-campaign="halloween"] .mobile-nav button:focus-visible{outline:2px solid #ffbd67;outline-offset:-2px;border-radius:12px}
  html[data-campaign="halloween"] .mobile-nav button:before,
  html[data-campaign="halloween"] .mobile-nav button:after{display:none}
- html[data-campaign="halloween"] .mobile-nav button.mobile-nav__camera{gap:4px}
+ html[data-campaign="halloween"] .mobile-nav button.mobile-nav__camera{grid-template-rows:1fr;gap:0}
  html[data-campaign="halloween"] .mobile-nav .camera-emblem{width:46px;height:46px;margin:0;border-radius:15px;max-width:none;background:linear-gradient(145deg,#ffd483,#ffad36);color:#231307;box-shadow:0 3px 10px #0004}
  html[data-campaign="halloween"] .mobile-nav .camera-emblem svg{width:28px;height:28px}
- html[data-campaign="halloween"] .mobile-nav__spacer{height:16px}
+ html[data-campaign="halloween"] .mobile-nav__spacer{display:none}
 }
