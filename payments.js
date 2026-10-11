@@ -76,8 +76,9 @@ async function refresh(){
   available=isNative()?!!data.google_play_available:!!data.checkout_available;
   const credits=Math.max(0,Number(data.credits)||0);window.picgiftCreditsAvailable=credits;window.picgiftStudioUpdate?.();
   $("account-credits").textContent=credits+" "+(credits===1?"fotografía":"fotografías");
-  const {data:orders}=await client.from("picgift_orders").select("id,status,created_at,product_id").order("created_at",{ascending:false}).limit(10);
+  const {data:orders,error:ordersError}=await client.from("picgift_orders").select("id,status,created_at,product_id").order("created_at",{ascending:false}).limit(10);
   if(!isCurrent())return;
+  if(ordersError)throw ordersError;
   $("account-orders").textContent=(orders||[]).filter(x=>x.status==="paid").length+" pagos confirmados";
   const enable=available;
   if(isNative()){
@@ -86,7 +87,8 @@ async function refresh(){
     if(enable)window.PicgiftNative.postMessage(JSON.stringify({action:"products"}));
   }else buttons(enable);
   if(!isNative()||!nativeBusy())status(enable?"Ya puedes elegir un pack. Los créditos se añaden únicamente cuando el proveedor confirma el cobro.":isNative()?"La compra en Android se habilitará tras completar las pruebas de Google Play y activar las ventas.":"Los packs están publicados, pero no se admiten pagos hasta terminar las pruebas de generación y activar Stripe.");
- }catch(err){if(isCurrent()){available=false;buttons(false);status("No se pudo comprobar el estado de los pagos. La compra no está disponible por seguridad.")}}
+  return true;
+ }catch(err){if(isCurrent()){available=false;playReadyProducts.clear();window.picgiftCreditsAvailable=null;window.picgiftStudioUpdate?.();$("account-credits").textContent="—";$("account-orders").textContent="—";buttons(false);status("No se pudo comprobar el estado de los pagos. La compra no está disponible por seguridad.")}return false;}
 }
 async function pay(productId){
  const revision=authRevision,accountId=nativeUser?.id;
@@ -123,9 +125,9 @@ async function handleNativePurchase(detail){
   const {data,error}=await client.functions.invoke("picgift-google-play",{body:{product_id:detail.product_id,purchase_token:detail.purchase_token}});
   if(revision!==authRevision)return;
   if(error)throw Error("Google Play todavía no ha confirmado el pago.");
-  if(data?.success)await refresh();
+  const balanceUpdated=data?.success?await refresh():false;
   if(revision!==authRevision)return;
-  status(data?.success?"Compra verificada. Créditos actualizados.":"Pendiente de confirmación por Google Play.");
+  status(data?.success?(balanceUpdated?"Compra verificada. Créditos actualizados.":"Compra verificada. No se pudo consultar tu saldo. Vuelve a abrir la app para actualizarlo; no repitas la compra."):"Pendiente de confirmación por Google Play.");
  }catch(e){if(revision===authRevision)status("No se pudieron acreditar los créditos. Conserva el recibo de Google Play para recuperar la compra.")}
  finally{nativeInFlight.delete(key);if(revision===authRevision)buttons(available);}
 }
