@@ -1,0 +1,9 @@
+{
+  "source": "assets/brand/picgift-app-icon-source.png",
+  "sourceSha256": "88FDC7AA818CF005872573E143F9C0814C39A095EB014553D5244604A9CE9891",
+  "approvedBy": "Owner supplied 169bbf63-35c0-47e2-9a71-d24f7d7f40af.png",
+  "approvedOn": "2026-10-10",
+  "policy": "Official permanent app icon. Replace the artwork only on explicit owner instruction; seasonal campaigns must not replace it.",
+  "crop": { "left": 131, "top": 113, "width": 992, "height": 992 },
+  "adaptiveInsetPercent": 16.6667
+}

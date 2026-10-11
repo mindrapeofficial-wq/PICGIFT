@@ -20,6 +20,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowCompat
+import android.os.Build
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.Purchase
 import android.webkit.WebChromeClient
@@ -46,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var billing: BillingClient
     private var currentAccount: String? = null
     private var pageReady = false
+    private var nativeBottomInsetDp = 0f
     private val googleSignIn by lazy { GoogleCredentialSignIn(this, ::deliverGoogleToken, ::googleSignInError) }
     private val nativePush by lazy {
         NativePushController(this) { detail ->
@@ -95,6 +98,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        @Suppress("DEPRECATION")
+        window.navigationBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false
         billing = BillingClient.newBuilder(this)
             .setListener { result, purchases ->
                 if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
@@ -137,9 +144,14 @@ class MainActivity : AppCompatActivity() {
         }
         root.addView(failure, FrameLayout.LayoutParams(-1,-1))
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or WindowInsetsCompat.Type.ime())
-            view.setPadding(bars.left,bars.top,bars.right,bars.bottom)
-            insets
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val keyboard = insets.getInsets(WindowInsetsCompat.Type.ime())
+            // Draw the menu background through the navigation area, but keep taps above it.
+            view.setPadding(bars.left,bars.top,bars.right,keyboard.bottom)
+            nativeBottomInsetDp = if (insets.isVisible(WindowInsetsCompat.Type.ime())) 0f
+                else bars.bottom / resources.displayMetrics.density
+            updateNativeInsets()
+            WindowInsetsCompat.CONSUMED
         }
         setContentView(root)
         // Register permission callbacks before the activity reaches STARTED.
@@ -275,6 +287,7 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onPageFinished(view: WebView?, url: String?) {
                 if (!trustedPicgiftPage()) return
+                updateNativeInsets()
                 val supported = googleSignIn.isConfigured
                 web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
                 dispatchNativeRoute()
@@ -302,6 +315,11 @@ class MainActivity : AppCompatActivity() {
         else if (web.restoreState(savedInstanceState) == null) web.loadUrl(homeUrl)
         handleGoogleReturn(intent)
         receiveNotificationRoute(intent)
+    }
+
+    private fun updateNativeInsets() {
+        if (!::web.isInitialized || !trustedPicgiftPage()) return
+        web.evaluateJavascript("document.documentElement.style.setProperty('--picgift-native-bottom','${nativeBottomInsetDp}px');", null)
     }
 
     override fun onNewIntent(intent: Intent) {
