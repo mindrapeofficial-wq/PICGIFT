@@ -1,4 +1,5 @@
 /* Let photographs carry the visual identity; navigation stays quiet. */
+html[data-campaign="halloween"] .mobile-app-hero__settings{min-width:44px;min-height:44px}
 html[data-campaign="halloween"] .mobile-signin .google-signin{
  background:transparent!important;border:0!important;box-shadow:none!important;
  color:#fff3de!important;min-height:44px;padding:10px 12px;
