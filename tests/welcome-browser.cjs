@@ -42,6 +42,9 @@ for(const width of [320,390,768]){
  await page.setViewportSize({width,height:640});
  const geometry=await page.locator('.mobile-nav').evaluate(nav=>{const buttons=[...nav.querySelectorAll('button')],icons=buttons.map(b=>{const r=b.querySelector('svg').getBoundingClientRect();return r.y+r.height/2}),camera=buttons[2].getBoundingClientRect();return {count:buttons.length,center:camera.x+camera.width/2,width:innerWidth,icons,targets:buttons.map(b=>{const r=b.getBoundingClientRect();return {width:r.width,height:r.height}})}});
  assert.equal(geometry.count,5);
+ const surface=await page.locator('.mobile-nav').evaluate(nav=>{const n=nav.getBoundingClientRect(),c=nav.querySelector('.camera-emblem').getBoundingClientRect();return {size:c.width,top:c.top,bottom:c.bottom,navTop:n.top,navBottom:n.bottom}});
+ assert.ok(surface.size>=46,'Camera must be the prominent action');
+ assert.ok(surface.top>=surface.navTop&&surface.bottom<=surface.navBottom,'Camera surface must not be clipped');
  assert.ok(Math.abs(geometry.center-geometry.width/2)<1,'Camera must be centered: '+JSON.stringify(geometry));
  assert.ok(Math.max(...geometry.icons)-Math.min(...geometry.icons)<1,'Icons must share one baseline');
  assert.ok(geometry.targets.every(r=>r.width>=44&&r.height>=44),'Navigation touch targets must be at least 44px');

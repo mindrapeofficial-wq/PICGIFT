@@ -38,17 +38,18 @@ html[data-campaign="halloween"] .upload-zone:focus-within{
 
 /* Equal columns and shared icon rows keep capture centered at every mobile width. */
 @media(max-width:820px){
+ :root{--picgift-nav-height:calc(72px + var(--picgift-safe-bottom))}
  html[data-campaign="halloween"] .mobile-nav{border:0;background:linear-gradient(180deg,#19110df5,#100c0afc);box-shadow:0 -8px 24px #0003}
- html[data-campaign="halloween"] .mobile-nav button{display:grid;grid-template-rows:32px 16px;align-content:center;align-items:center;justify-items:center;gap:4px;min-height:56px;padding:0 1px;letter-spacing:0;font-size:11px;font-weight:500;color:#d7c6b6}
+ html[data-campaign="halloween"] .mobile-nav button{display:grid;grid-template-rows:32px 16px;align-content:center;align-items:center;justify-items:center;gap:4px;min-height:64px;padding:0 1px;letter-spacing:0;font-size:11px;font-weight:500;color:#d7c6b6}
  html[data-campaign="halloween"] .mobile-nav button svg{width:24px;height:24px}
  html[data-campaign="halloween"] .mobile-nav button.active{color:#ffbd67;font-weight:600}
  html[data-campaign="halloween"] .mobile-nav button.active>svg{box-sizing:content-box;padding:4px 9px;border-radius:12px;background:#ffb34b24}
- html[data-campaign="halloween"] .mobile-nav button.mobile-nav__camera .camera-emblem svg{color:#ffbd67}
+ html[data-campaign="halloween"] .mobile-nav button.mobile-nav__camera .camera-emblem svg{color:#231307}
  html[data-campaign="halloween"] .mobile-nav button:focus-visible{outline:2px solid #ffbd67;outline-offset:-2px;border-radius:12px}
  html[data-campaign="halloween"] .mobile-nav button:before,
  html[data-campaign="halloween"] .mobile-nav button:after{display:none}
  html[data-campaign="halloween"] .mobile-nav button.mobile-nav__camera{gap:4px}
- html[data-campaign="halloween"] .mobile-nav .camera-emblem{width:32px;height:32px;margin:0;border-radius:10px;max-width:none;background:#ffb34b24;color:#ffbd67}
- html[data-campaign="halloween"] .mobile-nav .camera-emblem svg{width:24px;height:24px}
+ html[data-campaign="halloween"] .mobile-nav .camera-emblem{width:46px;height:46px;margin:0;border-radius:15px;max-width:none;background:linear-gradient(145deg,#ffd483,#ffad36);color:#231307;box-shadow:0 3px 10px #0004}
+ html[data-campaign="halloween"] .mobile-nav .camera-emblem svg{width:28px;height:28px}
  html[data-campaign="halloween"] .mobile-nav__spacer{height:16px}
 }
