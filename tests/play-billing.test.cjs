@@ -49,7 +49,31 @@ async function readyStore(){
  return env;
 }
 const clickPack=(env,id)=>env.listeners['document:click']({target:{closest:()=>env.buttons.find(b=>b.dataset.buy===id)}});
+test('verified receipt does not claim updated credits when the balance refresh fails',async()=>{
+ const env=await readyStore();
+ env.client.functions.invoke=async name=>name==='picgift-google-play'
+  ?{data:{success:true},error:null}:{data:null,error:{message:'offline'}};
+ env.listeners['picgift:play-purchase']({detail:{product_id:'esencial',purchase_token:'verified-offline'}});
+ await settle();await settle();
+ assert.doesNotMatch(env.el('payment-status').textContent,/Créditos actualizados/);
+ assert.match(env.el('payment-status').textContent,/Compra verificada.*saldo/);
+ assert.equal(env.context.window.picgiftCreditsAvailable,null);
+ assert.equal(env.el('account-credits').textContent,'—');
+ assert.ok(env.buttons.every(b=>b.disabled));
+ env.client.functions.invoke=async()=>({data:{google_play_available:true,credits:1},error:null});
+ env.listeners['document:visibilitychange']();await settle();await settle();
+ assert.equal(env.context.window.picgiftCreditsAvailable,1,'returning to the app recovers the confirmed balance');
+});
 function deferred(){let resolve;const promise=new Promise(done=>{resolve=done});return {promise,resolve};}
+test('an orders service error is not displayed as zero confirmed payments',async()=>{
+ const env=await readyStore();
+ env.client.from=()=>({select:()=>({order:()=>({limit:async()=>({data:null,error:{message:'unavailable'}})})})});
+ env.listeners['document:visibilitychange']();await settle();await settle();
+ assert.equal(env.el('account-orders').textContent,'—');
+ assert.equal(env.context.window.picgiftCreditsAvailable,null);
+ assert.ok(env.buttons.every(b=>b.disabled));
+ assert.match(env.el('payment-status').textContent,/No se pudo comprobar/);
+});
 function logout(env){
  env.client.auth.getSession=async()=>({data:{session:null}});
  env.client.auth.getUser=async()=>({data:{user:null}});
