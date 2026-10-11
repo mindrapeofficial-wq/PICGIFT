@@ -5,8 +5,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="PICGIFT"><meta name="description" content="Turn family photos into magical portraits with seasonal storybook scenes. Discover PICGIFT’s Halloween collection of pumpkins, little witches and warm lanterns.">
 <link rel="icon" href="./assets/halloween/picgift-favicon-hd.png?v=official-app-20261011-v1" type="image/png"><link rel="apple-touch-icon" href="./assets/halloween/picgift-favicon-hd.png?v=official-app-20261011-v1"><link rel="manifest" href="./manifest.webmanifest?v=hd-20261008-v1">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="./styles.css?v=google-entry-20261010-v1"><link rel="stylesheet" href="./collection.css?v=fullbleed-halloween-20261008-v1"><link rel="stylesheet" href="./mobile-app.css?v=touch-controls-20261010-v1"><link rel="stylesheet" href="./app-shell.css?v=touch-controls-20261010-v1"><title>PICGIFT · Halloween 2026</title>
-<script src="./native-auth-return.js?v=20261009-1"></script><script src="./i18n.js?v=payments-session-20261010-v1"></script><link rel="stylesheet" href="./welcome.css?v=visual-tutorial-v1"><script defer src="./first-steps.js?v=mobile-welcome-v1"></script><script type="module" src="./native-notifications.js?v=mobile-push-20261010-v1"></script><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script><link rel="stylesheet" href="./edge-layout.css?v=official-app-20261011-v1"></head><body>
+<link rel="stylesheet" href="./styles.css?v=google-entry-20261010-v1"><link rel="stylesheet" href="./collection.css?v=fullbleed-halloween-20261008-v1"><link rel="stylesheet" href="./mobile-app.css?v=camera-nav-20261010-v1"><link rel="stylesheet" href="./app-shell.css?v=touch-controls-20261010-v1"><title>PICGIFT · Halloween 2026</title>
+<script src="./native-auth-return.js?v=20261009-1"></script><script src="./i18n.js?v=payments-session-20261010-v1"></script><link rel="stylesheet" href="./welcome.css?v=welcome-alignment-20261010-v1"><script defer src="./first-steps.js?v=mobile-welcome-v1"></script><script type="module" src="./native-notifications.js?v=mobile-push-20261010-v1"></script><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script><link rel="stylesheet" href="./edge-layout.css?v=official-app-20261011-v1"></head><body>
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <div id="splash" class="splash" aria-label="Cargando PICGIFT">
   <div class="splash-inner"><img src="./assets/halloween/picgift-logo-hd.png?v=hd-20261008-v1" alt="PICGIFT"></div>
@@ -30,11 +30,11 @@
     <a href="#inicio" class="brand" data-route="inicio" aria-label="PICGIFT, inicio"><img src="./assets/halloween/picgift-logo-hd.png?v=hd-20261008-v1" alt=""></a>
     <nav class="nav">
       <button class="nav-link" data-route="crear"><svg><use href="#i-home"/></svg> Crear</button>
-      <button class="nav-link" data-route="escenarios"><svg><use href="#i-star"/></svg> Inspiración</button>
-      <button class="nav-link" data-route="precios"><svg><use href="#i-spark"/></svg> Precios y packs</button>
-
       <button class="nav-link" data-route="mis-fotos"><svg><use href="#i-photo"/></svg> Mis fotos</button>
-      <button class="nav-link" data-route="cuenta"><svg><use href="#i-user"/></svg> Mi perfil</button>
+      <button class="nav-link" type="button" data-camera-capture aria-label="Abrir cámara para tomar una foto"><svg aria-hidden="true"><use href="#i-camera"/></svg> Cámara</button>
+      <button class="nav-link" type="button" data-beautify><svg aria-hidden="true"><use href="#i-wand"/></svg> Embellecido</button>
+      <button class="nav-link" data-route="escenarios"><svg><use href="#i-star"/></svg> Inspiración</button>
+      <button class="nav-link" data-route="cuenta"><svg><use href="#i-user"/></svg> Perfil</button>
       <a class="nav-link hidden" id="admin-sidebar-link" href="./admin.html"><svg aria-hidden="true"><use href="#i-settings"/></svg> Administración</a>
     </nav>
     <div class="side-bottom"><p class="tiny">© PICGIFT 2026 · Retratos de cuento</p></div>
@@ -69,7 +69,7 @@
         <section class="info-strip">
           <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-gallery"/></svg></div><strong>01 · Descubre los escenarios</strong><p>Encuentra su rincón favorito entre calabazas, hojas de otoño y magia.</p></div>
           <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-photo"/></svg></div><strong>02 · Prepara tu fotografía</strong><p>La foto seleccionada permanece en tu dispositivo mientras no inicies crear un retrato.</p></div>
-          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-spark"/></svg></div><strong>03 · Muy pronto, la magia</strong><p>Estamos preparando la apertura del estudio. Mientras tanto, descubre los decorados y prepara su fotografía.</p></div>
+          <div class="info-block"><div class="ico"><svg width="23" height="23"><use href="#i-spark"/></svg></div><strong>03 · Crea tu retrato</strong><p>Estamos preparando la apertura del estudio. Mientras tanto, descubre los decorados y prepara su fotografía.</p></div>
         </section>
 
       </section>
@@ -105,7 +105,33 @@
         </header>
 
         <div class="mobile-signin" id="mobile-signin"><button class="google-signin" type="button" data-google-login><img src="./assets/google-g.svg" width="20" height="20" alt="" aria-hidden="true"><span>Continuar con Google</span></button><button class="text-btn" type="button" data-open-auth="login">Entrar con contraseña</button></div>
-<section class="welcome-story" aria-label="Descubre PicGift"><h2>Tu retrato en 3 pasos</h2><div class="welcome-art"><figure><img src="./assets/halloween/guide/cuerpo-entero.webp" alt="Foto de ejemplo con buena luz" loading="eager"><figcaption><span>1</span> Sube tu foto</figcaption></figure><figure><img src="./assets/halloween/reference/pumpkin-forest.webp" alt="Ejemplo de escenario de calabazas" loading="eager"><figcaption><span>2</span> Elige escenario</figcaption></figure><figure><img src="./assets/halloween/samples/bosque.webp" alt="Ejemplo de estilo de retrato generado" loading="eager"><figcaption><span>3</span> Crea y guarda</figcaption></figure></div><button type="button" data-first-steps>Ver cómo funciona →</button></section><div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
+<section class="welcome-story" aria-label="Descubre PicGift">
+  <h2>Tu retrato en 3 pasos</h2>
+  <div class="welcome-art">
+    <figure>
+      <div class="welcome-art__frame">
+        <img class="welcome-art__backdrop" src="./assets/halloween/guide/cuerpo-entero.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">
+        <img class="welcome-art__image" src="./assets/halloween/guide/cuerpo-entero.webp" alt="Foto de ejemplo con buena luz" loading="eager" decoding="async">
+      </div>
+      <figcaption><span>1</span> Sube tu foto</figcaption>
+    </figure>
+    <figure>
+      <div class="welcome-art__frame">
+        <img class="welcome-art__backdrop" src="./assets/halloween/reference/pumpkin-forest.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">
+        <img class="welcome-art__image" src="./assets/halloween/reference/pumpkin-forest.webp" alt="Ejemplo de escenario de calabazas" loading="eager" decoding="async">
+      </div>
+      <figcaption><span>2</span> Elige escenario</figcaption>
+    </figure>
+    <figure>
+      <div class="welcome-art__frame">
+        <img class="welcome-art__backdrop" src="./assets/halloween/samples/bosque.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">
+        <img class="welcome-art__image" src="./assets/halloween/samples/bosque.webp" alt="Ejemplo de estilo de retrato generado" loading="eager" decoding="async">
+      </div>
+      <figcaption><span>3</span> Crea y guarda</figcaption>
+    </figure>
+  </div>
+  <button type="button" data-first-steps>Ver cómo funciona →</button>
+</section><div class="studio-session"><span id="studio-account" aria-live="polite">Sin iniciar sesión</span><button type="button" data-route="cuenta">Ver o cambiar cuenta</button></div>
         <div class="studio-steps" aria-label="Pasos para generar una fotografía">
           <span id="studio-step-photo"><strong>1</strong> Tu foto</span>
           <span id="studio-step-scene"><strong>2</strong> Escenario</span>
@@ -137,7 +163,7 @@
                 <p style="margin-top:8px" id="file-name"></p>
                 </details><div class="studio-photo-actions"><button class="btn outline" type="button" id="change-photo">Cambiar foto</button><button class="btn outline picgift-drive-import" type="button" id="change-drive-photo" hidden>Desde Google Drive</button><button class="btn quiet" type="button" id="remove-photo">Quitar foto</button></div>
               </div>
-              <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Subir fotografía para editar">
+              <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="Subir fotografía para editar"><input id="camera-photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" class="hidden" aria-label="Tomar una fotografía con la cámara">
               <p id="picgift-drive-hint" class="picgift-drive-tip" role="status" hidden>Se abrirá Archivos de Android. En el menú ☰, elige Drive y selecciona una fotografía. Solo se importará la foto que elijas.</p>
             </div>
             <p class="app-note" id="photo-quality-note">Antes de generar, la IA comprueba si la foto tiene calidad suficiente para conservar los rasgos del rostro. Si no es apta, podrás cambiarla sin gastar créditos ni intentos.</p>
@@ -186,7 +212,7 @@
       </section>
       <section class="page" data-page="resultado" hidden>
         <div class="top-heading"><div><span class="eyebrow">Estudio PICGIFT · Retrato privado</span><h1 id="result-page-title">Tu fotografía PICGIFT</h1><p id="result-page-description">Aquí podrás consultar tu fotografía y descargarla cuando el trabajo finalice. Los pagos todavía no están activos.</p></div><button class="btn outline" data-route="crear">← Volver</button></div>
-        <div class="panel" id="result-empty"><h2>La colección Halloween está en preparación</h2><p class="muted" style="margin-top:10px;font-size:13px">Pronto podrás generar fotografías de Halloween. Mientras tanto, tus resultados anteriores siguen en Mis fotos.</p><button type="button" class="btn primary" data-route="crear" style="margin-top:18px">Explorar Halloween</button></div>
+        <div class="panel" id="result-empty"><h2>Tus fotografías personales</h2><p class="muted" style="margin-top:10px;font-size:13px">Pronto podrás generar fotografías de Halloween. Mientras tanto, tus resultados anteriores siguen en Mis fotos.</p><button type="button" class="btn primary" data-route="crear" style="margin-top:18px">Explorar Halloween</button></div>
         <div class="result-stage hidden" id="real-result">
           <div class="result-art">
             <img id="result-sample" alt="Referencia del escenario anterior de PICGIFT">
@@ -248,10 +274,12 @@
   </main>
 </div>
 <nav class="mobile-nav" aria-label="Menú de PICGIFT">
-<button data-route="crear" class="active" type="button"><svg><use href="#i-home"/></svg><span>Crear</span></button>
-<button data-route="mis-fotos" type="button"><svg><use href="#i-gallery"/></svg><span>Mis fotos</span></button>
-<button data-route="escenarios" type="button"><svg><use href="#i-star"/></svg><span>Inspiración</span></button>
-<button data-route="cuenta" type="button"><svg><use href="#i-user"/></svg><span>Perfil</span></button>
+<button data-route="crear" class="active" type="button"><svg aria-hidden="true"><use href="#i-home"/></svg><span>Crear</span></button>
+<button data-route="mis-fotos" type="button"><svg aria-hidden="true"><use href="#i-gallery"/></svg><span>Mis fotos</span></button>
+<button class="mobile-nav__camera" data-camera-capture type="button" aria-label="Abrir la cámara y hacer una foto"><span class="camera-emblem" aria-hidden="true"><svg><use href="#i-camera"/></svg></span><span class="camera-label">Cámara</span></button>
+<button data-beautify type="button"><svg aria-hidden="true"><use href="#i-wand"/></svg><span>Embellecido</span></button>
+<button data-route="escenarios" type="button"><svg aria-hidden="true"><use href="#i-star"/></svg><span>Inspiración</span></button>
+<button data-route="cuenta" type="button"><svg aria-hidden="true"><use href="#i-user"/></svg><span>Perfil</span></button>
 </nav>
 <div id="auth" class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
  <div class="dialog">
@@ -285,5 +313,5 @@
  </form>
 </dialog>
 <style>#photo-service-choice::backdrop{background:rgba(12,7,4,.8)}#photo-service-choice p{margin:0 0 12px;font-size:13px;line-height:1.5}</style>
-<script defer src="./photo-editor.js?v=2"></script><script defer src="./experience.js?v=google-entry-20261009-3"></script><script defer src="./app.js?v=generation-session-20261010-v1"></script><script type="module" src="./auth.js?v=auth-language-20261010-v1"></script><script type="module" src="./generator.js?v=gallery-actions-20261010-v1"></script>
+<script defer src="./photo-editor.js?v=2"></script><script defer src="./experience.js?v=google-entry-20261009-3"></script><script defer src="./app.js?v=scene-activation-20261010-v2"></script><script type="module" src="./auth.js?v=auth-language-20261010-v1"></script><script type="module" src="./generator.js?v=scene-activation-20261010-v2"></script>
 <script type="module" src="./payments.js?v=payments-session-20261010-v1"></script><script defer src="./install.js?v=picgift-halloween-2026-2"></script><script type="module" src="./admin-entry.js?v=mobile-admin-20261010-v1"></script><dialog id="app-panel" class="app-panel"><button type="button" class="panel-close" aria-label="Cerrar">×</button><div id="app-panel-content"></div></dialog><script defer src="./app-shell.js?v=google-auto-password-20261009-4"></script><script type="module" src="./announcements.js?v=20261009-1"></script><dialog id="first-steps" class="first-steps" aria-labelledby="first-steps-title"><span class="eyebrow">PRIMEROS PASOS</span><h2 id="first-steps-title">Así funciona PicGift</h2><ol class="visual-tutorial"><li><img src="./assets/halloween/guide/cuerpo-entero.webp" alt="Ejemplo de foto inicial de cuerpo entero"><div><strong>Sube tu foto</strong><p>Buena luz y cara visible.</p></div></li><li><img src="./assets/halloween/reference/pumpkin-forest.webp" alt="Ejemplo de escenario de Halloween"><div><strong>Elige escenario</strong><p>Toca el que más te guste.</p></div></li><li><img src="./assets/halloween/samples/bosque.webp" alt="Ejemplo de estilo de retrato"><div><strong>Crea y guarda</strong><p>Tu resultado estará en Mis fotos.</p></div></li></ol><p class="tutorial-note">Imágenes de ejemplo · Generación según acceso y créditos.</p><button class="btn primary" type="button" data-first-steps-done>Empezar mi foto</button><button class="text-btn" type="button" data-first-steps-done>Verlo más tarde</button></dialog></body></html>

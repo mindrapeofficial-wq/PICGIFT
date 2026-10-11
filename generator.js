@@ -3,7 +3,7 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
-const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
+const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','halloween-pumpkin-forest':'Bosque de calabazas','halloween-haunted-castle':'Castillo embrujado','halloween-portrait-hall':'Salón de retratos','halloween-enchanted-city':'Ciudad encantada','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
 let fluxMode=false,freeReady=false,premiumReady=false,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
 let galleryRevision=0,galleryAuthenticated=false,authRevision=0,healthRevision=0;
 const sceneImages={
@@ -11,6 +11,10 @@ const sceneImages={
  'halloween-autumn-arch':'./assets/halloween/backdrops/autumn-arch.jpg',
  'halloween-pumpkin-bench':'./assets/halloween/backdrops/pumpkin-bench.jpg',
  'halloween-lantern-street':'./assets/halloween/backdrops/lantern-street.jpg',
+ 'halloween-pumpkin-forest':'./assets/halloween/reference/pumpkin-forest.webp',
+ 'halloween-haunted-castle':'./assets/halloween/reference/haunted-castle.webp',
+ 'halloween-portrait-hall':'./assets/halloween/reference/portrait-hall.webp',
+ 'halloween-enchanted-city':'./assets/halloween/reference/enchanted-city.webp',
  'golden-christmas':'./assets/scenes/golden-bokeh.jpg',
  'reading-corner':'./assets/scenes/reading-corner.jpg',
  'santa-workshop':'./assets/scenes/santa-workshop.jpg',
