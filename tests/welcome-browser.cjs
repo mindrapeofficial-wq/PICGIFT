@@ -12,6 +12,9 @@ await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();await
 // The actual app must not submit the previous account's photo when editing finishes late.
 await page.locator('#photo').setInputFiles(path.join(root,'assets/halloween/journey/result.webp'));
 await page.waitForSelector('#upload-loaded:not(.hidden)');
+await page.locator('.crop-editor summary').click();
+assert.equal(await page.locator('.crop-editor').evaluate(e=>e.open),true);
+assert.equal(await page.locator('#crop-canvas').isVisible(),true);
 await page.locator('.mobile-scene-option[data-select="halloween-pumpkin-bench"]').click();
 await page.locator('#photo-ai-consent').check();
 await page.evaluate(()=>{

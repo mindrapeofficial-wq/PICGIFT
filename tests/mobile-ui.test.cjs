@@ -41,7 +41,7 @@ test('mobile shell has five ordered actions with centered camera',()=>{
  assert.match(buttons[2],/data-camera-capture/);
  assert.match(buttons[2],/#i-camera/);
  assert.ok(!nav.includes('data-beautify'));
- assert.ok(html.includes('<summary>Editar foto</summary>')); 
+ assert.ok(html.includes('<summary>Editar foto</summary>'));
  assert.ok(html.includes('id="camera-photo"'));
  assert.ok(js.includes("$('camera-photo').click()"));
  assert.ok(js.includes('showBeautifyEditor()'));
