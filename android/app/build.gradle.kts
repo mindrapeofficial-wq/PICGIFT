@@ -1,4 +1,4 @@
-import kotlin.math.hypot
+import kotlin.math.abs
 
 plugins {
     id("com.android.application")
@@ -20,8 +20,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.8.4-beta"
+        versionCode = 14
+        versionName = "1.8.5-beta"
     }
     buildFeatures { buildConfig = true }
     defaultConfig {
@@ -78,7 +78,6 @@ val verifyLauncherIcon by tasks.registering {
         val scale = 1 - 2 * inset
         var minX = bitmap.width
         var maxX = -1
-        var radius = 0.0
         for (y in 0 until bitmap.height) for (x in 0 until bitmap.width) {
             val color = bitmap.getRGB(x, y)
             val red = (color shr 16) and 255
@@ -87,16 +86,15 @@ val verifyLauncherIcon by tasks.registering {
             if (red > 85 && red > green * 1.15) {
                 minX = minOf(minX, x)
                 maxX = maxOf(maxX, x)
-                radius = maxOf(radius, hypot(
-                    (x - (bitmap.width - 1) / 2.0) / bitmap.width,
-                    (y - (bitmap.height - 1) / 2.0) / bitmap.height
-                ) * scale)
             }
         }
         val coverage = (maxX - minX + 1).toDouble() / bitmap.width * scale
-        check(coverage >= 0.50) { "PICGIFT launcher logo is too small: ${(coverage * 100).toInt()}% coverage. Check source padding and adaptive inset." }
-        check(radius <= 66.0 / 216) { "PICGIFT launcher logo exceeds the 66dp adaptive safe circle and may be cropped." }
-        println("PICGIFT launcher verified: ${(coverage * 100).toInt()}% foreground coverage; safe circle preserved")
+        // Android masks a 72dp tile from its 108dp foreground canvas.
+        // Background decorations may meet the mask; do not shrink the whole tile into a circle.
+        val visibleCoverage = coverage / (72.0 / 108)
+        check(visibleCoverage in 0.88..1.02) { "PICGIFT official tile must fill the launcher mask without excessive black margins" }
+        check(abs(inset - 1.0 / 6) < 0.001) { "Official launcher inset must match the 72dp tile" }
+        println("PICGIFT launcher verified: ${(visibleCoverage * 100).toInt()}% visible tile coverage")
     }
 }
 tasks.named("preBuild") { dependsOn(verifyLauncherIcon) }

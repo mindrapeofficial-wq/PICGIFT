@@ -38,9 +38,25 @@ if(await page.locator('#first-steps').evaluate(e=>e.open))await page.getByRole('
 for(const width of [320,390,768]){
  await page.setViewportSize({width,height:640});
  await page.locator('body').press('Control+End');await page.waitForTimeout(300);
- const layout=await page.evaluate(()=>{const scenes=document.querySelector('.mobile-scene-grid').getBoundingClientRect(),nav=document.querySelector('.mobile-nav').getBoundingClientRect();return {sceneBottom:scenes.bottom,navTop:nav.top,overflow:document.documentElement.scrollWidth>innerWidth,padding:parseFloat(getComputedStyle(document.querySelector('.page[data-page="crear"]')).paddingBottom)}});
- assert.ok(layout.sceneBottom<=layout.navTop,'Scenarios covered by navigation at '+width+': '+JSON.stringify(layout));assert.ok(layout.padding>=112);assert.equal(layout.overflow,false);
+ const layout=await page.evaluate(()=>{const scenes=document.querySelector('.mobile-scene-grid').getBoundingClientRect(),nav=document.querySelector('.mobile-nav').getBoundingClientRect();return {sceneBottom:scenes.bottom,navTop:nav.top,navBottom:nav.bottom,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth}});
+ assert.ok(layout.sceneBottom<=layout.navTop,'Scenarios covered by navigation at '+width+': '+JSON.stringify(layout));assert.ok(Math.abs(layout.navBottom-layout.height)<1,'Gap below the menu: '+JSON.stringify(layout));assert.equal(layout.overflow,false);
 }
+for(const inset of [24,48,0]){
+ await page.evaluate(inset=>document.documentElement.style.setProperty('--picgift-native-bottom',inset+'px'),inset);
+ await page.locator('body').press('Control+End');await page.waitForTimeout(150);
+ const result=await page.evaluate(()=>{const nav=document.querySelector('.mobile-nav'),rect=nav.getBoundingClientRect(),buttons=[...nav.querySelectorAll('button')].map(b=>b.getBoundingClientRect().bottom);return {bottom:rect.bottom,height:innerHeight,buttonBottom:Math.max(...buttons),lastScene:document.querySelector('.mobile-scene-grid').getBoundingClientRect().bottom,navTop:rect.top};});
+ assert.ok(Math.abs(result.bottom-result.height)<1,'Menu background must reach screen bottom');
+ assert.ok(result.buttonBottom<=result.height-inset,'Menu buttons overlap system navigation');
+ assert.ok(result.lastScene<=result.navTop,'Last scene cannot scroll above the menu');
+}
+await page.evaluate(()=>document.documentElement.style.removeProperty('--picgift-native-bottom'));
+await page.evaluate(()=>document.body.classList.add('studio-has-photo'));
+for(const width of [320,390,768]){
+ await page.setViewportSize({width,height:640});await page.locator('body').press('Control+End');await page.waitForTimeout(150);
+ const overlay=await page.evaluate(()=>({scene:document.querySelector('.mobile-scene-grid').getBoundingClientRect().bottom,action:document.querySelector('.studio-actionbar').getBoundingClientRect().top}));
+ assert.ok(overlay.scene<=overlay.action,'Fixed create button hides scenarios: '+JSON.stringify(overlay));
+}
+await page.evaluate(()=>document.body.classList.remove('studio-has-photo'));
 await page.setViewportSize({width:390,height:844});await page.locator('body').press('Control+Home');
 await page.reload();await page.waitForTimeout(900);assert.equal(await page.locator('#first-steps').evaluate(e=>e.open),false);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);
 await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:native-push',{detail:{status:'permission_denied'}})));await page.reload();await page.waitForTimeout(900);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);

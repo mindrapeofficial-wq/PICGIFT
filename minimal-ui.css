@@ -1,0 +1,36 @@
+/* Let photographs carry the visual identity; navigation stays quiet. */
+html[data-campaign="halloween"] .mobile-signin .google-signin{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ color:#fff3de!important;min-height:44px;padding:10px 12px;
+}
+html[data-campaign="halloween"] #picgift-studio .welcome-story,
+html[data-campaign="halloween"] #picgift-studio .welcome-art__frame,
+html[data-campaign="halloween"] #picgift-studio .upload-zone{
+ background:transparent;border:0;box-shadow:none;
+}
+html[data-campaign="halloween"] #picgift-studio .welcome-story{padding-left:0;padding-right:0}
+html[data-campaign="halloween"] #picgift-studio .upload-zone:before{border:0}
+html[data-campaign="halloween"] .sidebar .nav-link,
+html[data-campaign="halloween"] .mobile-nav button,
+html[data-campaign="halloween"] .sidebar .nav-link svg,
+html[data-campaign="halloween"] .mobile-nav button svg{
+ animation:none!important;transition:none!important;transform:none!important;filter:none!important;
+}
+html[data-campaign="halloween"] .sidebar .nav-link:hover,
+html[data-campaign="halloween"] .sidebar .nav-link.active{
+ background:transparent;border-color:transparent;box-shadow:none;color:#ffb34b;
+}
+html[data-campaign="halloween"] .mobile-nav .camera-label{display:none}
+html[data-campaign="halloween"] .mobile-nav button.mobile-nav__camera{justify-content:center;align-items:center}
+html[data-campaign="halloween"] .mobile-nav .camera-emblem{
+ margin:0;width:44px;height:44px;border:0;border-radius:50%;
+ background:#ffb34b;box-shadow:none;
+}
+html[data-campaign="halloween"] .mobile-nav .camera-emblem svg{width:26px;height:26px;filter:none}
+html[data-campaign="halloween"] .google-signin:focus-visible,
+html[data-campaign="halloween"] .upload-zone:focus-within{
+ outline:2px solid #ffb34b;outline-offset:4px;
+}
+@media(min-width:821px){
+ html[data-campaign="halloween"] .mobile-app-hero__brand{display:none!important}
+}

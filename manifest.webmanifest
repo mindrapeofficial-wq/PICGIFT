@@ -10,7 +10,7 @@
   "theme_color": "#090506",
   "icons": [
     {
-      "src": "/assets/halloween/picgift-favicon-hd.png?v=hd-20261008-v1",
+      "src": "/assets/halloween/picgift-favicon-hd.png?v=official-app-20261011-v1",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -29,7 +29,7 @@
       "url": "/#crear",
       "icons": [
         {
-          "src": "/assets/halloween/picgift-favicon-hd.png?v=hd-20261008-v1",
+          "src": "/assets/halloween/picgift-favicon-hd.png?v=official-app-20261011-v1",
           "sizes": "512x512",
           "type": "image/png"
         }
@@ -41,7 +41,7 @@
       "url": "/#mis-fotos",
       "icons": [
         {
-          "src": "/assets/halloween/picgift-favicon-hd.png?v=hd-20261008-v1",
+          "src": "/assets/halloween/picgift-favicon-hd.png?v=official-app-20261011-v1",
           "sizes": "512x512",
           "type": "image/png"
         }
