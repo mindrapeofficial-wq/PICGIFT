@@ -40,10 +40,11 @@ await page.evaluate(()=>{window.picgiftPhotoEditor.exportFile=window.testOrigina
 if(await page.locator('#first-steps').evaluate(e=>e.open))await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();
 for(const width of [320,390,768]){
  await page.setViewportSize({width,height:640});
- const geometry=await page.locator('.mobile-nav').evaluate(nav=>{const buttons=[...nav.querySelectorAll('button')],icons=buttons.map(b=>{const r=b.querySelector('svg').getBoundingClientRect();return r.y+r.height/2}),camera=buttons[2].getBoundingClientRect();return {count:buttons.length,center:camera.x+camera.width/2,width:innerWidth,icons,targets:buttons.map(b=>{const r=b.getBoundingClientRect();return {width:r.width,height:r.height}})}});
+ const geometry=await page.locator('.mobile-nav').evaluate(nav=>{const buttons=[...nav.querySelectorAll('button')],icons=buttons.filter(b=>!b.matches('[data-camera-capture]')).map(b=>{const r=b.querySelector('svg').getBoundingClientRect();return r.y+r.height/2}),camera=buttons[2].getBoundingClientRect();return {count:buttons.length,center:camera.x+camera.width/2,width:innerWidth,icons,targets:buttons.map(b=>{const r=b.getBoundingClientRect();return {width:r.width,height:r.height}})}});
  assert.equal(geometry.count,5);
- const surface=await page.locator('.mobile-nav').evaluate(nav=>{const n=nav.getBoundingClientRect(),c=nav.querySelector('.camera-emblem').getBoundingClientRect();return {size:c.width,top:c.top,bottom:c.bottom,navTop:n.top,navBottom:n.bottom}});
+ const surface=await page.locator('.mobile-nav').evaluate(nav=>{const n=nav.getBoundingClientRect(),c=nav.querySelector('.camera-emblem').getBoundingClientRect();return {size:c.width,top:c.top,bottom:c.bottom,navTop:n.top,navBottom:n.bottom,center:c.top+c.height/2,targetCenter:n.top+(n.height-parseFloat(getComputedStyle(nav).paddingBottom)+parseFloat(getComputedStyle(nav).paddingTop))/2}});
  assert.ok(surface.size>=46,'Camera must be the prominent action');
+ assert.ok(Math.abs(surface.center-surface.targetCenter)<1,'Camera must center on the whole usable menu height');
  assert.ok(surface.top>=surface.navTop&&surface.bottom<=surface.navBottom,'Camera surface must not be clipped');
  assert.ok(Math.abs(geometry.center-geometry.width/2)<1,'Camera must be centered: '+JSON.stringify(geometry));
  assert.ok(Math.max(...geometry.icons)-Math.min(...geometry.icons)<1,'Icons must share one baseline');
