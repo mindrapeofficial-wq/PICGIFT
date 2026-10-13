@@ -76,4 +76,3 @@ Deno.serve(async req=>{
  await db.from("picgift_orders").update({provider_checkout_id:session.id}).eq("id",order.id);
  return out({url:session.url,order_id:order.id});
 });
-
