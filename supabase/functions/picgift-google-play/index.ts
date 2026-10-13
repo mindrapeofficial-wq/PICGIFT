@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "npm:@supabase/supabase-js@2.57.4";
-import { validatePlayPurchase, isHalloweenPurchase } from "../_shared/play-purchase.mjs";
+import { validatePlayPurchase } from "../_shared/play-purchase.mjs";
+import { readPlayOrderMoney } from "../_shared/play-order-money.mjs";
 const url=Deno.env.get("SUPABASE_URL")||"",service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
 const db=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}});
 const h={"Access-Control-Allow-Origin":"https://picgift.onrender.com","Access-Control-Allow-Headers":"authorization,apikey,content-type,x-client-info","Access-Control-Allow-Methods":"POST,OPTIONS","Content-Type":"application/json","Cache-Control":"no-store"};
@@ -35,7 +36,7 @@ Deno.serve(async req=>{
  const {data:product,error:productError}=await db.from("picgift_products").select("*").eq("id",productId).maybeSingle();
  if(productError)return output({error:"No se pudo comprobar el paquete"},503);
  if(!product)return output({error:"Paquete no disponible"},400);
- const {data:existing,error:existingError}=await db.from("picgift_orders").select("id,user_id,product_id,status,provider_payment_id,play_consumed_at").eq("provider","google_play").eq("provider_checkout_id",token).maybeSingle();
+ const {data:existing,error:existingError}=await db.from("picgift_orders").select("id,user_id,product_id,status,provider_payment_id,play_consumed_at,amount_source").eq("provider","google_play").eq("provider_checkout_id",token).maybeSingle();
  if(existingError)return output({error:"No se pudo comprobar el pedido"},503);
  if(existing&&existing.user_id!==auth.user.id)return output({error:"Compra vinculada a otra cuenta"},403);
  if(existing?.product_id&&existing.product_id!==productId)return output({error:"El recibo corresponde a otro paquete"},409);
@@ -60,10 +61,20 @@ Deno.serve(async req=>{
   if(receiptError)return output({error:receiptError},422);
   if(purchase.obfuscatedExternalAccountId!==accountObfuscated)return output({error:"La compra no pertenece a esta cuenta"},403);
   if(existing?.provider_payment_id&&existing.provider_payment_id!==purchase.orderId)return output({error:"El identificador del pedido no coincide"},409);
-  if(existing?.status==="paid"&&existing.play_consumed_at&&line.productOfferDetails.consumptionState==="CONSUMPTION_STATE_CONSUMED")return output({success:true,order_id:existing.id});
-  const purchasedDuringPromotion=isHalloweenPurchase(purchase.purchaseCompletionTime);
+  const refreshAmount=async(order:any)=>{
+   if(order.amount_source==="google_orders")return;
+   try{
+    const amount=await readPlayOrderMoney({access,packageName,orderId:purchase.orderId,purchaseToken:token,productId:product.google_play_product_id});
+    if(!amount)return;
+    const {error}=await db.from("picgift_orders").update(amount).eq("id",order.id).eq("provider","google_play").eq("provider_payment_id",purchase.orderId);
+    if(error)console.error("PICGIFT_PLAY_AMOUNT_NEEDS_RETRY",order.id);
+   }catch{console.error("PICGIFT_PLAY_AMOUNT_NEEDS_RETRY",order.id)}
+  };
+  if(existing?.status==="paid"&&existing.play_consumed_at&&line.productOfferDetails.consumptionState==="CONSUMPTION_STATE_CONSUMED"){
+   await refreshAmount(existing);return output({success:true,order_id:existing.id});
+  }
   let order=existing;
-  if(!order){const {data:inserted,error:insertErr}=await db.from("picgift_orders").insert({user_id:auth.user.id,product_id:product.id,provider:"google_play",provider_checkout_id:token,amount_cents:purchasedDuringPromotion&&["magico","familiar"].includes(product.id)?Math.round(product.price_cents*0.8):product.price_cents,currency:"eur",status:"pending"}).select("id").single();
+  if(!order){const {data:inserted,error:insertErr}=await db.from("picgift_orders").insert({user_id:auth.user.id,product_id:product.id,provider:"google_play",provider_checkout_id:token,amount_cents:null,currency:null,amount_source:"unavailable",play_test_purchase:!!purchase.testPurchaseContext,status:"pending"}).select("id").single();
   if(insertErr&&insertErr.code!=="23505")return output({error:"No se pudo registrar el pedido"},500);
   order=inserted;
   if(!order){const {data:retried,error:retryError}=await db.from("picgift_orders").select("id,user_id,product_id,status,provider_payment_id,play_consumed_at").eq("provider","google_play").eq("provider_checkout_id",token).maybeSingle();
@@ -86,6 +97,7 @@ Deno.serve(async req=>{
     consumptionPending=!!saveError||!saved;
    }else console.error("PICGIFT_PLAY_CONSUME_NEEDS_RETRY",order.id,consumed?.status);
   }catch{console.error("PICGIFT_PLAY_CONSUME_NEEDS_RETRY",order.id,"transport_or_save_failed")}
+  await refreshAmount(order);
   return output({success:true,order_id:order.id,consumption_pending:consumptionPending});
  }catch(e){console.error("PICGIFT_PLAY_VERIFY_ERROR",e instanceof Error?e.name:"unknown");return output({error:"No pudimos verificar la compra en este momento."},503)}
 });

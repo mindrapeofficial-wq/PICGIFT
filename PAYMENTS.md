@@ -2,7 +2,11 @@
 
 ## Alcance actual: solo Google Play (13 de octubre de 2026)
 
-La decisión vigente es comercializar únicamente mediante Google Play. Las referencias a activar Stripe que aparecen más abajo son históricas y quedan fuera de este lanzamiento. Este cambio no abre ventas ni altera horarios de cron: el catálogo activo de Play y la prueba real en un dispositivo siguen pendientes de validación.
+La decisión vigente es comercializar únicamente mediante Google Play. Las referencias a activar Stripe que aparecen más abajo son históricas y quedan fuera de este lanzamiento. Las tres opciones de compra `standard` están activas desde el 13 de octubre; activar el catálogo no modifica los flags del backend ni los horarios de cron. La validación del recorrido completo debe hacerse en el dispositivo.
+
+**Precios de Halloween y cierre pendiente:** se verificaron en Play Console los precios de España de 7,90 €, 19,92 € y 31,92 € para Esencial, Mágico y Familiar. Son precios estáticos de `standard`, sin una oferta adicional ni fecha de finalización automática confirmada. Al terminar la campaña el **31 de octubre de 2026 a las 23:00 UTC**, es necesario restaurar en Google Play Mágico a 24,90 € y Familiar a 39,90 €, y comprobarlo; Esencial permanece en 7,90 €. El cambio de campaña de la web no cambia estos precios en Google Play. Los importes locales de otros países son distintos (por ejemplo, Mágico en Alemania: 23,99 €); no se ha aplicado una modificación masiva ni validado un precio uniforme para toda la zona euro.
+
+La lista de licencia `Galante`, que contiene únicamente `mindrapeofficial@gmail.com`, está seleccionada y guardada. Las compras con los métodos de pago de prueba de una cuenta tester de licencia son simuladas y no generan ingresos. Otras cuentas pueden recibir cargos reales aunque estén en el canal beta. Antes de cada prueba, confirmar en la pantalla de Google la cuenta, el precio y que se está usando el método de prueba previsto. [Documentación oficial de pruebas de Google Play Billing](https://developer.android.com/google/play/billing/test).
 
 Antes de desplegar `picgift-ai-director`, aplicar `supabase/migrations/20261013193000_play_reconciliation_state.sql`. Crea un único estado de continuación privado, con RLS y acceso de lectura/actualización solo para `service_role`; no contiene claves. Después desplegar el director con `_shared/play-reconciliation.mjs` y `picgift-google-play` con `_shared/play-purchase.mjs`.
 

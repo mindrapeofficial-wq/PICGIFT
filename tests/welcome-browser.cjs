@@ -7,8 +7,18 @@ const mock=`export function createClient(){const user={id:'11111111-1111-1111-11
 (async()=>{fs.mkdirSync(out,{recursive:true});await new Promise(r=>server.listen(8133,'127.0.0.1',r));const executablePath=process.env.PICGIFT_BROWSER_EXECUTABLE||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':undefined);const browser=await chromium.launch({headless:true,executablePath});const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,locale:'es-ES'});const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.route(/^https?:\/\/(?!127\.0\.0\.1)/,r=>r.request().url().startsWith('https://esm.sh/@supabase/supabase-js@')?r.fulfill({contentType:'text/javascript',body:mock}):r.abort());
 await page.addInitScript(()=>{localStorage.setItem('picgift.language','es');window.nativeRequests=[];window.PicgiftNative={postMessage:message=>window.nativeRequests.push(JSON.parse(message))};window.picgiftNativeGoogleSupported=true});
-await page.goto('http://127.0.0.1:8133/#crear');await page.waitForSelector('#first-steps[open]');await page.waitForFunction(()=>[...document.querySelectorAll('#first-steps img')].length===3&&[...document.querySelectorAll('#first-steps img')].every(i=>i.complete&&i.naturalWidth>0));await page.screenshot({path:path.join(out,'01-primeros-pasos.png')});assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);
-await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();await page.waitForFunction(()=>window.nativeRequests.some(x=>x.action==='notifications-enable'));await page.waitForTimeout(1600);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,1);assert.equal(await page.locator('#mobile-signin').isVisible(),false);await page.screenshot({path:path.join(out,'02-bienvenida.png')});await page.locator('.mobile-nav').screenshot({path:path.join(out,'barra-centrada.png')});
+// Native entry asks for notifications after sign-in, before Home and the first-photo guide.
+await page.goto('http://127.0.0.1:8133/#inicio');
+await page.waitForFunction(()=>window.nativeRequests.some(x=>x.action==='notifications-enable'));
+assert.equal(await page.locator('#first-steps').evaluate(e=>e.open),false);
+await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:native-push',{detail:{status:'permission_denied'}})));
+await page.waitForSelector('[data-page="inicio"]:visible');await page.waitForSelector('#first-steps[open]');
+await page.waitForFunction(()=>[...document.querySelectorAll('#first-steps img')].length===3&&[...document.querySelectorAll('#first-steps img')].every(i=>i.complete&&i.naturalWidth>0));
+await page.locator('#splash').waitFor({state:'hidden'});await page.screenshot({path:path.join(out,'01-primeros-pasos.png')});
+await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();await page.waitForSelector('[data-page="crear"]:visible');
+assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,1);
+assert.equal(await page.evaluate(()=>localStorage.getItem('picgift-first-portrait-v2:11111111-1111-1111-1111-111111111111')),null,'Starting the guide does not complete a portrait');
+assert.equal(await page.locator('#mobile-signin').isVisible(),false);await page.screenshot({path:path.join(out,'02-bienvenida.png')});await page.locator('.mobile-nav').screenshot({path:path.join(out,'barra-centrada.png')});
 // The actual app must not submit the previous account's photo when editing finishes late.
 await page.locator('#photo').setInputFiles(path.join(root,'assets/halloween/journey/result.webp'));
 await page.waitForSelector('#upload-loaded:not(.hidden)');
@@ -36,8 +46,9 @@ assert.equal(await page.evaluate(()=>window.testGenerationEvents),0);
 assert.equal(await page.locator('#upload-loaded').isVisible(),false);
 assert.equal(await page.locator('#chosen-photo').getAttribute('src'),null);
 await page.evaluate(()=>{window.picgiftPhotoEditor.exportFile=window.testOriginalExport;window.picgiftChooseService=window.testOriginalService});
-// A fresh account receives its own onboarding; finish it before testing page scrolling.
-if(await page.locator('#first-steps').evaluate(e=>e.open))await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();
+// A fresh account receives its own guide. Starting it must navigate back from Home to the studio.
+await page.waitForSelector('#first-steps[open]');await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();
+await page.waitForSelector('[data-page="crear"]:visible');
 for(const width of [320,390,768]){
  await page.setViewportSize({width,height:640});
  const geometry=await page.locator('.mobile-nav').evaluate(nav=>{const buttons=[...nav.querySelectorAll('button')],icons=buttons.filter(b=>!b.matches('[data-camera-capture]')).map(b=>{const r=b.querySelector('svg').getBoundingClientRect();return r.y+r.height/2}),camera=buttons[2].getBoundingClientRect();return {count:buttons.length,center:camera.x+camera.width/2,width:innerWidth,icons,targets:buttons.map(b=>{const r=b.getBoundingClientRect();return {width:r.width,height:r.height}})}});
@@ -71,11 +82,23 @@ for(const width of [320,390,768]){
 }
 await page.evaluate(()=>document.body.classList.remove('studio-has-photo'));
 await page.setViewportSize({width:390,height:844});await page.locator('body').press('Control+Home');
-await page.reload();await page.waitForTimeout(900);assert.equal(await page.locator('#first-steps').evaluate(e=>e.open),false);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);
-await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:native-push',{detail:{status:'permission_denied'}})));await page.reload();await page.waitForTimeout(900);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);
+// Reload restores the original fixture account. An unfinished guide reopens, without asking again after denial.
+await page.reload();await page.waitForSelector('#first-steps[open]');await page.waitForSelector('[data-page="inicio"]:visible');
+assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);
+await page.getByRole('button',{name:'Empezar mi foto',exact:true}).click();await page.waitForSelector('[data-page="crear"]:visible');
+// A completed fixture portrait still needs a successful native save before onboarding is persisted.
+await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:gallery',{detail:{jobs:[{id:'welcome-test-portrait',status:'completed'}]}})));
+await page.waitForSelector('[data-guide-saved]:visible');
+assert.equal(await page.evaluate(()=>localStorage.getItem('picgift-first-portrait-v2:11111111-1111-1111-1111-111111111111')),null);
+await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:portrait-saved',{detail:{user_id:'11111111-1111-1111-1111-111111111111'}})));
+await page.waitForFunction(()=>localStorage.getItem('picgift-first-portrait-v2:11111111-1111-1111-1111-111111111111')==='done');
+await page.reload();await page.waitForFunction(()=>window.picgiftEntryNotificationsReady===true&&document.body.dataset.appPage==='inicio');
+assert.equal(await page.locator('#first-steps').evaluate(e=>e.open),false);assert.equal((await page.evaluate(()=>window.nativeRequests)).filter(x=>x.action==='notifications-enable').length,0);
 await page.locator('.mobile-nav [data-route="cuenta"]').click();await page.waitForSelector('#admin-dashboard-link:visible');await page.locator('#admin-dashboard-link').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'03-perfil-admin.png')});await page.locator('#admin-dashboard-link').click();await page.waitForSelector('#dashboard:not([hidden])');await page.waitForSelector('#ai-director-list article');assert.equal(await page.getByRole('heading',{name:'Disponible solo en la web'}).count(),0);await page.locator('#ai-director-section').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'04-admin-movil.png'),fullPage:false});
 for(const width of [320,390,768]){await page.setViewportSize({width,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Admin overflows at '+width)}
-await page.goto('http://127.0.0.1:8133/#crear');await page.setViewportSize({width:390,height:844});await page.waitForTimeout(700);await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:null}})));await page.waitForSelector('#mobile-signin:visible');assert.ok((await page.locator('#mobile-signin .google-signin').boundingBox()).width<=240);await page.screenshot({path:path.join(out,'05-google-compacto.png')});
+await page.goto('http://127.0.0.1:8133/#inicio');await page.setViewportSize({width:390,height:844});await page.waitForFunction(()=>window.picgiftEntryNotificationsReady===true);await page.locator('#splash').waitFor({state:'hidden'});
+await page.evaluate(()=>window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:null}})));
+await page.locator('.mobile-nav [data-route="crear"]').click();await page.waitForSelector('#mobile-signin:visible');assert.ok((await page.locator('#mobile-signin .google-signin').boundingBox()).width<=240);await page.screenshot({path:path.join(out,'05-google-compacto.png')});
 // Dynamic sign-in, recovery and backup copy must follow the device/user language.
 await page.evaluate(()=>window.picgiftI18n.setPreference('en'));
 for(const [mode,title] of [['login','Sign in with a password'],['forgot','Forgot your password?'],['register','Create an account'],['backup','Create a backup password'],['recovery','Change your password']]){
@@ -95,4 +118,4 @@ await page.waitForFunction(()=>document.getElementById('auth-title').textContent
 assert.equal(await page.locator('#auth-email').getAttribute('placeholder'),'tu@correo.com');
 assert.equal(await page.locator('#google span').textContent(),'Continuar con Google');
 await page.locator('#close').click();
-await page.addInitScript(()=>window.testAdmin=false);await page.goto('http://127.0.0.1:8133/admin.html');await page.waitForSelector('#blocked-title');await page.waitForFunction(()=>document.getElementById('blocked-title').textContent==='Acceso no autorizado');assert.equal(await page.locator('#dashboard').isVisible(),false);assert.deepEqual(errors,[]);await browser.close();server.close();console.log('Verified: onboarding once, notification consent after onboarding, no reprompt after denial, native admin and responsive 320/390/768px, compact Google, account change clears photo and cancels delayed editor export.');})().catch(e=>{console.error(e);server.close();process.exit(1)});
+await page.addInitScript(()=>window.testAdmin=false);await page.goto('http://127.0.0.1:8133/admin.html');await page.waitForSelector('#blocked-title');await page.waitForFunction(()=>document.getElementById('blocked-title').textContent==='Acceso no autorizado');assert.equal(await page.locator('#dashboard').isVisible(),false);assert.deepEqual(errors,[]);await browser.close();server.close();console.log('Verified: notifications before Home and guide, no reprompt after denial, unfinished guide resumes and native save completes it, native admin and responsive 320/390/768px, compact Google, account change clears photo and cancels delayed editor export.');})().catch(e=>{console.error(e);server.close();process.exit(1)});
