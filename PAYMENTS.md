@@ -1,5 +1,23 @@
 # PICGIFT · Payments integration 2026
 
+## Alcance actual: solo Google Play (13 de octubre de 2026)
+
+La decisión vigente es comercializar únicamente mediante Google Play. Las referencias a activar Stripe que aparecen más abajo son históricas y quedan fuera de este lanzamiento. Las tres opciones de compra `standard` están activas desde el 13 de octubre; activar el catálogo no modifica los flags del backend ni los horarios de cron. La validación del recorrido completo debe hacerse en el dispositivo.
+
+**Precios de Halloween y cierre pendiente:** se verificaron en Play Console los precios de España de 7,90 €, 19,92 € y 31,92 € para Esencial, Mágico y Familiar. Son precios estáticos de `standard`, sin una oferta adicional ni fecha de finalización automática confirmada. Al terminar la campaña el **31 de octubre de 2026 a las 23:00 UTC**, es necesario restaurar en Google Play Mágico a 24,90 € y Familiar a 39,90 €, y comprobarlo; Esencial permanece en 7,90 €. El cambio de campaña de la web no cambia estos precios en Google Play. Los importes locales de otros países son distintos (por ejemplo, Mágico en Alemania: 23,99 €); no se ha aplicado una modificación masiva ni validado un precio uniforme para toda la zona euro.
+
+La lista de licencia `Galante`, que contiene únicamente `mindrapeofficial@gmail.com`, está seleccionada y guardada. Las compras con los métodos de pago de prueba de una cuenta tester de licencia son simuladas y no generan ingresos. Otras cuentas pueden recibir cargos reales aunque estén en el canal beta. Antes de cada prueba, confirmar en la pantalla de Google la cuenta, el precio y que se está usando el método de prueba previsto. [Documentación oficial de pruebas de Google Play Billing](https://developer.android.com/google/play/billing/test).
+
+Antes de desplegar `picgift-ai-director`, aplicar `supabase/migrations/20261013193000_play_reconciliation_state.sql`. Crea un único estado de continuación privado, con RLS y acceso de lectura/actualización solo para `service_role`; no contiene claves. Después desplegar el director con `_shared/play-reconciliation.mjs` y `picgift-google-play` con `_shared/play-purchase.mjs`.
+
+El cron privado existente `dispatch` también concilia compras; la acción `reconcile_purchases` permite ejecutar un lote con la misma autorización de cron o administrador. Revisa reembolsos de los últimos 29 días (Google limita la consulta a 30), incluidas compras ya consumidas, y reintenta acreditar/consumir pedidos verificados. Conserva cursores de pedidos, página e índice de reembolso en base de datos con comparación de versión. Los lotes recorren como máximo 30 pedidos y 10 páginas; las ventanas se conservan hasta 20 horas para reanudar y luego se renuevan. Los pedidos fallidos vuelven a revisarse tras completar la vuelta, sin bloquear los siguientes.
+
+El presupuesto cooperativo de 45 segundos limita las llamadas a Google y el inicio de nuevas operaciones; no es un timeout rígido de consultas Supabase. `complete` se refiere al lote actual (`scope: batch`), no demuestra que no existan incidencias anteriores. Revisar `errors`, los cursores y `purchases` en la respuesta del director: el envío de notificaciones mantiene su propio resultado aunque falle la conciliación. Una caída continua superior a la ventana de consulta necesita revisión manual de pedidos antiguos.
+
+Los RPC con bloqueo de fila y ledger único impiden acreditar/revertir dos veces. Un reembolso que llega antes de acreditar marca el pedido sin otorgar saldo; si la acreditación gana la carrera, se revierte mediante el RPC. Restaurar una compra ya consumida vuelve a consultar Google. Un fallo de consumo posterior a la acreditación devuelve éxito con `consumption_pending: true`, conserva el saldo y se reintenta.
+
+Verificación local: `node --test tests/play-receipt.test.cjs tests/play-reconciliation.test.cjs tests/notification-delivery.test.cjs`. Estas pruebas usan proveedores y base de datos simulados; no sustituyen la compra de licencia, reembolso y generación/descarga en el móvil. Los términos ES/EN explican compras únicas, entrega, recuperación y reembolsos de Google Play. Antes de producción sigue pendiente confirmar la información fiscal/domicilio comercial y el recorrido real de compra.
+
 ## Packs comerciales
 | ID | Paquete | Web (EUR) | Créditos | Google Play Product ID |
 | --- | --- | ---: | ---: | --- |

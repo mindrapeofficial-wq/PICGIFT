@@ -51,7 +51,7 @@ test('Free and Premium require an explicit service selection; no automatic paid 
  assert.doesNotMatch(frontend,/confirm_fictional_samples/);
  assert.match(index,/id="choose-free-photo"/);
  assert.match(index,/id="choose-premium-photo"/);
- assert.match(index,/autorizaci.n expresa de sus representantes/i);
+ assert.match(index,/para menores o personas que requieran representaci.n, soy su representante legal facultado o cuento con su autorizaci.n expresa/i);
 });
 test('Both references retain their semantic roles and complete recipe instructions',async()=>{
  const {buildPortraitPrompt}=await import('../supabase/functions/_shared/portrait-prompt.ts');

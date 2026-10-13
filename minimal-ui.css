@@ -1,4 +1,25 @@
 /* Let photographs carry the visual identity; navigation stays quiet. */
+.home-welcome{padding:16px 0 20px;max-width:660px}.home-welcome h1{font:600 clamp(28px,5vw,40px)/1.12 Georgia,serif;margin:10px 0}.home-welcome p{color:#dec7b0;font-size:15px;line-height:1.5;margin:0 0 18px}.home-welcome .btn{min-height:48px}.home-example{border-top:1px solid #ffffff1c;padding-top:8px}.home-example>summary{cursor:pointer;min-height:48px;align-content:center;font-size:15px;color:#ebd6bd}.home-example .journey-grid{margin-top:16px}
+.purchase-disclosure{display:grid;gap:10px;margin:0 0 20px;color:#dccbb9;font:400 13px/1.5 Arial,sans-serif}.purchase-disclosure p{margin:0}.purchase-disclosure #premium-beta-daily-limit{color:#fff0dc;font-weight:600}
+html[data-campaign="halloween"] .page[data-page="precios"] .pricing-grid{gap:12px}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card{padding:18px 12px;min-height:0;border-color:#a47b4d80;background:#20160f;box-shadow:none;border-width:1px}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card .eyebrow{font-size:11px;letter-spacing:.4px}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card h3{font-size:28px;margin:8px 0 14px}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card ul{font-size:12px;line-height:1.4}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card .price-amount{font-size:24px;margin:12px 0}
+html[data-campaign="halloween"] .page[data-page="precios"] .price-card .btn{min-height:44px!important;font-size:13px!important;padding:10px!important;border-radius:12px!important;white-space:normal}
+html[data-campaign="halloween"] .page[data-page="precios"] #payment-status{font-size:13px;line-height:1.5;margin:16px 0 4px}
+.page[data-page="precios"] [data-payment-refresh]{min-height:44px;text-align:left;line-height:1.4}
+@media(max-width:600px){
+ html[data-campaign="halloween"] .page[data-page="precios"] .pricing-grid{grid-template-columns:1fr}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card{display:grid;grid-template-columns:1fr auto;gap:4px 16px;text-align:left;padding:16px}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card .eyebrow{text-align:left;grid-column:1}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card h3{text-align:left;grid-column:1;grid-row:2;margin:0;font-size:28px}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card ul{grid-column:1/-1;grid-row:3;display:flex;flex-wrap:wrap;gap:4px 12px;margin:7px 0 0}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card li{margin:0}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card .price-amount{grid-column:2;grid-row:1;text-align:right;margin:0;font-size:22px}
+ html[data-campaign="halloween"] .page[data-page="precios"] .price-card .btn{grid-column:2;grid-row:2;align-self:center;width:auto}
+}
 html[data-campaign="halloween"] .mobile-app-hero__settings{min-width:44px;min-height:44px}
 html[data-campaign="halloween"] .mobile-signin .google-signin{
  background:transparent!important;border:0!important;box-shadow:none!important;

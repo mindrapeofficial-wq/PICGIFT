@@ -9,10 +9,12 @@ page.on('pageerror',err=>errors.push(err.message));
 await page.route(/https:\/\/(esm\.sh|.*\.supabase\.co|api\.openai\.com)\//,route=>route.abort());
 try{
  await page.goto('http://127.0.0.1:8099/',{waitUntil:'load',timeout:45000});
+ await page.waitForSelector('[data-page="inicio"]:visible',{timeout:12000});
+ await page.locator('#splash').waitFor({state:'hidden',timeout:8000});
+ await page.locator('.mobile-nav button[data-route="crear"]').click();
  await page.waitForSelector('#picgift-studio:visible',{timeout:12000});
  await page.waitForSelector('#mobile-scenes button',{timeout:12000});
  await page.locator('#splash').waitFor({state:'hidden',timeout:8000});
- await page.waitForTimeout(150);
  assert.equal(await page.locator('.mobile-nav button').count(),5);
  assert.ok(await page.locator('.mobile-app-hero').isVisible());
  assert.ok(await page.locator('#generate').isVisible());

@@ -1,4 +1,4 @@
-name: PICGIFT Google Drive photo import
+name: PICGIFT photo selection
 
 on:
   workflow_dispatch:
@@ -8,22 +8,28 @@ on:
       - 'app.js'
       - 'index.html'
       - 'styles.css'
-      - 'tests/google-drive-import.test.cjs'
-      - '.github/workflows/google-drive-import.yml'
+      - 'auth.js'
+      - 'google-native.js'
+      - 'android/app/src/main/AndroidManifest.xml'
+      - 'tests/photo-selection.test.cjs'
+      - '.github/workflows/photo-selection.yml'
   push:
     paths:
       - 'android/app/src/main/java/com/picgift/myapp/MainActivity.kt'
       - 'app.js'
       - 'index.html'
       - 'styles.css'
-      - 'tests/google-drive-import.test.cjs'
-      - '.github/workflows/google-drive-import.yml'
+      - 'auth.js'
+      - 'google-native.js'
+      - 'android/app/src/main/AndroidManifest.xml'
+      - 'tests/photo-selection.test.cjs'
+      - '.github/workflows/photo-selection.yml'
 
 permissions:
   contents: read
 
 jobs:
-  validate-drive-picker:
+  validate-photo-selection:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,5 +39,5 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: node --check app.js
-      - name: Verify Drive photo import, permissions and UI
-        run: node --test tests/google-drive-import.test.cjs
+      - name: Verify photo selection, camera, sign-in and permissions
+        run: node --test tests/photo-selection.test.cjs

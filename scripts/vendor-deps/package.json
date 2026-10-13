@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@fontsource/dm-sans": "5.3.0",
+    "@fontsource/playfair-display": "5.3.0",
+    "@supabase/supabase-js": "2.57.4",
+    "esbuild": "0.28.2"
+  }
+}

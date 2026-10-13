@@ -11,6 +11,7 @@ import java.io.File
 import android.os.Bundle
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.graphics.Color
 import android.view.Gravity
 import android.widget.Button
@@ -33,6 +34,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.ServiceWorkerClientCompat
+import androidx.webkit.ServiceWorkerControllerCompat
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
@@ -47,6 +51,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private lateinit var billing: BillingClient
     private var currentAccount: String? = null
+    private var billingFlowAccount: String? = null
+    private var billingConnecting = false
     private var pageReady = false
     private var nativeBottomInsetDp = 0f
     private val googleSignIn by lazy { GoogleCredentialSignIn(this, ::deliverGoogleToken, ::googleSignInError) }
@@ -58,16 +64,66 @@ class MainActivity : AppCompatActivity() {
     }
     private lateinit var loading: ProgressBar
     private lateinit var failure: LinearLayout
-    private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
+    private val homeUrl get() = "https://picgift.onrender.com/app/index.html?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
+    private val bundledAssets by lazy {
+        WebViewAssetLoader.Builder().setDomain("picgift.onrender.com")
+            .addPathHandler("/") { path -> bundledResponse(path) }.build()
+    }
+
+    private fun bundledNotFound() = WebResourceResponse(
+        "text/plain", "UTF-8", 404, "Not Found", mapOf("Cache-Control" to "no-store"),
+        "Bundled resource unavailable".byteInputStream()
+    )
+
+    private fun bundledResponse(path: String): WebResourceResponse {
+        val decoded = Uri.decode(path)
+        if (decoded.startsWith('/') || decoded.contains('\\') || decoded.contains('\u0000') ||
+            decoded.split('/').any { it == "." || it == ".." }) return bundledNotFound()
+        val relative = decoded.removePrefix("app/").ifEmpty { "index.html" }
+        val mime = when (relative.substringAfterLast('.', "").lowercase()) {
+            "html" -> "text/html"
+            "js", "mjs" -> "text/javascript"
+            "css" -> "text/css"
+            "json" -> "application/json"
+            "webmanifest" -> "application/manifest+json"
+            "svg" -> "image/svg+xml"
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            "webp" -> "image/webp"
+            "gif" -> "image/gif"
+            "ico" -> "image/x-icon"
+            "woff" -> "font/woff"
+            "woff2" -> "font/woff2"
+            "ttf" -> "font/ttf"
+            "otf" -> "font/otf"
+            "avif" -> "image/avif"
+            "mp4" -> "video/mp4"
+            "mp3" -> "audio/mpeg"
+            else -> "application/octet-stream"
+        }
+        val text = mime.startsWith("text/") || mime.endsWith("json") || mime.endsWith("xml")
+        return try {
+            WebResourceResponse(mime, if (text) "UTF-8" else null, 200, "OK",
+                mapOf("Cache-Control" to "no-store", "X-Content-Type-Options" to "nosniff"), assets.open("app/$relative"))
+        } catch (_: Exception) { bundledNotFound() }
+    }
+
+    private fun interceptBundledRequest(uri: Uri): WebResourceResponse? {
+        if (uri.host != "picgift.onrender.com") return null
+        // Never silently fetch a missing interface file from the remote website.
+        if (uri.scheme != "https") return bundledNotFound()
+        return bundledAssets.shouldInterceptRequest(uri) ?: bundledNotFound()
+    }
     private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
     private var pendingCameraUri: Uri? = null
     private var pendingCameraFile: File? = null
+    private var pendingPickerLimit = 1
     private var pendingNotificationRoute: String? = null
     private val nativeRoutes = setOf("crear", "mis-fotos", "escenarios", "cuenta", "precios")
     private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val picked = if (result.resultCode == Activity.RESULT_OK) {
             WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-                ?.take(1)?.filter { safePickedImage(it) }?.toTypedArray()
+                ?.distinct()?.filter { safePickedImage(it) }?.take(pendingPickerLimit)?.toTypedArray()
         } else null
         val cameraCaptured = result.resultCode == Activity.RESULT_OK &&
             (picked == null || picked.isEmpty()) &&
@@ -80,15 +136,61 @@ class MainActivity : AppCompatActivity() {
         if (!cameraCaptured) pendingCameraFile?.delete()
         pendingCameraFile = null
         pendingCameraUri = null
-        pendingFileUpload?.onReceiveValue(value)
+        val callback = pendingFileUpload
         pendingFileUpload = null
+        pendingPickerLimit = 1
+        callback?.onReceiveValue(value)
     }
 
     private fun safePickedImage(uri: Uri): Boolean {
         if (uri.scheme != "content" || uri.authority == "$packageName.photo") return false
         return try {
-            contentResolver.getType(uri) in setOf("image/jpeg", "image/png", "image/webp")
+            contentResolver.getType(uri) in setOf("image/jpeg", "image/png", "image/webp") &&
+                contentResolver.openFileDescriptor(uri, "r")?.use { true } == true
         } catch (_: Exception) { false }
+    }
+
+    private fun finishFileSelection() {
+        val callback = pendingFileUpload
+        pendingFileUpload = null
+        pendingCameraFile?.delete()
+        pendingCameraFile = null
+        pendingCameraUri = null
+        pendingPickerLimit = 1
+        callback?.onReceiveValue(null)
+    }
+
+    private fun launchPhotoPicker(multiple: Boolean) {
+        // Try the platform photo gallery, including supported backports. No document explorer.
+        val photos = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+            type = "image/*"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (multiple) putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, pendingPickerLimit)
+        }
+        try {
+            filePicker.launch(photos)
+        } catch (_: android.content.ActivityNotFoundException) {
+            val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            filePicker.launch(gallery)
+        }
+    }
+
+    private fun launchCamera() {
+        val directory = File(cacheDir, "camera").also { it.mkdirs() }
+        val photo = File.createTempFile("picgift-capture-", ".jpg", directory)
+        pendingCameraFile = photo
+        val uri = FileProvider.getUriForFile(this, "$packageName.photo", photo)
+        pendingCameraUri = uri
+        filePicker.launch(Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, uri)
+            clipData = ClipData.newRawUri("PICGIFT photo", uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        })
     }
     private val products = mapOf(
         "esencial" to "picgift_esencial_1",
@@ -104,12 +206,14 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= 29) window.isNavigationBarContrastEnforced = false
         billing = BillingClient.newBuilder(this)
             .setListener { result, purchases ->
+                val purchaseAccount = billingFlowAccount ?: currentAccount
+                billingFlowAccount = null
                 if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-                    deliverPurchases(purchases)
+                    deliverPurchases(purchases, purchaseAccount)
                 } else if (result.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
-                    if (::web.isInitialized) web.post { web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:play-cancelled'));", null) }
+                    dispatchAccountEvent("picgift:play-cancelled", purchaseAccount)
                 } else {
-                    if (::web.isInitialized) web.post { web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:play-error'));", null) }
+                    playError(purchaseAccount)
                 }
             }
             .enableAutoServiceReconnection()
@@ -164,11 +268,20 @@ class MainActivity : AppCompatActivity() {
         web.settings.setSupportMultipleWindows(false)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         web.settings.javaScriptCanOpenWindowsAutomatically = false
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            WebViewCompat.addDocumentStartJavaScript(web, "window.picgiftBundledApp=true;", setOf("https://picgift.onrender.com"))
+        }
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE) &&
+            WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_SHOULD_INTERCEPT_REQUEST)) {
+            ServiceWorkerControllerCompat.getInstance().setServiceWorkerClient(object : ServiceWorkerClientCompat() {
+                override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? =
+                    interceptBundledRequest(request.url)
+            })
+        }
 
         // Android WebView does not provide a file picker by default.
-        // Storage Access Framework lets users choose a photo from Drive or local files
-        // without Drive-wide permissions. Only the selected document is read.
-        // Allow the customer to select a photo from the device without camera/storage permissions.
+        // Open a photo gallery for uploads and the camera only for the separate capture control.
+        // Both grant access to the selected image without broad camera/storage permissions.
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, progress: Int) {
                 loading.progress = progress
@@ -179,40 +292,21 @@ class MainActivity : AppCompatActivity() {
                 filePathCallback: ValueCallback<Array<Uri>>?,
                 fileChooserParams: FileChooserParams?
             ): Boolean {
-                pendingFileUpload?.onReceiveValue(null)
+                if (!trustedPicgiftPage() || filePathCallback == null) return false
+                // Do not replace an outstanding request with a second picker: its late result
+                // must never be delivered into another file input.
+                if (pendingFileUpload != null) { filePathCallback.onReceiveValue(null); return true }
                 pendingFileUpload = filePathCallback
-                val pick = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                    type = "image/*"
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                // Camera, local files and Drive are offered through one Android chooser.
-                val cameraIntent = try {
-                    val directory = File(cacheDir, "camera").also { it.mkdirs() }
-                    val photo = File.createTempFile("picgift-capture-", ".jpg", directory)
-                    val uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.photo", photo)
-                    pendingCameraFile = photo
-                    pendingCameraUri = uri
-                    Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                        putExtra(MediaStore.EXTRA_OUTPUT, uri)
-                        clipData = ClipData.newRawUri("PICGIFT photo", uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                    }
-                } catch (_: Exception) { null }
-                val chooser = Intent.createChooser(pick, getString(R.string.choose_photo)).apply {
-                    if (cameraIntent != null) putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(cameraIntent))
-                }
+                val multiple = fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                pendingPickerLimit = if (multiple) 2 else 1
                 return try {
-                    filePicker.launch(chooser)
+                    if (fileChooserParams?.isCaptureEnabled == true) launchCamera()
+                    else launchPhotoPicker(multiple)
                     true
                 } catch (_: Exception) {
-                    pendingFileUpload?.onReceiveValue(null)
-                    pendingFileUpload = null
-                    pendingCameraFile?.delete()
-                    pendingCameraFile = null
-                    pendingCameraUri = null
-                    false
+                    finishFileSelection()
+                    Toast.makeText(this@MainActivity, R.string.photo_picker_unavailable, Toast.LENGTH_LONG).show()
+                    true
                 }
             }
         }
@@ -224,17 +318,7 @@ class MainActivity : AppCompatActivity() {
         })
         // Save private portraits to the phone's Pictures/PICGIFT album without storage permissions.
         web.setDownloadListener { link, _, _, _, _ ->
-            val target = Uri.parse(link)
-            if (!PicgiftPhotoDownloads.isTrustedPortrait(target)) return@setDownloadListener
-            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-                openExternal(target)
-            } else {
-                PicgiftPhotoDownloads.save(this@MainActivity, target) { successful ->
-                    Toast.makeText(this@MainActivity,
-                        getString(if (successful) R.string.photo_saved else R.string.photo_save_failed),
-                        Toast.LENGTH_LONG).show()
-                }
-            }
+            savePortrait(Uri.parse(link))
         }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
@@ -274,12 +358,15 @@ class MainActivity : AppCompatActivity() {
                     val id = req.optString("product_id")
                     val user = req.optString("user_id")
                     if (id !in products || !Regex("^[0-9a-f-]{36}$").matches(user)) return@addWebMessageListener
-                    if (!pageReady || user != currentAccount) { runOnUiThread { playError() }; return@addWebMessageListener }
+                    if (!pageReady || user != currentAccount) { runOnUiThread { playError(user) }; return@addWebMessageListener }
                     runOnUiThread { buy(id, user) }
                 } catch (_: Exception) { }
             }
         }
         web.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? =
+                request?.url?.let { interceptBundledRequest(it) }
+
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 googleSignIn.cancel()
                 pageReady = false
@@ -289,7 +376,7 @@ class MainActivity : AppCompatActivity() {
                 if (!trustedPicgiftPage()) return
                 updateNativeInsets()
                 val supported = googleSignIn.isConfigured
-                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                web.evaluateJavascript("window.picgiftBundledApp=true;window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
                 dispatchNativeRoute()
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -303,6 +390,8 @@ class MainActivity : AppCompatActivity() {
                 val target = request?.url ?: return false
                 val trusted = target.scheme == "https" && target.host == "picgift.onrender.com"
                 if (request.isForMainFrame == false) return !trusted
+                // Signed cross-origin anchors navigate before DownloadListener can see them.
+                if (PicgiftPhotoDownloads.isTrustedPortrait(target)) { savePortrait(target); return true }
                 if (trusted && target.path in listOf("/privacy.html", "/delete-account.html")) { openExternal(target); return true }
                 if (!trusted) {
                     if (target.scheme in listOf("https", "mailto")) openExternal(target)
@@ -405,14 +494,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun connectBilling() {
+        if (billing.isReady || billingConnecting) return
+        billingConnecting = true
         billing.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(result: BillingResult) {
+                billingConnecting = false
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                     restorePurchases()
                     queryPrices()
-                }
+                } else playError(currentAccount, "catalog")
             }
-            override fun onBillingServiceDisconnected() { }
+            override fun onBillingServiceDisconnected() { billingConnecting = false }
         })
     }
 
@@ -421,53 +513,82 @@ class MainActivity : AppCompatActivity() {
         catch (_: android.content.ActivityNotFoundException) { playError() }
     }
 
-    private fun playError() {
-        if (::web.isInitialized && pageReady) web.post {
-            web.evaluateJavascript("window.dispatchEvent(new Event('picgift:play-error'));", null)
+    private fun dispatchAccountEvent(event: String, user: String?, detail: JSONObject = JSONObject()) {
+        if (user == null || !::web.isInitialized) return
+        val payload = detail.put("user_id", user).toString()
+        web.post {
+            if (user != currentAccount || !pageReady || !trustedPicgiftPage()) return@post
+            web.evaluateJavascript("window.dispatchEvent(new CustomEvent(${JSONObject.quote(event)},{detail:$payload}));", null)
+        }
+    }
+
+    private fun playError(user: String? = currentAccount, source: String = "purchase") {
+        dispatchAccountEvent("picgift:play-error", user, JSONObject().put("source", source))
+    }
+
+    private fun savePortrait(target: Uri) {
+        val user = currentAccount ?: return
+        if (!pageReady || !trustedPicgiftPage() || !PicgiftPhotoDownloads.isTrustedPortrait(target)) return
+        if (target.path?.startsWith("/storage/v1/object/sign/picgift-generated/$user/") != true) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            openExternal(target)
+            return
+        }
+        PicgiftPhotoDownloads.save(this, target) { successful ->
+            if (user != currentAccount || isFinishing || isDestroyed) return@save
+            Toast.makeText(this, getString(if (successful) R.string.photo_saved else R.string.photo_save_failed), Toast.LENGTH_LONG).show()
+            if (successful) dispatchAccountEvent("picgift:portrait-saved", user)
         }
     }
 
     private fun accountHash(user: String) = MessageDigest.getInstance("SHA-256")
         .digest(user.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
 
-    private fun deliverPurchases(purchases: List<Purchase>) {
-        val user = currentAccount ?: return
-        if (!pageReady) return
+    private fun deliverPurchases(purchases: List<Purchase>, user: String? = currentAccount) {
+        if (user == null || user != currentAccount || !pageReady) return
         for (purchase in purchases) {
             if (purchase.accountIdentifiers?.obfuscatedAccountId != accountHash(user)) continue
             if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
-                web.post { web.evaluateJavascript("window.dispatchEvent(new Event('picgift:play-pending'));",null) }
+                dispatchAccountEvent("picgift:play-pending", user)
                 continue
             }
             if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) continue
             val id = products.entries.firstOrNull { it.value in purchase.products }?.key ?: continue
-            dispatchPurchase(id, purchase.purchaseToken)
+            dispatchPurchase(id, purchase.purchaseToken, user)
         }
     }
 
     private fun restorePurchases() {
-        if (!billing.isReady || !pageReady || currentAccount == null) return
+        val user = currentAccount ?: return
+        if (!pageReady) return
+        if (!billing.isReady) { connectBilling(); return }
         billing.queryPurchasesAsync(QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.INAPP).build()) { result, purchases ->
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) deliverPurchases(purchases)
+                if (user != currentAccount || !pageReady) return@queryPurchasesAsync
+                if (result.responseCode == BillingClient.BillingResponseCode.OK) deliverPurchases(purchases, user)
+                else playError(user, "restore")
         }
     }
 
     private fun queryPrices() {
-        if (!billing.isReady || !pageReady) return
+        val user = currentAccount ?: return
+        if (!pageReady) return
+        if (!billing.isReady) { connectBilling(); return }
         val params = QueryProductDetailsParams.newBuilder().setProductList(products.values.map { id ->
             QueryProductDetailsParams.Product.newBuilder().setProductId(id)
                 .setProductType(BillingClient.ProductType.INAPP).build()
         }).build()
         billing.queryProductDetailsAsync(params) { result, details ->
-            if (result.responseCode != BillingClient.BillingResponseCode.OK) { playError(); return@queryProductDetailsAsync }
+            if (user != currentAccount || !pageReady) return@queryProductDetailsAsync
+            if (result.responseCode != BillingClient.BillingResponseCode.OK) { playError(user, "catalog"); return@queryProductDetailsAsync }
             val prices = JSONObject()
             details.productDetailsList.forEach { product ->
                 val id = products.entries.firstOrNull { it.value == product.productId }?.key
                 val offer = product.oneTimePurchaseOfferDetailsList?.firstOrNull()
                 if (id != null && offer != null) prices.put(id, offer.formattedPrice)
             }
-            web.post { web.evaluateJavascript("window.dispatchEvent(new CustomEvent('picgift:play-prices',{detail:$prices}));",null) }
+            // Keep the flat prices for an older cached web client during a staged rollout.
+            dispatchAccountEvent("picgift:play-prices", user, JSONObject(prices.toString()).put("prices", prices))
         }
     }
 
@@ -484,9 +605,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buy(id: String, user: String) {
+        if (user != currentAccount || !pageReady) return
+        if (billingFlowAccount != null) { playError(user); return }
         val storeId = products[id] ?: return
-        if (!billing.isReady) { connectBilling(); playError(); return }
-        currentAccount = user
+        if (!billing.isReady) { connectBilling(); playError(user); return }
         val params = QueryProductDetailsParams.newBuilder()
             .setProductList(listOf(QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(storeId)
@@ -494,16 +616,19 @@ class MainActivity : AppCompatActivity() {
                 .build()))
             .build()
         billing.queryProductDetailsAsync(params) { result, detailsResult ->
+            if (user != currentAccount || !pageReady) return@queryProductDetailsAsync
             val details = detailsResult.productDetailsList.firstOrNull()
-            if (details == null) { playError(); return@queryProductDetailsAsync }
-            if (result.responseCode != BillingClient.BillingResponseCode.OK) { playError(); return@queryProductDetailsAsync }
+            if (details == null) { playError(user); return@queryProductDetailsAsync }
+            if (result.responseCode != BillingClient.BillingResponseCode.OK) { playError(user); return@queryProductDetailsAsync }
             runOnUiThread { launchBilling(details, user) }
         }
     }
 
     private fun launchBilling(details: ProductDetails, user: String) {
+        if (user != currentAccount || !pageReady || billingFlowAccount != null) return
         val sha = accountHash(user)
-        val offerToken = details.oneTimePurchaseOfferDetailsList?.firstOrNull()?.offerToken ?: return
+        val offerToken = details.oneTimePurchaseOfferDetailsList?.firstOrNull()?.offerToken
+        if (offerToken == null) { playError(user); return }
         val productParams = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(details)
             .setOfferToken(offerToken)
@@ -512,15 +637,14 @@ class MainActivity : AppCompatActivity() {
             .setProductDetailsParamsList(listOf(productParams))
             .setObfuscatedAccountId(sha)
             .build()
+        billingFlowAccount = user
         val result = billing.launchBillingFlow(this, params)
-        if (result.responseCode != BillingClient.BillingResponseCode.OK) playError()
+        if (result.responseCode != BillingClient.BillingResponseCode.OK) { billingFlowAccount = null; playError(user) }
     }
 
-    private fun dispatchPurchase(id: String, token: String) {
+    private fun dispatchPurchase(id: String, token: String, user: String) {
         // A native purchase is not proof of payment: the authenticated Supabase function validates it.
-        val json = JSONObject().put("product_id", id).put("purchase_token", token).toString()
-        val js = "window.dispatchEvent(new CustomEvent('picgift:play-purchase',{detail:$json}));"
-        web.post { web.evaluateJavascript(js, null) }
+        dispatchAccountEvent("picgift:play-purchase", user, JSONObject().put("product_id", id).put("purchase_token", token))
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -530,8 +654,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         googleSignIn.cancel()
-        pendingFileUpload?.onReceiveValue(null)
-        pendingFileUpload = null
+        finishFileSelection()
         if (::billing.isInitialized) billing.endConnection()
         if (::web.isInitialized) web.destroy()
         super.onDestroy()

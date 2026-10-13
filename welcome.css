@@ -31,6 +31,9 @@ body.studio-has-photo .welcome-story{display:none}
 .welcome-art figcaption span{display:inline-grid;place-items:center;width:18px;height:18px;background:#ffb45c;color:#241207;border-radius:50%}
 .welcome-story button{display:block;width:100%;text-align:center;margin-top:8px}
 .first-steps{padding:20px;max-height:calc(100dvh - 32px)}
+.first-photo-guide{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:16px 0;padding:18px;border:1px solid #e8aa6170;border-radius:16px;background:#24160f;color:#fff0db}
+.first-photo-guide[hidden]{display:none}.first-photo-guide h2{font:600 22px/1.2 Georgia,serif;margin:8px 0}.first-photo-guide p{max-width:660px;margin:0;color:#dfc5a5;font-size:14px;line-height:1.5}.first-photo-actions{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}.first-photo-actions button{min-height:44px}.first-photo-actions [hidden]{display:none}
+@media(max-width:820px){.first-photo-guide{flex-direction:column;align-items:stretch;padding:14px;margin:12px 0}.first-photo-actions{width:100%}.first-photo-guide h2{font-size:20px}}
 .first-steps h2{font-size:27px;margin:8px 0 16px}
 .first-steps .visual-tutorial{gap:10px;margin:0 0 12px}
 .first-steps .visual-tutorial li{position:relative;display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:14px;border:1px solid #e8aa6140;border-radius:14px;padding:6px;background:#150c08}

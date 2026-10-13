@@ -96,6 +96,9 @@ jobs:
           PICGIFT_UPLOAD_KEY_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_KEY_PASSWORD }}
         run: gradle -p android --no-daemon :app:lintRelease :app:bundleRelease
 
+      - name: Verify the installed interface and its local dependencies
+        run: node scripts/verify-android-bundle.cjs
+
       - name: Verify bundle signature and optional expected Google Play certificate
         env:
           EXPECTED_UPLOAD_SHA256: ${{ vars.PICGIFT_UPLOAD_CERT_SHA256 }}
@@ -127,7 +130,7 @@ jobs:
       - name: Upload signed Google Play AAB
         uses: actions/upload-artifact@v4
         with:
-          name: picgift-v1.8.5-beta-code14-play-signed
+          name: picgift-v1.8.7-beta-code16-play-signed
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7

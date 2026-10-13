@@ -34,7 +34,7 @@ function mockStore() {
    getSession:async()=>({data:{session:{user}}})
   },
   functions:{invoke:async(name,opts)=>({data:{checkout_available:false,google_play_available:true,credits:0},error:null})},
-  from:()=>({select:()=>({order:()=>({limit:async()=>({data:[],error:null})})})})
+  from:()=>({select:()=>({eq:async()=>({count:0,error:null})})})
  };
  const context={document,window,createClient:()=>client,SUPABASE_URL:'https://test.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',setInterval:()=>{},Intl,Date,URL};
  return {context,listeners,buttons,amounts,sent,el,client};
@@ -47,6 +47,14 @@ async function readyStore(){
  env.listeners['document:DOMContentLoaded']();await settle();await settle();
  env.listeners['picgift:play-prices']({detail:{esencial:'7,90 €',magico:'19,92 €',familiar:'31,92 €'}});
  return env;
+}
+async function readyWebStore(){
+ const env=await readyStore(),redirects=[];
+ delete env.context.window.PicgiftNative;
+ env.context.window.location={assign:url=>redirects.push(url)};
+ env.client.functions.invoke=async()=>({data:{checkout_available:true,credits:0},error:null});
+ env.listeners['document:visibilitychange']();await settle();
+ return {...env,redirects};
 }
 const clickPack=(env,id)=>env.listeners['document:click']({target:{closest:()=>env.buttons.find(b=>b.dataset.buy===id)}});
 test('verified receipt does not claim updated credits when the balance refresh fails',async()=>{
@@ -67,7 +75,7 @@ test('verified receipt does not claim updated credits when the balance refresh f
 function deferred(){let resolve;const promise=new Promise(done=>{resolve=done});return {promise,resolve};}
 test('an orders service error is not displayed as zero confirmed payments',async()=>{
  const env=await readyStore();
- env.client.from=()=>({select:()=>({order:()=>({limit:async()=>({data:null,error:{message:'unavailable'}})})})});
+ env.client.from=()=>({select:()=>({eq:async()=>({count:null,error:{message:'unavailable'}})})});
  env.listeners['document:visibilitychange']();await settle();await settle();
  assert.equal(env.el('account-orders').textContent,'—');
  assert.equal(env.context.window.picgiftCreditsAvailable,null);
@@ -93,15 +101,15 @@ test('payment availability and credits cannot return after logout during a statu
  assert.match(env.el('payment-status').textContent,/Inicia sesión/);
 });
 
-test('a delayed order list does not put the previous account totals in the new account',async()=>{
+test('a delayed order count does not put the previous account totals in the new account',async()=>{
  const env=await readyStore(),pending=deferred();
- env.client.from=()=>({select:()=>({order:()=>({limit:()=>pending.promise})})});
+ env.client.from=()=>({select:()=>({eq:()=>pending.promise})});
  env.listeners['document:visibilitychange']();await settle();
  const user={id:'22222222-2222-4222-8222-222222222222'};
  env.client.auth.getSession=async()=>({data:{session:{user}}});
- env.client.from=()=>({select:()=>({order:()=>({limit:async()=>({data:[]})})})});
+ env.client.from=()=>({select:()=>({eq:async()=>({count:0,error:null})})});
  env.listeners['picgift:auth']({detail:{user}});await settle();
- pending.resolve({data:[{status:'paid'},{status:'paid'}]});await settle();
+ pending.resolve({count:2,error:null});await settle();
  assert.equal(env.el('account-orders').textContent,'0 pagos confirmados');
  assert.equal(env.sent.filter(x=>x.action==='account').at(-1).user_id,user.id);
 });
@@ -222,6 +230,169 @@ test('native purchases stay disabled until Play returns each product price',asyn
  env.listeners['picgift:play-prices']({detail:{esencial:'7,90 €',magico:'19,92 €',familiar:'31,92 €'}});
  assert.ok(env.buttons.every(b=>!b.disabled));
  assert.match(env.el('payment-status').textContent,/tres paquetes/);
+});
+
+test('Stripe checkout locks every pack before identity validation and remains locked until navigation',async()=>{
+ const env=await readyWebStore(),identity=deferred(),checkout=deferred();let identities=0,checkouts=0;
+ env.client.auth.getUser=()=>{identities++;return identity.promise};
+ env.client.functions.invoke=()=>{checkouts++;return checkout.promise};
+ clickPack(env,'esencial');clickPack(env,'magico');
+ assert.equal(identities,1);
+ assert.ok(env.buttons.every(b=>b.disabled));
+ identity.resolve({data:{user:{id:'11111111-1111-4111-8111-111111111111'}}});await settle();
+ clickPack(env,'familiar');
+ assert.equal(checkouts,1);
+ checkout.resolve({data:{url:'https://checkout.stripe.com/c/pay/test'},error:null});await settle();
+ assert.deepEqual(env.redirects,['https://checkout.stripe.com/c/pay/test']);
+ assert.ok(env.buttons.every(b=>b.disabled),'redirect must not leave a second checkout window');
+});
+
+test('failed web checkout unlocks all packs for a retry',async()=>{
+ const env=await readyWebStore();
+ env.client.functions.invoke=async()=>({data:null,error:{message:'unavailable'}});
+ clickPack(env,'esencial');await settle();
+ assert.ok(env.buttons.every(b=>!b.disabled));
+ assert.match(env.el('payment-status').textContent,/No fue posible comenzar/);
+ assert.equal(env.redirects.length,0);
+});
+
+test('web checkout rejects deceptive or nonstandard provider URLs',async()=>{
+ for(const url of ['https://checkout.stripe.com.evil.test/c/pay/one','http://checkout.stripe.com/c/pay/one','https://checkout.stripe.com:444/c/pay/one','https://user:secret@checkout.stripe.com/c/pay/one']){
+  const env=await readyWebStore();env.client.functions.invoke=async()=>({data:{url},error:null});
+  clickPack(env,'esencial');await settle();
+  assert.equal(env.redirects.length,0,url);assert.ok(env.buttons.every(b=>!b.disabled));
+ }
+});
+
+test('returning from Stripe through back-forward cache refreshes balance and releases checkout',async()=>{
+ const env=await readyWebStore();
+ env.client.functions.invoke=async()=>({data:{url:'https://checkout.stripe.com/c/pay/test'},error:null});
+ clickPack(env,'esencial');await settle();assert.ok(env.buttons.every(b=>b.disabled));
+ env.client.functions.invoke=async()=>({data:{checkout_available:true,credits:5},error:null});
+ env.listeners.pageshow({persisted:true});await settle();
+ assert.equal(env.context.window.picgiftCreditsAvailable,5);
+ assert.ok(env.buttons.every(b=>!b.disabled));
+ assert.doesNotMatch(env.el('payment-status').textContent,/Compra verificada/,'a return URL is not proof of payment');
+});
+
+test('an auth error returned without throwing still blocks checkout',async()=>{
+ const env=await readyStore();
+ env.client.auth.getUser=async()=>({data:{user:{id:'11111111-1111-4111-8111-111111111111'}},error:{message:'expired'}});
+ clickPack(env,'esencial');await settle();
+ assert.equal(env.sent.filter(x=>x.action==='purchase').length,0);
+ assert.match(env.el('payment-status').textContent,/comprobar tu sesión/);
+ assert.ok(env.buttons.every(b=>!b.disabled));
+});
+
+test('pending purchase notice survives catalog and balance refreshes',async()=>{
+ const env=await readyStore();
+ env.listeners['picgift:play-pending']();
+ env.listeners['document:visibilitychange']();await settle();
+ env.listeners['picgift:play-prices']({detail:{esencial:'7,90 €'}});
+ assert.match(env.el('payment-status').textContent,/Pendiente de confirmación/);
+ assert.equal(env.context.window.picgiftCreditsAvailable,0);
+});
+
+test('recovering a paid native receipt works while new purchases are unavailable',async()=>{
+ const env=await readyStore();let verified=0;
+ env.client.functions.invoke=async name=>name==='picgift-google-play'
+  ?(verified++,{data:{success:true},error:null}):{data:{google_play_available:false,credits:1},error:null};
+ env.listeners['picgift:payment-refresh']();await settle();
+ assert.ok(env.sent.filter(x=>x.action==='account').length>=2,'restore rechecks purchases owned by the current account');
+ env.listeners['picgift:play-purchase']({detail:{product_id:'esencial',purchase_token:'restore-when-closed'}});await settle();await settle();
+ assert.equal(verified,1);assert.equal(env.context.window.picgiftCreditsAvailable,1);
+ assert.match(env.el('payment-status').textContent,/Compra verificada/);
+ assert.ok(env.buttons.every(b=>b.disabled),'restoration must not open new sales');
+});
+
+test('native receipts and catalog callbacks for another account are ignored',async()=>{
+ const env=await readyStore();let verified=0;
+ env.client.functions.invoke=async()=>{verified++;return {data:{success:true},error:null}};
+ const user_id='22222222-2222-4222-8222-222222222222',oldStatus=env.el('payment-status').textContent;
+ env.listeners['picgift:play-purchase']({detail:{user_id,product_id:'esencial',purchase_token:'other-account-token'}});
+ env.listeners['picgift:play-prices']({detail:{user_id,prices:{esencial:'1,00 €'}}});
+ env.listeners['picgift:play-cancelled']({detail:{user_id}});
+ assert.equal(verified,0);assert.equal(env.el('payment-status').textContent,oldStatus);
+ assert.equal(env.amounts.get('esencial').children[0].textContent,'7,90 €');
+});
+
+test('native prices never fall back to web EUR amounts and removed products lose their stale price',async()=>{
+ const env=mockStore();
+ vm.runInNewContext(fs.readFileSync('payments.js','utf8').replace(/^import .*;\s*$/gm,''),env.context);
+ env.listeners['document:DOMContentLoaded']();await settle();
+ for(const amount of env.amounts.values())assert.equal(amount.children[0].textContent,'Consultar en Google Play');
+ const user_id='11111111-1111-4111-8111-111111111111';
+ env.listeners['picgift:play-prices']({detail:{user_id,prices:{esencial:'$8.99',magico:'$24.99'}}});
+ assert.equal(env.amounts.get('esencial').children[0].textContent,'$8.99');
+ env.listeners['picgift:play-prices']({detail:{user_id,prices:{esencial:'$8.99'}}});
+ assert.equal(env.amounts.get('magico').children[0].textContent,'Consultar en Google Play');
+ assert.equal(env.buttons.find(b=>b.dataset.buy==='magico').disabled,true);
+});
+
+test('payment outcomes follow language changes without changing store-formatted prices',async()=>{
+ const env=await readyStore();env.listeners['picgift:play-pending']();
+ env.context.window.picgiftI18n.language='en';env.listeners['picgift:language']();
+ assert.match(env.el('payment-status').textContent,/Waiting for Google Play/);
+ assert.ok(env.buttons.every(b=>b.textContent==='Choose pack'));
+ assert.equal(env.amounts.get('esencial').children[0].textContent,'7,90 €');
+ env.context.window.picgiftI18n.language='es';env.listeners['picgift:language']();
+ assert.match(env.el('payment-status').textContent,/Pendiente de confirmación/);
+});
+
+test('catalog and restoration errors cannot release an active Play checkout',async()=>{
+ const env=await readyStore();clickPack(env,'esencial');await settle();
+ for(const source of ['catalog','restore']){
+  env.listeners['picgift:play-error']({detail:{source,user_id:'11111111-1111-4111-8111-111111111111'}});
+  assert.ok(env.buttons.every(b=>b.disabled));assert.match(env.el('payment-status').textContent,/Solicitando/);
+ }
+ env.listeners['picgift:play-prices']({detail:{esencial:'7,90 €',magico:'19,92 €',familiar:'31,92 €'}});
+ assert.ok(env.buttons.every(b=>b.disabled));
+ env.listeners['picgift:play-cancelled']();assert.ok(env.buttons.every(b=>!b.disabled));
+});
+
+test('credited but unconsumed purchases are recoverable without asking the user to pay again',async()=>{
+ const env=await readyStore();let attempts=0;
+ env.client.functions.invoke=async name=>name==='picgift-google-play'
+  ?(attempts++,{data:{success:true,consumption_pending:attempts===1},error:null}):{data:{google_play_available:true,credits:1},error:null};
+ const detail={product_id:'esencial',purchase_token:'awaiting-consumption'};
+ env.listeners['picgift:play-purchase']({detail});await settle();await settle();
+ assert.equal(env.context.window.picgiftCreditsAvailable,1);
+ assert.match(env.el('payment-status').textContent,/puedes usar tus créditos/);
+ env.listeners['picgift:payment-refresh']();await settle();
+ env.listeners['picgift:play-purchase']({detail});await settle();await settle();
+ assert.equal(attempts,2,'Play can redeliver an unconsumed token for idempotent recovery');
+ assert.equal(env.context.window.picgiftCreditsAvailable,1);
+ assert.match(env.el('payment-status').textContent,/Compra verificada. Créditos actualizados/);
+});
+
+test('a session change discovered during refresh invalidates the old receipt callback',async()=>{
+ const env=await readyStore(),oldReceipt=deferred();
+ env.client.functions.invoke=async name=>name==='picgift-google-play'?oldReceipt.promise:{data:{google_play_available:true,credits:2},error:null};
+ env.listeners['picgift:play-purchase']({detail:{product_id:'esencial',purchase_token:'old-account-receipt'}});
+ const user={id:'22222222-2222-4222-8222-222222222222'};
+ env.client.auth.getSession=async()=>({data:{session:{user}}});
+ env.listeners['document:visibilitychange']();await settle();await settle();
+ oldReceipt.resolve({data:{success:true},error:null});await settle();
+ assert.equal(env.context.window.picgiftCreditsAvailable,2);
+ assert.doesNotMatch(env.el('payment-status').textContent,/Compra verificada/);
+ assert.equal(env.sent.filter(x=>x.action==='account').at(-1).user_id,user.id);
+});
+
+test('balance labels also follow a language change after loading',async()=>{
+ const env=await readyStore();env.client.functions.invoke=async()=>({data:{google_play_available:true,credits:1},error:null});
+ env.context.window.picgiftI18n.language='en';env.listeners['document:visibilitychange']();await settle();
+ assert.equal(env.el('account-credits').textContent,'1 photo');
+ env.context.window.picgiftI18n.language='es';env.listeners['picgift:language']();
+ assert.equal(env.el('account-credits').textContent,'1 fotografía');
+ assert.equal(env.el('account-orders').textContent,'0 pagos confirmados');
+});
+
+test('the account payment total counts all paid orders instead of the last ten rows',async()=>{
+ const env=await readyStore();let countOptions,filter;
+ env.client.from=table=>{assert.equal(table,'picgift_orders');return {select:(columns,options)=>{countOptions=options;return {eq:async(column,value)=>{filter=[column,value];return {count:37,error:null}}}}}};
+ env.listeners['document:visibilitychange']();await settle();
+ assert.equal(countOptions.head,true);assert.equal(countOptions.count,'exact');assert.deepEqual(filter,['status','paid']);
+ assert.equal(env.el('account-orders').textContent,'37 pagos confirmados');
 });
 
 test('Billing client and database use the same SKUs and purchases are account-scoped',()=>{

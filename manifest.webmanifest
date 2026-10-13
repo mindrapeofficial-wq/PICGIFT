@@ -3,7 +3,7 @@
   "short_name": "PICGIFT",
   "lang": "es",
   "description": "Convierte tus fotos en recuerdos mágicos de Halloween.",
-  "start_url": "/#crear",
+  "start_url": "/#inicio",
   "scope": "/",
   "display": "standalone",
   "background_color": "#090506",

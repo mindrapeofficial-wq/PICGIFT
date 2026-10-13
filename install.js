@@ -42,7 +42,13 @@ if(button)button.addEventListener("click",async()=>{
 window.addEventListener("online",updateConnectivity);
 window.addEventListener("offline",updateConnectivity);
 updateConnectivity();showInstall();
-if("serviceWorker" in navigator&&location.protocol==="https:"){
+// Android owns a versioned, installed interface. A website service worker must
+// never replace its scripts with a remotely deployed or previously cached shell.
+const installedShell=Boolean(window.PicgiftNative)||location.pathname.startsWith('/app/');
+if(installedShell&&"serviceWorker" in navigator){
+ navigator.serviceWorker.getRegistrations().then(registrations=>Promise.all(registrations.map(registration=>registration.unregister()))).catch(()=>{});
+}
+if(!installedShell&&"serviceWorker" in navigator&&location.protocol==="https:"){
  let wasControlled=Boolean(navigator.serviceWorker.controller),reloading=false;
  const banner=document.getElementById("update-banner");
  const btn=document.getElementById("update-picgift");

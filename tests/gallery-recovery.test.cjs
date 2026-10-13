@@ -22,6 +22,47 @@ test('an empty gallery clears the previous portrait and download',async()=>{
  assert.equal(h.element('result-sample').src,undefined);assert.equal(h.element('download-result').href,undefined);
  assert.equal(h.run('currentJob'),null);assert.equal(h.run('activeId'),null);
 });
+
+test('a new active portrait missing from the first gallery refresh is not replaced by an older result',async()=>{
+ const h=harness();h.run('activeId="new"; currentJob={id:"new",status:"queued"}');
+ const pending=h.run('refreshGallery()');h.queries[0].resolve({data:[{...job('older'),status:'failed'}],error:null});await pending;
+ assert.equal(h.run('currentJob.id'),'new');assert.equal(h.run('activeId'),'new');assert.equal(h.element('result-sample').src,undefined);
+});
+
+test('a completed portrait whose private links fail cannot display or download the previously selected portrait',async()=>{
+ const h=harness();h.element('result-sample').src='https://private/old';h.element('download-result').href='https://private/old';
+ h.run('activeId="new"');const pending=h.run('refreshGallery()');h.queries[0].resolve({data:[job('new')],error:null});await settle();
+ h.links[0].resolve({error:true});await settle();h.links[1].resolve({error:true});await pending;
+ assert.equal(h.element('result-sample').src,undefined);assert.equal(h.element('download-result').href,undefined);
+ assert.match(h.element('result-status').textContent,/enlace privado/);
+});
+
+test('download renews the private link immediately and never announces a successful save from a click',async()=>{
+ const h=harness(),downloads=[],announcements=[];h.context.photo=job('photo');
+ h.run('lastJobs=[photo];galleryAuthenticated=true');h.context.button=h.element('button');
+ h.context.document.body={appendChild(){}};h.context.document.createElement=()=>({click(){downloads.push(this.href)},remove(){}});
+ h.context.window.dispatchEvent=e=>announcements.push(e.type);
+ const pending=h.run('downloadPortrait("photo",button)');assert.equal(h.links.length,1);
+ h.links[0].resolve({data:{signedUrl:'https://private/fresh'}});await pending;
+ assert.deepEqual(downloads,['https://private/fresh']);assert.equal(announcements.includes('picgift:portrait-saved'),false);
+ assert.equal(h.context.button.dataset.downloading,undefined);
+});
+
+test('logout during signed download preparation prevents opening the private result',async()=>{
+ const h=harness(),downloads=[];h.context.photo=job('photo');
+ h.run('init();lastJobs=[photo];galleryAuthenticated=true');h.context.button=h.element('button');
+ h.context.document.body={appendChild(){}};h.context.document.createElement=()=>({click(){downloads.push(this.href)},remove(){}});
+ const pending=h.run('downloadPortrait("photo",button)');await h.events['picgift:auth']({detail:{user:null}});
+ h.links[0].resolve({data:{signedUrl:'https://private/old-account'}});await pending;
+ assert.equal(downloads.length,0);
+});
+
+test('signed downloads preserve the generated image format instead of renaming every result JPEG',async()=>{
+ const h=harness(),requests=[];
+ h.client.storage.from=()=>({createSignedUrl:async(path,ttl,options)=>{requests.push({path,ttl,options});return {data:{signedUrl:'https://private/result'}}}});
+ for(const extension of ['png','webp','jpg'])await h.run('signed("owner/job/final.'+extension+'",true)');
+ assert.deepEqual(requests.map(r=>r.options.download),['picgift-portrait.png','picgift-portrait.webp','picgift-portrait.jpg']);
+});
 test('a delete completing after logout does not refresh or show success in the new session',async()=>{
  const h=harness(),request=deferred();h.context.confirm=()=>true;h.context.window.picgiftI18n={t:text=>text};
  h.context.deleteWait=request.promise;h.run('init();invoke=()=>deleteWait');
@@ -122,19 +163,19 @@ test('logout clears all capabilities and email delivery from an available studio
  assert.equal(h.element('photo-email-delivery').disabled,true);assert.equal(h.element('photo-email-delivery').checked,false);
 });
 function creationHarness(pause){
- const h=harness(),waiting=deferred(),calls=[],uploads=[],removed=[],routes=[];
+ const h=harness(),waiting=deferred(),calls=[],requests=[],uploads=[],removed=[],routes=[];
  h.context.crypto={randomUUID:()=> 'test-upload'};
  h.context.CustomEvent=class{constructor(type,options){this.type=type;this.detail=options.detail}};
  h.context.window.picgiftI18n={language:'es'};
- h.context.window.dispatchEvent=event=>routes.push(event);
+ h.context.window.dispatchEvent=event=>{if(event.type==='picgift:route')routes.push(event)};
  h.run('init(); galleryAuthenticated=true; premiumReady=true; preparedFile=async file=>file');
  h.client.auth.getUser=async()=>({data:{user:{id:'old-account'}}});
- h.client.functions={async invoke(name,{body}){calls.push(body.action);if(body.action===pause)return waiting.promise;return {data:{available:true,email_available:true,references_supported:true,id:'job'}}}};
+ h.client.functions={async invoke(name,{body}){calls.push(body.action);requests.push(body);if(body.action===pause)return waiting.promise;return {data:{available:true,email_available:true,references_supported:true,id:'job'}}}};
  h.client.storage.from=()=>({async upload(path){uploads.push(path);return pause==='upload'?waiting.promise:{}},async remove(paths){removed.push(...paths);return {}}});
  h.client.from=()=>({select(){return this},order(){return this},limit:async()=>({data:[],error:null})});
- const event={detail:{service:'premium',file:{type:'image/png',size:2},scene_id:'halloween-potions',consent:true,pose:'portrait',outfit:'original'}};
+ const event={detail:{service:'premium',billing_mode:'credits',file:{type:'image/png',size:2},scene_id:'halloween-potions',consent:true,pose:'portrait',outfit:'original'}};
  h.context.createEvent=event;
- return {...h,waiting,calls,uploads,removed,routes};
+ return {...h,waiting,calls,requests,uploads,removed,routes};
 }
 test('logout during generation health stops uploads and the start request',async()=>{
  const h=creationHarness('health'),pending=h.run('create(createEvent)');await settle();
@@ -159,7 +200,20 @@ test('an accepted generation from the old session does not route, poll or delete
 test('a normal accepted generation still opens its result and retains the uploaded original',async()=>{
  const h=creationHarness(null);await h.run('create(createEvent)');
  assert.deepEqual(h.calls,['health','start']);assert.equal(h.uploads.length,1);assert.equal(h.removed.length,0);
+ assert.equal(h.requests.find(r=>r.action==='start').billing_mode,'credits','the confirmed paid mode must reach the server');
  assert.equal(h.routes.length,1);assert.equal(h.routes[0].detail.name,'resultado');assert.equal(h.run('activeId'),'job');assert.equal(h.run('working'),false);
+});
+test('a legacy Premium event omits billing mode without changing its historical server cost behavior',async()=>{
+ const h=creationHarness(null);delete h.context.createEvent.detail.billing_mode;
+ await h.run('create(createEvent)');
+ assert.deepEqual(h.calls,['health','start']);
+ assert.equal(h.requests.find(r=>r.action==='start').billing_mode,undefined,'do not silently convert an old free pilot request into a charged request');
+ assert.equal(h.routes.length,1);
+});
+test('an invalid explicit Premium mode is rejected before uploading or requesting generation',async()=>{
+ const h=creationHarness(null);h.context.createEvent.detail.billing_mode='invalid';
+ await h.run('create(createEvent)');
+ assert.equal(h.calls.length,0);assert.equal(h.uploads.length,0);assert.match(h.element('generator-status').textContent,/confirmar el uso de créditos/);
 });
 test('switching accounts clears the old gallery immediately before the new session check finishes',async()=>{
  const h=harness(),health=deferred();h.context.healthWait=health.promise;
@@ -169,4 +223,51 @@ test('switching accounts clears the old gallery immediately before the new sessi
  assert.equal(h.context.window.picgiftGallery.length,0);assert.equal(h.run('activeId'),null);
  assert.equal(h.element('download-result').href,undefined);assert.equal(h.element('result-sample').src,undefined);
  health.resolve();await settle();h.queries[0].resolve({data:[],error:null});await login;
+});
+
+test('customer progress follows real states without a simulated percentage or completion promise',()=>{
+ const h=harness();
+ for(const [status,step] of [['queued',2],['analyzing',3],['generating',3],['reviewing',4],['completed',5],['needs_review',4]]){
+  h.context.job={...job('progress'),status};
+  const detail=h.run('progressDetails(job)');assert.equal(detail.step,step);
+  h.run('renderProgress(job)');
+  assert.equal(h.element('progress-count').textContent,(step+1)+' / 6');
+  assert.doesNotMatch(h.element('progress-note').textContent,/%|porcentaje|\b[0-9]+ minutos\b/);
+ }
+ h.context.job={...job('unknown'),status:'future_state'};
+ assert.equal(h.run('progressDetails(job).step'),null);
+ h.run('renderProgress(job)');assert.equal(h.element('progress-count').textContent,'—');
+});
+
+test('a stopped creation identifies the actual failed stage without claiming a finished portrait',()=>{
+ const h=harness();h.context.job={...job('failed'),status:'failed',failure_stage:'reviewing',failure_code:'storage_error'};
+ h.run('renderProgress(job)');assert.equal(h.element('progress-count').textContent,'5 / 6');
+ assert.match(h.element('progress-description').textContent,/no se pudo guardar/);
+ assert.match(h.element('progress-note').textContent,/saldo/);
+ assert.doesNotMatch(h.element('progress-description').textContent,/OpenAI|Cloudflare|Supabase|100%/);
+});
+
+test('upload and preflight communicate distinct steps and keep a failed confirmation recoverable',()=>{
+ const h=harness();h.run('requestProgress("uploading")');
+ assert.equal(h.element('request-step').textContent,'1 / 6');assert.match(h.element('request-description').textContent,/Mantén la app abierta/);
+ h.run('requestProgress("checking")');assert.equal(h.element('request-step').textContent,'2 / 6');
+ assert.match(h.element('request-description').textContent,/no consume créditos/);
+ h.run('requestProgress("uncertain")');assert.match(h.element('request-description').textContent,/puede haberse registrado/);
+ assert.match(h.element('request-note').textContent,/No repitas una compra/);
+ h.run('clearPrivateGallery()');assert.equal(h.run('requestPhase'),null);
+});
+
+test('a gallery connection failure preserves the current step and clears after a successful refresh',async()=>{
+ const h=harness();h.context.job={...job('pending'),status:'generating'};h.run('activeId=job.id;renderProgress(job)');
+ const failed=h.run('refreshGallery()');h.queries[0].resolve({error:Error('offline')});await failed;
+ assert.equal(h.run('currentJob.status'),'generating');assert.equal(h.run('galleryConnectionLost'),true);
+ assert.match(h.element('progress-warning').textContent,/no confirma un fallo/);
+ const recovered=h.run('refreshGallery()');h.queries[1].resolve({data:[h.context.job],error:null});await recovered;
+ assert.equal(h.run('galleryConnectionLost'),false);assert.equal(h.element('progress-warning').textContent,'');
+ assert.match(h.element('progress-checked').textContent,/Estado comprobado/);
+});
+
+test('elapsed time comes from the real request time and is not fabricated when it is missing',()=>{
+ const h=harness();assert.match(h.run('elapsedText({created_at:Date.now()-125000})'),/^2 min 05 s$/);
+ assert.equal(h.run('elapsedText({})'),'—');
 });

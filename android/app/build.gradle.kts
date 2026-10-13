@@ -1,4 +1,5 @@
 import kotlin.math.abs
+import groovy.json.JsonOutput
 
 plugins {
     id("com.android.application")
@@ -13,6 +14,21 @@ check(googleWebClientId.isEmpty() ||
     "PICGIFT_GOOGLE_WEB_CLIENT_ID must be a valid Google OAuth web client ID"
 }
 if (firebaseConfigPresent) apply(plugin = "com.google.gms.google-services")
+val bundledUiRoot = layout.buildDirectory.dir("generated/picgiftAssets")
+val syncBundledUi by tasks.registering(Sync::class) {
+    // Explicit public allowlist: backend, signing files, tests and dependencies never enter the APK.
+    from(rootDir.parentFile) {
+        include("*.html", "*.js", "*.css", "scenes.json", "manifest.webmanifest")
+        include("assets/**", "locales/**", "vendor/**")
+    }
+    into(bundledUiRoot.map { it.dir("app") })
+    doLast {
+        check(file("${destinationDir}/index.html").isFile) { "Bundled PICGIFT index.html is missing" }
+        val files = destinationDir.walkTopDown().filter { it.isFile && it.name != "bundle-manifest.json" }
+            .map { it.relativeTo(destinationDir).invariantSeparatorsPath }.sorted().toList()
+        file("${destinationDir}/bundle-manifest.json").writeText(JsonOutput.toJson(mapOf("bundled" to true, "files" to files)))
+    }
+}
 android {
     namespace = "com.picgift.myapp"
     compileSdk = 36
@@ -20,10 +36,11 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.8.5-beta"
+        versionCode = 16
+        versionName = "1.8.7-beta"
     }
     buildFeatures { buildConfig = true }
+    sourceSets.getByName("main").assets.srcDir(bundledUiRoot)
     defaultConfig {
         buildConfigField("boolean", "PICGIFT_FIREBASE_CONFIGURED", firebaseConfigPresent.toString())
         buildConfigField("String", "PICGIFT_GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
@@ -97,4 +114,4 @@ val verifyLauncherIcon by tasks.registering {
         println("PICGIFT launcher verified: ${(visibleCoverage * 100).toInt()}% visible tile coverage")
     }
 }
-tasks.named("preBuild") { dependsOn(verifyLauncherIcon) }
+tasks.named("preBuild") { dependsOn(verifyLauncherIcon, syncBundledUi) }

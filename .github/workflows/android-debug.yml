@@ -6,6 +6,15 @@ on:
     branches: [main]
     paths:
       - 'android/**'
+      - '*.html'
+      - '*.js'
+      - '*.css'
+      - 'scenes.json'
+      - 'manifest.webmanifest'
+      - 'assets/**'
+      - 'locales/**'
+      - 'vendor/**'
+      - 'scripts/verify-android-bundle.cjs'
       - 'auth.js'
       - 'app-shell.js'
       - 'payments.js'
@@ -28,6 +37,15 @@ on:
     branches: [main]
     paths:
       - 'android/**'
+      - '*.html'
+      - '*.js'
+      - '*.css'
+      - 'scenes.json'
+      - 'manifest.webmanifest'
+      - 'assets/**'
+      - 'locales/**'
+      - 'vendor/**'
+      - 'scripts/verify-android-bundle.cjs'
       - 'auth.js'
       - 'app-shell.js'
       - 'payments.js'
@@ -118,6 +136,8 @@ jobs:
         env:
           PICGIFT_GOOGLE_WEB_CLIENT_ID: ${{ vars.PICGIFT_GOOGLE_WEB_CLIENT_ID }}
         run: gradle -p android --no-daemon :app:lintRelease :app:assembleDebug :app:bundleRelease
+      - name: Verify the installed interface and its local dependencies
+        run: node scripts/verify-android-bundle.cjs
       - name: Publicar instalador para pruebas
         uses: actions/upload-artifact@v4
         with:

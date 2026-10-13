@@ -20,7 +20,9 @@ async function pilotAllowed(user:any):Promise<boolean>{
  if(error){console.error("PICGIFT_PILOT_ACCESS_CHECK_FAILED");return false}
  return !!data;
 }
-function publicAllowed(){return Deno.env.get("PICGIFT_PUBLIC_GENERATION_ENABLED")==="true"&&Deno.env.get("PICGIFT_SALES_ENABLED")==="true"}
+// Existing credits remain usable when new Stripe checkouts are paused.
+// Google Play and Stripe share the credit ledger, not a sales activation flag.
+function publicAllowed(){return Deno.env.get("PICGIFT_PUBLIC_GENERATION_ENABLED")==="true"}
 async function engineReady(user:any){return Boolean(Deno.env.get("OPENAI_API_KEY")&&Deno.env.get("PICGIFT_GENERATION_ENABLED")==="true"&&(await pilotAllowed(user)||publicAllowed()))}
 
 const allowedPoses:Record<string,string[]>={
@@ -208,7 +210,10 @@ Deno.serve(async req=>{
  if(campaignError||!["christmas","halloween"].includes(currentCampaign?.active_campaign))return respond({error:"Esta colección no está disponible para crear retratos."},503);
 
  if(!await engineReady(auth.user))return respond({error:"El estudio está disponible únicamente para las cuentas autorizadas para la prueba privada. No se ha procesado ninguna fotografía."},503);
- const testMode=await pilotAllowed(auth.user);
+ const pilot=await pilotAllowed(auth.user);
+ if(body.billing_mode!==undefined&&!["credits","pilot"].includes(body.billing_mode))return respond({error:"Modalidad Premium inválida"},400);
+ if(body.billing_mode==="pilot"&&!pilot)return respond({error:"La prueba gratuita no está disponible para esta cuenta. Elige Premium con créditos."},403);
+ const testMode=pilot&&body.billing_mode!=="credits";
  if(body.consent!==true)return respond({error:"Debes autorizar expresamente el procesamiento de las fotografías"},400);
  const scene=safe(body.scene_id,60),path=safe(body.source_path,160),format=safe(body.format,25),pose=safe(body.pose,90),outfit=safe(body.outfit,90);
  const prefix=auth.user.id+"/";
@@ -235,6 +240,14 @@ Deno.serve(async req=>{
   const {data:referenceBlob,error:referenceError}=await db.storage.from("picgift-uploads").download(referencePath);
   if(referenceError||!referenceBlob||referenceBlob.size>15728640||referenceBlob.size<1500||!["image/jpeg","image/png","image/webp"].includes(referenceBlob.type))
    return respond({code:"photo_reference_invalid",error:"Una referencia adicional no es válida. Cámbiala antes de generar.",credit_spent:false},422);
+ }
+ // Check eligibility before any paid AI inspection; spending stays atomic after approval.
+ if(!testMode){
+  const {data:ledger,error:balanceError}=await db.from("picgift_credit_ledger").select("delta").eq("user_id",auth.user.id);
+  if(balanceError||!Array.isArray(ledger))return respond({code:"photo_balance_unavailable",error:"No se pudo comprobar tu saldo. Inténtalo de nuevo.",credit_spent:false},503);
+  const balance=ledger.reduce((sum:number,row:any)=>sum+Number(row.delta),0);
+  if(!Number.isFinite(balance))return respond({code:"photo_balance_unavailable",error:"No se pudo comprobar tu saldo. Inténtalo de nuevo.",credit_spent:false},503);
+  if(balance<1)return respond({code:"photo_credit_required",error:"Necesitas un crédito disponible para generar esta fotografía. Consulta nuestros packs.",credit_spent:false},402);
  }
  // Server-authoritative preflight: never reserve quota or spend a credit on a clearly unusable photo.
  // It operates on the authenticated user's private source, not on a client-provided verdict.
