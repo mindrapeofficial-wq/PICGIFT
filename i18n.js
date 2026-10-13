@@ -153,8 +153,7 @@ Object.assign(english,{
  'Ejemplo de escenario de Halloween':'Example Halloween scene','Ejemplo de estilo de retrato':'Example portrait style',
  'Abrir mi perfil':'Open my profile','Descubre PicGift':'Discover PicGift','Foto de ejemplo con buena luz':'Example photo with good lighting',
  'Ejemplo de escenario de calabazas':'Example pumpkin scene','Ejemplo de estilo de retrato generado':'Example generated portrait style',
- 'JPG, PNG o WEBP · Máx. 15 MB':'JPG, PNG or WEBP · Max. 15 MB','Elegir desde Google Drive':'Choose from Google Drive',
- 'Desde Google Drive':'From Google Drive','Se abrirá Archivos de Android. En el menú ☰, elige Drive y selecciona una fotografía. Solo se importará la foto que elijas.':'Android Files will open. Choose Drive from the ☰ menu and select a photo. Only your chosen photo will be imported.',
+ 'JPG, PNG o WEBP · Máx. 15 MB':'JPG, PNG or WEBP · Max. 15 MB',
  'Antes de generar, la IA comprueba si la foto tiene calidad suficiente para conservar los rasgos del rostro. Si no es apta, podrás cambiarla sin gastar créditos ni intentos.':'Before creating your portrait, AI checks whether the photo is clear enough to preserve facial features. If it is unsuitable, you can replace it without spending credits or attempts.',
  'VER TODOS':'VIEW ALL','Elige una foto nítida de cuerpo completo, con buena luz.':'Choose a clear full-body photo with good lighting.',
  'Ver consejos ›':'View tips ›','Toca para cambiar tu foto':'Tap to change your photo','Editar foto':'Edit photo',
@@ -191,6 +190,89 @@ Object.assign(english,{
   "Google Play muestra el precio final antes de confirmar. Los métodos de pago de prueba de los testers de licencia simulan la compra; las demás compras generan cargos reales.": "Google Play shows the final price before confirmation. License testers’ test payment methods simulate the purchase; other purchases incur real charges.",
   "Elige un decorado y prepara tu fotografía. Las opciones de creación dependen del acceso y los créditos de tu cuenta.": "Choose a scene and prepare your photo. Creation options depend on your account access and credits."
 });
+Object.assign(english,{
+  "Tu próximo recuerdo empieza aquí": "Your next memory starts here",
+  "Una foto, un escenario y un poquito de magia.": "One photo, one scene and a little magic.",
+  "Elige tu escenario": "Choose your scene",
+  "Ver un ejemplo": "See an example",
+  "Retratos": "Portraits",
+  "Elige cuántos recuerdos quieres crear.": "Choose how many memories you want to create.",
+  "Pago único mediante Google Play. Sin suscripción. La misma calidad en todos los packs.": "One-time payment through Google Play. No subscription. The same quality in every pack.",
+  "Aquí puedes consultar el estado y descargar tu fotografía cuando esté lista.": "Check the status here and download your photo when it is ready.",
+  "Elige una fotografía y crea tu retrato. Tus resultados se guardan en Mis fotos.": "Choose a photo and create your portrait. Your results are saved in My photos."
+});
+Object.assign(english,{
+  "Subida": "Upload",
+  "Comprobación": "Photo check",
+  "Cola": "Queue",
+  "Creación": "Creation",
+  "Revisión": "Review",
+  "Lista": "Ready",
+  "Tu foto está en cola": "Your photo is queued",
+  "La comprobación inicial ha terminado y tu solicitud está registrada. Esperamos a que empiece la creación.": "The initial check is complete and your request is registered. We are waiting for creation to start.",
+  "Preparando tu retrato": "Preparing your portrait",
+  "Estamos leyendo la fotografía y las referencias para preparar la composición del retrato.": "We are reading your photo and references to prepare the portrait composition.",
+  "Creando tu fotografía": "Creating your photo",
+  "Tu foto ya es la protagonista. Estamos creando el retrato con el escenario elegido; podrás descargarlo cuando termine.": "Your photo is taking centre stage. We are creating your portrait with the chosen scene; you can download it when it is finished.",
+  "Comprobando y guardando el resultado": "Checking and saving the result",
+  "La imagen ya se ha creado. Estamos terminando las comprobaciones del servicio elegido y guardándola en tu galería privada.": "The image has been created. We are finishing the checks for your chosen service and saving it to your private gallery.",
+  "Tu fotografía está lista": "Your photo is ready",
+  "Abre la imagen, revisa el resultado y descárgala en tu dispositivo. También la encontrarás en Mis fotos.": "Open the image, check the result and download it to your device. You can also find it in My photos.",
+  "El resultado necesita atención": "The result needs attention",
+  "La revisión automática no ha aprobado esta imagen. No está disponible para descargar. Consulta el estado o contacta con soporte antes de crear otra.": "The automatic review has not approved this image. It is not available to download. Check the status or contact support before creating another.",
+  "No se pudo completar tu fotografía": "Your photo could not be completed",
+  "El proceso se ha detenido y no hay una fotografía disponible para descargar.": "The process has stopped and there is no photo available to download.",
+  "Comprobando el estado de tu fotografía": "Checking your photo status",
+  "Todavía no tenemos un estado confirmado. Consulta Mis fotos antes de iniciar otra solicitud.": "We do not have a confirmed status yet. Check My photos before starting another request.",
+  "Preparando tu fotografía": "Preparing your photo",
+  "Comprobamos tu sesión y preparamos el archivo antes de enviarlo.": "We are checking your session and preparing the file before sending it.",
+  "Subiendo tu fotografía": "Uploading your photo",
+  "Estamos enviando tu foto y las referencias a tu espacio privado. Mantén la app abierta hasta confirmar la solicitud.": "We are sending your photo and references to your private space. Keep the app open until the request is confirmed.",
+  "Comprobando si la foto es apta": "Checking whether your photo is suitable",
+  "Revisamos la calidad de la foto antes de iniciar el retrato. Esta comprobación no consume créditos ni intentos.": "We check photo quality before starting the portrait. This check does not use credits or attempts.",
+  "Comprobando tu solicitud": "Checking your request",
+  "No recibimos la confirmación. La solicitud puede haberse registrado. Abre Mis fotos y comprueba el estado antes de volver a generar.": "We did not receive confirmation. Your request may have been registered. Open My photos and check the status before generating again.",
+  "La solicitud se ha detenido": "The request has stopped",
+  "No repitas una compra para resolver esta incidencia. Comprueba primero Mis fotos y tu saldo.": "Do not make another purchase to resolve this issue. Check My photos and your balance first.",
+  "Envía la solicitud una sola vez. Después podrás seguirla en Mis fotos sin repetir la generación ni la compra.": "Submit your request once. You can then follow it in My photos without generating or purchasing again.",
+  "Tiempo en esta solicitud:": "Time on this request:",
+  "Este decorado todavía no está disponible para el servicio elegido.": "This scene is not yet available for the chosen service.",
+  "No se pudo subir la foto. Comprueba la conexión y vuelve a intentarlo.": "The photo could not be uploaded. Check your connection and try again.",
+  "No se pudo subir la referencia. Comprueba la conexión y vuelve a intentarlo.": "The reference could not be uploaded. Check your connection and try again.",
+  "Solicitud aceptada. Puedes seguir el estado en Mis fotos.": "Request accepted. You can follow the status in My photos.",
+  "Etapas de tu fotografía": "Your photo stages",
+  "Proceso detenido": "Process stopped",
+  "Tu retrato privado": "Your private portrait",
+  "Revisión pendiente": "Review pending",
+  "Tu fotografía, paso a paso": "Your photo, step by step",
+  "Consulta el resultado y los detalles de tu fotografía.": "View your photo result and details.",
+  "El estado se actualiza automáticamente. No necesitas repetir la solicitud.": "The status updates automatically. You do not need to repeat your request.",
+  "Comprueba Mis fotos y tu saldo antes de volver a generar. No necesitas comprar otro pack para consultar esta incidencia.": "Check My photos and your balance before generating again. You do not need to buy another pack to check this issue.",
+  "La imagen ha sido creada con IA. Revísala antes de compartirla.": "This image was created with AI. Check it before sharing.",
+  "No crees otra fotografía para desbloquear esta. Puedes volver a comprobar su estado.": "Do not create another photo to unlock this one. You can check its status again.",
+  "Puedes salir de esta pantalla. Tu solicitud sigue en Mis fotos; no repitas la generación ni la compra.": "You can leave this screen. Your request remains in My photos; do not generate or purchase again.",
+  "Tiempo desde la solicitud:": "Time since the request:",
+  "Volver a comprobar": "Check again",
+  "Completada. Puedes descargar el resultado desde esta página o Mis fotos.": "Completed. You can download the result from this page or My photos.",
+  "La imagen no se ofrece para descarga porque necesita revisión de calidad.": "The image is not available to download because it needs a quality review.",
+  "LISTA": "READY",
+  "Decorado de referencia": "Scene reference",
+  "Tu resultado fotográfico privado PICGIFT": "Your private PICGIFT photo result",
+  "Solo referencia del decorado, todavía no es la fotografía generada": "Scene reference only, not the generated photo yet",
+  "No podemos actualizar el estado por la conexión. Esto no confirma un fallo del retrato. Reintentamos automáticamente; no vuelvas a generar ni a comprar.": "We cannot update the status because of the connection. This does not confirm that your portrait failed. We retry automatically; do not generate or purchase again.",
+  "Seguimos esperando una actualización. El tiempo varía según la fotografía. Puedes volver a Mis fotos; no hace falta enviar otra solicitud.": "We are still waiting for an update. The time varies by photo. You can return to My photos; there is no need to submit another request.",
+  "Último estado conocido": "Last known status",
+  "Estado comprobado a las": "Status checked at",
+  "Esperando la primera actualización": "Waiting for the first update",
+  "Comprobar Mis fotos": "Check My photos",
+  "Etapa actual": "Current stage",
+  "No podemos actualizar Mis fotos. Tus resultados anteriores siguen en tu cuenta. Comprueba la conexión antes de crear otra fotografía.": "We cannot update My photos. Your previous results remain in your account. Check your connection before creating another photo.",
+  "Reintentar conexión": "Retry connection"
+});
+Object.assign(english,{
+ "La foto no superó la revisión.":"The photo did not pass the check.",
+ "No se han consumido créditos ni intentos.":"No credits or attempts have been used."
+});
 const saved=()=>{try{return localStorage.getItem('picgift.language')||'auto'}catch{return 'auto'}};
 const device=()=>new URLSearchParams(location.search).get('device_lang')||navigator.languages?.[0]||navigator.language||'en';
 const supported=code=>String(code).toLowerCase().startsWith('es')?'es':'en';
@@ -202,6 +284,8 @@ function translate(value){
  if(language!=='en'||typeof value!=='string')return value;
  const raw=value.trim();
  if(english[raw])return value.replace(raw,english[raw]);
+ const creditNotice=' No se han consumido créditos ni intentos.';
+ if(raw.endsWith(creditNotice))return translate(raw.slice(0,-creditNotice.length))+' '+english[creditNotice.trim()];
  if(parts[raw])return parts[raw];
  let match=raw.match(/^(\d+) (fotografía|fotografías|pagos confirmados)$/);
  if(match)return match[1]+' '+(match[2]==='pagos confirmados'?'confirmed payments':match[1]==='1'?'photo':'photos');

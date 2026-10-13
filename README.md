@@ -4,7 +4,9 @@ Seasonal storybook portraits for adults creating family memories. Spanish and En
 
 ## Web and private service
 
-Serve this static repository over HTTP. Android loads https://picgift.onrender.com/; an AAB build does not deploy the web files.
+Serve this static repository over HTTP for the browser version. Android 1.8.7 includes the public interface, scenes, fonts and client library in its installation. A `WebViewAssetLoader` serves these installed files under the existing trusted HTTPS origin; opening the app does not load its interface from Render or a CDN. A missing local file returns a local 404, never a silent website fallback. Authentication, generation and Play purchases still need internet. The interface remains hybrid (HTML/CSS in Android WebView), with native Google entry, photo picker, notifications, billing and photo saving.
+
+Gradle copies only public assets into the app and emits `bundle-manifest.json`. `node scripts/verify-android-bundle.cjs` verifies the generated interface and local references after a build. Native installs do not register the website's service worker. Web publishing and Play releases are independent: changing the website does not update an installed Android interface.
 
 The studio offers local drag/keyboard framing, zoom and optional face/body references. Explicit permission is required before upload. Server-facing pose and outfit values remain canonical when display labels change language. Public assets are cached; private photos, authentication responses and signed links are excluded.
 
@@ -12,7 +14,7 @@ The studio offers local drag/keyboard framing, zoom and optional face/body refer
 
 The source/background/result journey uses a fictional subject. It is illustrative, not a delivered customer order or evidence of different premium quality levels. Packs offer 1, 5 or 10 photos at the same configured rendering quality.
 
-Supabase authentication, storage, generation, orders and credit ledger are private services. Processing code and scene recipes are managed outside this public repository. Never publish credentials, API keys, signing passwords or recipe JSON. References must belong to the same authenticated owner and request. Request language is used for delivery email. Quality checks accept only an explicit PASS. Failed or review-required paid jobs use the credit-refund procedure.
+Supabase authentication, storage, generation, orders and credit ledger are private services. Server functions are deployed separately; service credentials and private provider configuration stay outside this public repository and Android assets. Never publish credentials, API keys or signing passwords. References must belong to the same authenticated owner and request. Request language is used for delivery email. Quality checks accept only an explicit PASS. Failed or review-required paid jobs use the credit-refund procedure.
 
 Reports are private and restricted to the owner's portraits. Account deletion currently uses support requests; support must fulfil them, including originals, references, results and storage objects. Opening an email draft does not delete an account.
 
@@ -24,7 +26,7 @@ Run `node --test tests/experience.test.cjs` and `node --check` on the applicatio
 
 ## Android
 
-Package `com.picgift.myapp` matches the existing Play Console draft. Compile/target SDK 36, minimum 26, version 1.8.1-beta/code 10. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0.
+Package `com.picgift.myapp` matches Play Console. Compile/target SDK 36, minimum 26, version 1.8.7-beta/code 16. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0.
 
 Build: `gradle -p android --no-daemon :app:lintRelease :app:assembleDebug :app:bundleRelease`.
 

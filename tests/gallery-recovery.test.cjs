@@ -224,3 +224,50 @@ test('switching accounts clears the old gallery immediately before the new sessi
  assert.equal(h.element('download-result').href,undefined);assert.equal(h.element('result-sample').src,undefined);
  health.resolve();await settle();h.queries[0].resolve({data:[],error:null});await login;
 });
+
+test('customer progress follows real states without a simulated percentage or completion promise',()=>{
+ const h=harness();
+ for(const [status,step] of [['queued',2],['analyzing',3],['generating',3],['reviewing',4],['completed',5],['needs_review',4]]){
+  h.context.job={...job('progress'),status};
+  const detail=h.run('progressDetails(job)');assert.equal(detail.step,step);
+  h.run('renderProgress(job)');
+  assert.equal(h.element('progress-count').textContent,(step+1)+' / 6');
+  assert.doesNotMatch(h.element('progress-note').textContent,/%|porcentaje|\b[0-9]+ minutos\b/);
+ }
+ h.context.job={...job('unknown'),status:'future_state'};
+ assert.equal(h.run('progressDetails(job).step'),null);
+ h.run('renderProgress(job)');assert.equal(h.element('progress-count').textContent,'—');
+});
+
+test('a stopped creation identifies the actual failed stage without claiming a finished portrait',()=>{
+ const h=harness();h.context.job={...job('failed'),status:'failed',failure_stage:'reviewing',failure_code:'storage_error'};
+ h.run('renderProgress(job)');assert.equal(h.element('progress-count').textContent,'5 / 6');
+ assert.match(h.element('progress-description').textContent,/no se pudo guardar/);
+ assert.match(h.element('progress-note').textContent,/saldo/);
+ assert.doesNotMatch(h.element('progress-description').textContent,/OpenAI|Cloudflare|Supabase|100%/);
+});
+
+test('upload and preflight communicate distinct steps and keep a failed confirmation recoverable',()=>{
+ const h=harness();h.run('requestProgress("uploading")');
+ assert.equal(h.element('request-step').textContent,'1 / 6');assert.match(h.element('request-description').textContent,/Mantén la app abierta/);
+ h.run('requestProgress("checking")');assert.equal(h.element('request-step').textContent,'2 / 6');
+ assert.match(h.element('request-description').textContent,/no consume créditos/);
+ h.run('requestProgress("uncertain")');assert.match(h.element('request-description').textContent,/puede haberse registrado/);
+ assert.match(h.element('request-note').textContent,/No repitas una compra/);
+ h.run('clearPrivateGallery()');assert.equal(h.run('requestPhase'),null);
+});
+
+test('a gallery connection failure preserves the current step and clears after a successful refresh',async()=>{
+ const h=harness();h.context.job={...job('pending'),status:'generating'};h.run('activeId=job.id;renderProgress(job)');
+ const failed=h.run('refreshGallery()');h.queries[0].resolve({error:Error('offline')});await failed;
+ assert.equal(h.run('currentJob.status'),'generating');assert.equal(h.run('galleryConnectionLost'),true);
+ assert.match(h.element('progress-warning').textContent,/no confirma un fallo/);
+ const recovered=h.run('refreshGallery()');h.queries[1].resolve({data:[h.context.job],error:null});await recovered;
+ assert.equal(h.run('galleryConnectionLost'),false);assert.equal(h.element('progress-warning').textContent,'');
+ assert.match(h.element('progress-checked').textContent,/Estado comprobado/);
+});
+
+test('elapsed time comes from the real request time and is not fabricated when it is missing',()=>{
+ const h=harness();assert.match(h.run('elapsedText({created_at:Date.now()-125000})'),/^2 min 05 s$/);
+ assert.equal(h.run('elapsedText({})'),'—');
+});

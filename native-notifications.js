@@ -1,5 +1,5 @@
 // PICGIFT Android push opt-in. Only the signed-in web session may register a native FCM token.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import { createClient } from './vendor/supabase.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 
 if (window.PicgiftNative && typeof window.PicgiftNative.postMessage === 'function') {

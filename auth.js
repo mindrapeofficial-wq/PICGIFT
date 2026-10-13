@@ -1,5 +1,5 @@
 // PICGIFT · Google, password backup and email recovery. No service-role keys here.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import { createClient } from './vendor/supabase.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 import { requestGoogleCredential } from './google-native.js';
 const $=id=>document.getElementById(id);
@@ -76,6 +76,9 @@ async function startGoogle(automatic=false){
 }
 async function offerInstalledSignIn(){
  if(!client||askedToSignIn||recovery||window.picgiftNativeReturn)return;
+ // The installed interface remains usable offline; open Google's sheet only
+ // when a connection can complete sign-in, and retry on reconnection.
+ if(navigator.onLine===false)return;
  // Wait for Android to announce Credential Manager support before selecting a sign-in flow.
  if(window.PicgiftNative&&typeof window.picgiftNativeGoogleSupported==='undefined')return;
  const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||!!window.PicgiftNative;
@@ -113,6 +116,7 @@ window.addEventListener('picgift:native-google-error',event=>{
  msg(cancelled?'Acceso cancelado. Puedes volver a elegir Google o entrar con contraseña.':'No se pudo abrir el selector de Google. Inténtalo de nuevo o utiliza tu contraseña.');
 });
 window.addEventListener('picgift:native-ready',offerInstalledSignIn);
+window.addEventListener('online',offerInstalledSignIn);
 window.addEventListener('picgift:native-auth-error',()=>{openAuth();msg('No se pudo abrir el navegador. Entra con tu correo y contraseña.');});
 window.addEventListener('pageshow',event=>{if(event.persisted&&!activeUser&&!recovery){googleBusy=false;$('google').disabled=false;openAuth();}});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',offerInstalledSignIn,{once:true});else setTimeout(offerInstalledSignIn,0);

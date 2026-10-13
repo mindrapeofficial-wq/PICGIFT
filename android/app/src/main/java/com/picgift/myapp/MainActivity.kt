@@ -11,6 +11,7 @@ import java.io.File
 import android.os.Bundle
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.graphics.Color
 import android.view.Gravity
 import android.widget.Button
@@ -33,6 +34,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.ServiceWorkerClientCompat
+import androidx.webkit.ServiceWorkerControllerCompat
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
@@ -60,16 +64,66 @@ class MainActivity : AppCompatActivity() {
     }
     private lateinit var loading: ProgressBar
     private lateinit var failure: LinearLayout
-    private val homeUrl get() = "https://picgift.onrender.com/?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
+    private val homeUrl get() = "https://picgift.onrender.com/app/index.html?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
+    private val bundledAssets by lazy {
+        WebViewAssetLoader.Builder().setDomain("picgift.onrender.com")
+            .addPathHandler("/") { path -> bundledResponse(path) }.build()
+    }
+
+    private fun bundledNotFound() = WebResourceResponse(
+        "text/plain", "UTF-8", 404, "Not Found", mapOf("Cache-Control" to "no-store"),
+        "Bundled resource unavailable".byteInputStream()
+    )
+
+    private fun bundledResponse(path: String): WebResourceResponse {
+        val decoded = Uri.decode(path)
+        if (decoded.startsWith('/') || decoded.contains('\\') || decoded.contains('\u0000') ||
+            decoded.split('/').any { it == "." || it == ".." }) return bundledNotFound()
+        val relative = decoded.removePrefix("app/").ifEmpty { "index.html" }
+        val mime = when (relative.substringAfterLast('.', "").lowercase()) {
+            "html" -> "text/html"
+            "js", "mjs" -> "text/javascript"
+            "css" -> "text/css"
+            "json" -> "application/json"
+            "webmanifest" -> "application/manifest+json"
+            "svg" -> "image/svg+xml"
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            "webp" -> "image/webp"
+            "gif" -> "image/gif"
+            "ico" -> "image/x-icon"
+            "woff" -> "font/woff"
+            "woff2" -> "font/woff2"
+            "ttf" -> "font/ttf"
+            "otf" -> "font/otf"
+            "avif" -> "image/avif"
+            "mp4" -> "video/mp4"
+            "mp3" -> "audio/mpeg"
+            else -> "application/octet-stream"
+        }
+        val text = mime.startsWith("text/") || mime.endsWith("json") || mime.endsWith("xml")
+        return try {
+            WebResourceResponse(mime, if (text) "UTF-8" else null, 200, "OK",
+                mapOf("Cache-Control" to "no-store", "X-Content-Type-Options" to "nosniff"), assets.open("app/$relative"))
+        } catch (_: Exception) { bundledNotFound() }
+    }
+
+    private fun interceptBundledRequest(uri: Uri): WebResourceResponse? {
+        if (uri.host != "picgift.onrender.com") return null
+        // Never silently fetch a missing interface file from the remote website.
+        if (uri.scheme != "https") return bundledNotFound()
+        return bundledAssets.shouldInterceptRequest(uri) ?: bundledNotFound()
+    }
     private var pendingFileUpload: ValueCallback<Array<Uri>>? = null
     private var pendingCameraUri: Uri? = null
     private var pendingCameraFile: File? = null
+    private var pendingPickerLimit = 1
     private var pendingNotificationRoute: String? = null
     private val nativeRoutes = setOf("crear", "mis-fotos", "escenarios", "cuenta", "precios")
     private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val picked = if (result.resultCode == Activity.RESULT_OK) {
             WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-                ?.take(1)?.filter { safePickedImage(it) }?.toTypedArray()
+                ?.distinct()?.filter { safePickedImage(it) }?.take(pendingPickerLimit)?.toTypedArray()
         } else null
         val cameraCaptured = result.resultCode == Activity.RESULT_OK &&
             (picked == null || picked.isEmpty()) &&
@@ -82,15 +136,61 @@ class MainActivity : AppCompatActivity() {
         if (!cameraCaptured) pendingCameraFile?.delete()
         pendingCameraFile = null
         pendingCameraUri = null
-        pendingFileUpload?.onReceiveValue(value)
+        val callback = pendingFileUpload
         pendingFileUpload = null
+        pendingPickerLimit = 1
+        callback?.onReceiveValue(value)
     }
 
     private fun safePickedImage(uri: Uri): Boolean {
         if (uri.scheme != "content" || uri.authority == "$packageName.photo") return false
         return try {
-            contentResolver.getType(uri) in setOf("image/jpeg", "image/png", "image/webp")
+            contentResolver.getType(uri) in setOf("image/jpeg", "image/png", "image/webp") &&
+                contentResolver.openFileDescriptor(uri, "r")?.use { true } == true
         } catch (_: Exception) { false }
+    }
+
+    private fun finishFileSelection() {
+        val callback = pendingFileUpload
+        pendingFileUpload = null
+        pendingCameraFile?.delete()
+        pendingCameraFile = null
+        pendingCameraUri = null
+        pendingPickerLimit = 1
+        callback?.onReceiveValue(null)
+    }
+
+    private fun launchPhotoPicker(multiple: Boolean) {
+        // Try the platform photo gallery, including supported backports. No document explorer.
+        val photos = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+            type = "image/*"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (multiple) putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, pendingPickerLimit)
+        }
+        try {
+            filePicker.launch(photos)
+        } catch (_: android.content.ActivityNotFoundException) {
+            val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            filePicker.launch(gallery)
+        }
+    }
+
+    private fun launchCamera() {
+        val directory = File(cacheDir, "camera").also { it.mkdirs() }
+        val photo = File.createTempFile("picgift-capture-", ".jpg", directory)
+        pendingCameraFile = photo
+        val uri = FileProvider.getUriForFile(this, "$packageName.photo", photo)
+        pendingCameraUri = uri
+        filePicker.launch(Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, uri)
+            clipData = ClipData.newRawUri("PICGIFT photo", uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        })
     }
     private val products = mapOf(
         "esencial" to "picgift_esencial_1",
@@ -168,11 +268,20 @@ class MainActivity : AppCompatActivity() {
         web.settings.setSupportMultipleWindows(false)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         web.settings.javaScriptCanOpenWindowsAutomatically = false
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            WebViewCompat.addDocumentStartJavaScript(web, "window.picgiftBundledApp=true;", setOf("https://picgift.onrender.com"))
+        }
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE) &&
+            WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_SHOULD_INTERCEPT_REQUEST)) {
+            ServiceWorkerControllerCompat.getInstance().setServiceWorkerClient(object : ServiceWorkerClientCompat() {
+                override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? =
+                    interceptBundledRequest(request.url)
+            })
+        }
 
         // Android WebView does not provide a file picker by default.
-        // Storage Access Framework lets users choose a photo from Drive or local files
-        // without Drive-wide permissions. Only the selected document is read.
-        // Allow the customer to select a photo from the device without camera/storage permissions.
+        // Open a photo gallery for uploads and the camera only for the separate capture control.
+        // Both grant access to the selected image without broad camera/storage permissions.
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, progress: Int) {
                 loading.progress = progress
@@ -183,40 +292,21 @@ class MainActivity : AppCompatActivity() {
                 filePathCallback: ValueCallback<Array<Uri>>?,
                 fileChooserParams: FileChooserParams?
             ): Boolean {
-                pendingFileUpload?.onReceiveValue(null)
+                if (!trustedPicgiftPage() || filePathCallback == null) return false
+                // Do not replace an outstanding request with a second picker: its late result
+                // must never be delivered into another file input.
+                if (pendingFileUpload != null) { filePathCallback.onReceiveValue(null); return true }
                 pendingFileUpload = filePathCallback
-                val pick = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                    type = "image/*"
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                // Camera, local files and Drive are offered through one Android chooser.
-                val cameraIntent = try {
-                    val directory = File(cacheDir, "camera").also { it.mkdirs() }
-                    val photo = File.createTempFile("picgift-capture-", ".jpg", directory)
-                    val uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.photo", photo)
-                    pendingCameraFile = photo
-                    pendingCameraUri = uri
-                    Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                        putExtra(MediaStore.EXTRA_OUTPUT, uri)
-                        clipData = ClipData.newRawUri("PICGIFT photo", uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                    }
-                } catch (_: Exception) { null }
-                val chooser = Intent.createChooser(pick, getString(R.string.choose_photo)).apply {
-                    if (cameraIntent != null) putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(cameraIntent))
-                }
+                val multiple = fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                pendingPickerLimit = if (multiple) 2 else 1
                 return try {
-                    filePicker.launch(chooser)
+                    if (fileChooserParams?.isCaptureEnabled == true) launchCamera()
+                    else launchPhotoPicker(multiple)
                     true
                 } catch (_: Exception) {
-                    pendingFileUpload?.onReceiveValue(null)
-                    pendingFileUpload = null
-                    pendingCameraFile?.delete()
-                    pendingCameraFile = null
-                    pendingCameraUri = null
-                    false
+                    finishFileSelection()
+                    Toast.makeText(this@MainActivity, R.string.photo_picker_unavailable, Toast.LENGTH_LONG).show()
+                    true
                 }
             }
         }
@@ -274,6 +364,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
         web.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? =
+                request?.url?.let { interceptBundledRequest(it) }
+
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 googleSignIn.cancel()
                 pageReady = false
@@ -283,7 +376,7 @@ class MainActivity : AppCompatActivity() {
                 if (!trustedPicgiftPage()) return
                 updateNativeInsets()
                 val supported = googleSignIn.isConfigured
-                web.evaluateJavascript("window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                web.evaluateJavascript("window.picgiftBundledApp=true;window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
                 dispatchNativeRoute()
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -561,8 +654,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         googleSignIn.cancel()
-        pendingFileUpload?.onReceiveValue(null)
-        pendingFileUpload = null
+        finishFileSelection()
         if (::billing.isInitialized) billing.endConnection()
         if (::web.isInitialized) web.destroy()
         super.onDestroy()

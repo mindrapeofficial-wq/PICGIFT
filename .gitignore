@@ -13,3 +13,6 @@ android/.kotlin/
 
 # Android Firebase client configuration is injected at build time.
 android/app/google-services.json
+
+.vendor-build/
+scripts/vendor-deps/node_modules/
