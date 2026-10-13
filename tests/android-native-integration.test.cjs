@@ -35,6 +35,31 @@ test('signed portrait downloads save to the Android Pictures collection with bou
  assert.doesNotMatch(downloads,/Log\.|println|Authorization.*Bearer/);
 });
 
+test('signed portrait navigation uses the same private saver as DownloadListener and confirms only a completed save',()=>{
+ const navigation=android.slice(android.indexOf('override fun shouldOverrideUrlLoading'),android.indexOf('if (savedInstanceState == null)'));
+ const save=android.slice(android.indexOf('private fun savePortrait('),android.indexOf('private fun accountHash'));
+ assert.match(android,/web\.setDownloadListener[\s\S]*?savePortrait\(Uri\.parse\(link\)\)/);
+ assert.match(navigation,/PicgiftPhotoDownloads\.isTrustedPortrait\(target\)\) \{ savePortrait\(target\); return true \}/);
+ assert.ok(navigation.indexOf('savePortrait(target)')<navigation.indexOf('if (!trusted)'));
+ assert.match(save,/currentAccount \?: return/);
+ assert.match(save,/target\.path\?\.startsWith\("\/storage\/v1\/object\/sign\/picgift-generated\/\$user\/"\)/);
+ assert.match(save,/if \(successful\) dispatchAccountEvent\("picgift:portrait-saved", user\)/);
+ assert.doesNotMatch(save,/put\("url"|put\("token"/);
+});
+
+test('native payment callbacks carry their account and cannot reach a different web session',()=>{
+ const dispatch=android.slice(android.indexOf('private fun dispatchAccountEvent('),android.indexOf('private fun playError'));
+ assert.match(dispatch,/detail\.put\("user_id", user\)/);
+ assert.match(dispatch,/web\.post\s*\{\s*if \(user != currentAccount \|\| !pageReady \|\| !trustedPicgiftPage\(\)\)/);
+ assert.match(android,/val purchaseAccount = billingFlowAccount \?: currentAccount/);
+ assert.match(android,/deliverPurchases\(purchases, purchaseAccount\)/);
+ assert.match(android,/if \(user != currentAccount \|\| !pageReady\) return@queryPurchasesAsync/);
+ assert.match(android,/if \(user != currentAccount \|\| !pageReady\) return@queryProductDetailsAsync/);
+ assert.match(android,/dispatchPurchase\(id, purchase\.purchaseToken, user\)/);
+ assert.match(android,/if \(billing\.isReady \|\| billingConnecting\) return/);
+ assert.match(android,/if \(!billing\.isReady\) \{ connectBilling\(\); return \}/);
+});
+
 test('push notifications open allowed Android routes and deliver them into the web app',()=>{
  assert.match(android,/receiveNotificationRoute\(intent\)/);
  assert.match(android,/private fun dispatchNativeRoute\(\)/);

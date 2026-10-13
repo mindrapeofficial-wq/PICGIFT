@@ -47,7 +47,7 @@ test('mobile shell has five ordered actions with centered camera',()=>{
  assert.ok(js.includes('showBeautifyEditor()'));
  const routes=[...nav.matchAll(/data-route="([^"]+)"/g)].map(x=>x[1]);
  assert.deepEqual(routes,['crear','mis-fotos','escenarios','cuenta']);
- assert.ok(js.includes("const mobileEntry=window.matchMedia('(max-width:820px)').matches"));
+ assert.ok(js.includes("const opening=authReturn?'inicio':requested"),'authentication returns to Home');
  assert.ok(js.includes("body.classList.toggle('mobile-creator-active'"));
  assert.ok(js.includes("if(!file){$('photo').click();return}"),'CTA should open photo picker');
  assert.ok(js.includes("if(!user){openAuth('login');return}"),'CTA should require auth before upload');
@@ -69,9 +69,9 @@ test('mobile CSS offers scrollable cards, safe-area navigation and no desktop re
  new Function(js);
 });
 
-test('PWA starts in Create and caches its mobile app assets',()=>{
+test('PWA starts in Home and caches its mobile app assets',()=>{
  const manifest=JSON.parse(read('manifest.webmanifest'));
- assert.equal(manifest.start_url,'/#crear');
+ assert.equal(manifest.start_url,'/#inicio');
  const sw=read('sw.js');
  assert.ok(sw.includes('"/mobile-app.css"'));
  assert.ok(/const VERSION="picgift-[^"]+"/.test(sw),'PWA cache has explicit version');

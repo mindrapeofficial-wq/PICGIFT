@@ -127,7 +127,7 @@ jobs:
       - name: Upload signed Google Play AAB
         uses: actions/upload-artifact@v4
         with:
-          name: picgift-v1.8.5-beta-code14-play-signed
+          name: picgift-v1.8.6-beta-code15-play-signed
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7

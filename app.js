@@ -150,6 +150,8 @@ function updateStudio(){
  $('studio-chosen').textContent=selected?'Escenario: '+selected.name+(hasScene?' · Decorado seleccionado':' · En preparación'):'Elige un escenario de Halloween.';
  const playable=window.picgiftAiReady===true;
  if(signedIn&&hasPhoto&&hasScene&&hasConsent&&!playable)$('studio-readiness').textContent='Estamos preparando la apertura del estudio.';
+  window.picgiftStudioState={hasPhoto,hasScene,hasConsent,working:!!window.picgiftGenerating,available:playable};
+  window.dispatchEvent(new CustomEvent('picgift:studio-state',{detail:window.picgiftStudioState}));
 }
 window.picgiftStudioUpdate=updateStudio;
 function selectScene(id,goToCreate=true){
@@ -163,7 +165,8 @@ function selectScene(id,goToCreate=true){
  $('selected-status').textContent=scene.source==='picgift'?'Decorado seleccionado':'Decorado de estilo';
  $('pose').replaceChildren(...(scene.poses||['Automática']).map(p=>new Option(p,p)));
  renderMobileScenes();updateStudio();
- if(goToCreate&&route!=='crear')navigate('crear');
+  if(goToCreate)window.dispatchEvent(new Event('picgift:scene-selected'));
+  if(goToCreate&&route!=='crear')navigate('crear');
 }
 function navigate(name,fromHistory=false){const allowed=['inicio','escenarios','precios','crear','mis-fotos','resultado','cuenta','creditos'];if(!allowed.includes(name))name='inicio';
 if(['mis-fotos','cuenta'].includes(name)&&!user){pending=name;openAuth('login');return}
@@ -172,7 +175,7 @@ if(!fromHistory && location.hash!=='#'+name)history.pushState({page:name},'','#'
 function openAuth(mode='login'){if(window.picgiftOpenAuth){window.picgiftOpenAuth(mode);return}window.picgiftAuthReturnFocus=document.activeElement;window.picgiftAuthMode=mode;$('auth-title').textContent=mode==='register'?'Crear cuenta':'Iniciar sesión';$('terms').required=mode==='register';$('terms').closest('label').classList.toggle('hidden',mode!=='register');$('auth-submit').textContent=mode==='register'?'Crear mi cuenta':'Entrar en mi cuenta';$('auth-password').autocomplete=mode==='register'?'new-password':'current-password';$('auth').classList.add('show');$('auth-msg').textContent='Puedes acceder con correo o Google.';$('auth-email').focus()}
 window.addEventListener('picgift:auth',e=>{photoSessionRevision++;const previousUserId=user?.id;user=e.detail.user||null;window.picgiftCurrentUser=user;if(previousUserId&&previousUserId!==user?.id)clearPhoto();$('signin').classList.toggle('hidden',!!user);$('signup').classList.toggle('hidden',!!user);$('profile-button').classList.toggle('hidden',!user);$('workspace').classList.remove('hidden');$('account-email').textContent=user?.email||'Sesión iniciada';$('account-avatar').textContent=(user?.email||'P')[0].toUpperCase();$('profile-button').textContent=(user?.email||'P')[0].toUpperCase();updateStudio();if(user){$('auth').classList.remove('show');if(pending){const dest=pending;pending=null;navigate(dest)}else if(!['crear','mis-fotos','resultado','cuenta'].includes(route))navigate(route,true)}else if(['mis-fotos','cuenta'].includes(route))navigate('inicio');});
 function initSnow(){if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;const n=window.innerWidth<700?27:53,container=$('snow');for(let i=0;i<n;i++){const flake=document.createElement('i');flake.className='flake';const x=((i*47.33)%101),size=1.1+((i*17)%28)/10;flake.style.left=x+'%';flake.style.width=flake.style.height=size+'px';flake.style.opacity=(.2+((i*13)%55)/100).toFixed(2);flake.style.animationDuration=(12+(i*7)%24)+'s';flake.style.animationDelay=(-((i*13)%29))+'s';container.appendChild(flake)}document.addEventListener('visibilitychange',()=>{container.style.animationPlayState=document.hidden?'paused':'running';container.querySelectorAll('.flake').forEach(el=>el.style.animationPlayState=document.hidden?'paused':'running')})}
-function acceptFile(next){if(!next)return;if(!['image/png','image/jpeg','image/webp'].includes(next.type)){toast('Solo se admiten archivos JPG, PNG o WEBP.');return}if(next.size>15*1024*1024){toast('El archivo supera el máximo de 15 MB.');return}if(localURL)URL.revokeObjectURL(localURL);localURL=URL.createObjectURL(next);file=next;window.picgiftPhotoEditor?.open(next);$('chosen-photo').src=localURL;$('file-name').textContent=next.name+' · '+(next.size/1024/1024).toFixed(1)+' MB';$('upload-empty').classList.add('hidden');$('upload-loaded').classList.remove('hidden');updateStudio();if(beautifyAfterPhoto){beautifyAfterPhoto=false;showBeautifyEditor()}}
+function acceptFile(next){if(!next)return;if(!['image/png','image/jpeg','image/webp'].includes(next.type)){toast('Solo se admiten archivos JPG, PNG o WEBP.');return}if(next.size>15*1024*1024){toast('El archivo supera el máximo de 15 MB.');return}photoSessionRevision++;$('photo-ai-consent').checked=false;if(localURL)URL.revokeObjectURL(localURL);localURL=URL.createObjectURL(next);file=next;window.picgiftPhotoEditor?.open(next);$('chosen-photo').src=localURL;$('file-name').textContent=next.name+' · '+(next.size/1024/1024).toFixed(1)+' MB';$('upload-empty').classList.add('hidden');$('upload-loaded').classList.remove('hidden');updateStudio();if(beautifyAfterPhoto){beautifyAfterPhoto=false;showBeautifyEditor()}}
 function showBeautifyEditor(){
  const editor=document.querySelector('.crop-editor');
  if(!editor)return;
@@ -188,6 +191,7 @@ function openBeautify(){
  showBeautifyEditor();
 }
 function clearPhoto(){
+ photoSessionRevision++;$('photo-ai-consent').checked=false;
  beautifyAfterPhoto=false;
  if(localURL)URL.revokeObjectURL(localURL);
  localURL=null;file=null;window.picgiftPhotoEditor?.clear();$('photo').value='';
@@ -195,6 +199,7 @@ function clearPhoto(){
  $('upload-empty').classList.remove('hidden');$('upload-loaded').classList.add('hidden');
  $('result-empty').classList.remove('hidden');updateStudio();
 }
+window.addEventListener('picgift:photo-changed',()=>{photoSessionRevision++;$('photo-ai-consent').checked=false;updateStudio()});
 // Drive source is selected via Android's system document picker, not a Drive-wide OAuth grant.
 function syncGoogleDriveImport(){
  const available=!!window.PicgiftNative;
@@ -225,21 +230,24 @@ const dz=$('drop-zone');['dragenter','dragover'].forEach(x=>dz.addEventListener(
 $('generate').addEventListener('click',async()=>{
  const sessionRevision=photoSessionRevision;
  if(!file){$('photo').click();return}
- if(!selected||selected.source!=='picgift'){toast('Este nuevo escenario estará disponible próximamente. Puedes elegir uno de los cuatro decorados activos.');$('mobile-scenes').scrollIntoView({behavior:'smooth',block:'center'});return}
+ if(!selected||selected.source!=='picgift'){toast('Este escenario estará disponible próximamente. Elige uno de los decorados disponibles.');$('mobile-scenes').scrollIntoView({behavior:'smooth',block:'center'});return}
  if(!user){openAuth('login');return}
  if(!$('photo-ai-consent').checked){toast('Para continuar acepta la autorización de uso de la fotografía.');$('photo-ai-consent').scrollIntoView({behavior:'smooth',block:'center'});$('photo-ai-consent').focus();return}
  const service=await window.picgiftChooseService?.();if(!service||sessionRevision!==photoSessionRevision)return;
- if(service==='premium'&&window.picgiftPilot!==true&&!(window.picgiftCreditsAvailable>0)){navigate('precios');return;}
+ const selectedService=typeof service==='string'?service:service.service;
+ const billing_mode=typeof service==='object'?service.billing_mode:'credits';
+ if(selectedService==='premium'&&billing_mode==='credits'&&!(window.picgiftCreditsAvailable>0)){navigate('precios');return;}
  try {
   if(window.picgiftGenerating)return;
   window.picgiftGenerating=true;updateStudio();
   const prepared=await window.picgiftPhotoEditor.exportFile();window.picgiftGenerating=false;
-  if(sessionRevision!==photoSessionRevision){updateStudio();return}
-  window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{service,file:prepared,references:window.picgiftPhotoEditor.references(),scene_id:selected.id,format:['vertical','horizontal'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}));
+  if(sessionRevision!==photoSessionRevision||!$('photo-ai-consent').checked){updateStudio();return}
+  window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{service:selectedService,billing_mode,file:prepared,references:window.picgiftPhotoEditor.references(),scene_id:selected.id,format:['vertical','horizontal'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}));
  }catch(e){window.picgiftGenerating=false;updateStudio();if(sessionRevision===photoSessionRevision)toast(e.message||'No se pudo preparar el encuadre.')}
 });
 // Premium controls are hidden during the private AI test; no payments are offered.
 window.addEventListener('picgift:route',e=>navigate(e.detail.name));
+window.addEventListener('picgift:notice',e=>{if(e.detail?.message)toast(e.detail.message)});
 window.addEventListener('picgift:native-route',e=>{
  const route=e.detail?.route;
  if(['crear','mis-fotos','escenarios','cuenta','precios'].includes(route))navigate(route);
@@ -249,12 +257,10 @@ window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'inici
 window.addEventListener('popstate',()=>navigate(location.hash.slice(1)||'inicio',true));
 $('workspace').classList.remove('hidden');
 updateStudio();loadCatalog();
- const mobileEntry=window.matchMedia('(max-width:820px)').matches;
- const requested=window.picgiftPendingNativeRoute||location.hash.slice(1)||'crear';
+ const requested=window.picgiftPendingNativeRoute||location.hash.slice(1)||'inicio';
  window.picgiftPendingNativeRoute=null;
  const authReturn=/access_token=|error_description=|type=recovery/.test(location.hash)||new URLSearchParams(location.search).has('code');
- const opening=authReturn||(mobileEntry&&requested==='inicio')?'crear':requested;
- if(mobileEntry&&requested==='inicio')history.replaceState({page:'crear'},'','#crear');
+ const opening=authReturn?'inicio':requested;
  navigate(opening,true);
  const splash=$('splash');if(splash){let seen=false;try{seen=sessionStorage.getItem('picgift_intro_2026')==='seen';sessionStorage.setItem('picgift_intro_2026','seen')}catch(e){}
    window.setTimeout(()=>splash.classList.add('dismissed'),seen||window.matchMedia('(prefers-reduced-motion:reduce)').matches?0:1050);

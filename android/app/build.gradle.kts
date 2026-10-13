@@ -20,8 +20,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.8.5-beta"
+        versionCode = 15
+        versionName = "1.8.6-beta"
     }
     buildFeatures { buildConfig = true }
     defaultConfig {

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { importPKCS8, SignJWT } from "npm:jose@5.9.6";
+import {googlePlayAccessToken,reconcilePlayBatch} from "../_shared/play-reconciliation.mjs";
 
 const url = Deno.env.get("SUPABASE_URL") || "";
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -282,6 +283,13 @@ async function sendOutbox(limit=6){
  }
  return outcome;
 }
+async function reconcileGooglePlay(body:Record<string,unknown>={}){
+ const config=Deno.env.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON");
+ const packageName=Deno.env.get("GOOGLE_PLAY_PACKAGE_NAME");
+ if(!config||packageName!=="com.picgift.myapp")return {configured:false,complete:false};
+ const access=await googlePlayAccessToken(config);
+ return {configured:true,...await reconcilePlayBatch({db,access,packageName})};
+}
 async function checkProviders(){
  const free=await freeCreativeIdea(["Bosque de calabazas, Halloween", "Castillo embrujado, Halloween"]);
  const key=Deno.env.get("OPENAI_API_KEY")||"";
@@ -387,7 +395,7 @@ Deno.serve(async(request:Request)=>{
  let body:Record<string,unknown>;
  try{body=await request.json();if(!body||typeof body!=="object"||Array.isArray(body))throw Error()}catch{return reply({error:"invalid_json"},400)}
  const action=safe(body.action,30);
- const isCron=(["daily","dispatch","check_providers"].includes(action)) && await requireCron(request);
+ const isCron=(["daily","dispatch","check_providers","reconcile_purchases"].includes(action)) && await requireCron(request);
  let adminId:string|null=null;
  if(!isCron){
   const admin=await requireAdmin(request);
@@ -397,6 +405,10 @@ Deno.serve(async(request:Request)=>{
  try{
   if(action==="dashboard")return reply(await dashboard());
   if(action==="check_providers")return reply(await checkProviders());
+  if(action==="reconcile_purchases"){
+   const reconciliation=await reconcileGooglePlay(body);
+   return reply(reconciliation,reconciliation.complete?200:503);
+  }
   if(action==="daily"){
    const result=await createDaily();
    const dispatch=await sendOutbox(8);
@@ -414,7 +426,12 @@ Deno.serve(async(request:Request)=>{
    const {data}=await db.from("picgift_ai_notifications_outbox").select("id").eq("state","failed").limit(15);
    if(body.retry_failed===true&&data?.length)await db.from("picgift_ai_notifications_outbox").update({state:"pending"})
     .in("id",data.map(x=>x.id));
-   return reply({ok:true,dispatch:await sendOutbox(12)});
+   const dispatch=await sendOutbox(12);
+   // The existing private dispatch cron also retries paid deliveries and refunds.
+   // A Play outage must not prevent notification delivery or erase its result.
+   let purchases;
+   try{purchases=await reconcileGooglePlay()}catch{purchases={configured:true,complete:false,error:"play_reconciliation_unavailable"}}
+   return reply({ok:true,dispatch,purchases});
   }
   return reply({error:"unknown_action"},400);
  }catch(e){const code=e instanceof Error?e.message:"unexpected_failure";

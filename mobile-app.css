@@ -17,6 +17,7 @@
  }
  html[data-campaign="halloween"] .main{min-width:0;width:100%;overflow:clip}
  html[data-campaign="halloween"] .sidebar{display:none}
+ html[data-campaign="halloween"] .app{display:block;grid-template-columns:none}
  html[data-campaign="halloween"] .topbar{height:66px;padding:0 17px}
  html[data-campaign="halloween"] body.mobile-creator-active .topbar{display:none}
  html[data-campaign="halloween"] .mobile-logo{display:flex}

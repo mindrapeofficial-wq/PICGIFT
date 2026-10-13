@@ -7,14 +7,22 @@ on:
     paths:
       - 'supabase/functions/picgift-google-play/**'
       - 'supabase/functions/_shared/play-purchase.mjs'
+      - 'supabase/functions/_shared/play-reconciliation.mjs'
+      - 'supabase/functions/picgift-ai-director/**'
       - 'tests/play-receipt.test.cjs'
+      - 'tests/play-reconciliation.test.cjs'
+      - 'tests/notification-delivery.test.cjs'
       - '.github/workflows/play-receipt.yml'
   push:
     branches: [main]
     paths:
       - 'supabase/functions/picgift-google-play/**'
       - 'supabase/functions/_shared/play-purchase.mjs'
+      - 'supabase/functions/_shared/play-reconciliation.mjs'
+      - 'supabase/functions/picgift-ai-director/**'
       - 'tests/play-receipt.test.cjs'
+      - 'tests/play-reconciliation.test.cjs'
+      - 'tests/notification-delivery.test.cjs'
       - '.github/workflows/play-receipt.yml'
 
 permissions:
@@ -29,4 +37,4 @@ jobs:
         with:
           node-version: '22'
       - name: Verificar acreditación, reembolso y restauración de compras
-        run: node --test tests/play-receipt.test.cjs
+        run: node --test tests/play-receipt.test.cjs tests/play-reconciliation.test.cjs tests/notification-delivery.test.cjs

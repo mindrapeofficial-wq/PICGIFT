@@ -43,11 +43,11 @@ function offerPasswordBackup(user){
 }
 function publish(user){activeUser=user||null;const id=user?.id||null;
  if(id!==previous){previous=id;window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:activeUser}}));}
- if(user){try{sessionStorage.removeItem(attemptedKey)}catch{};setTimeout(()=>offerPasswordBackup(user),0)}
+ if(user){try{sessionStorage.removeItem(attemptedKey)}catch{}}
 }
 async function startGoogle(automatic=false){
  if(!client||googleBusy)return;
- if(mode==='register'&&!$('terms').checked){msg('Confirma primero la autorización para utilizar las fotografías.');return}
+ if(mode==='register'&&!$('terms').checked){msg('Confirma que eres mayor de edad y aceptas las condiciones de uso.');return}
  googleBusy=true;$('google').disabled=true;
  try{
   try{sessionStorage.setItem(attemptedKey,'yes')}catch{}
@@ -126,7 +126,7 @@ $('auth-form').addEventListener('submit',async event=>{
  const currentMode=mode,email=$('auth-email').value.trim(),password=$('auth-password').value;
  const passwordMode=currentMode==='backup'||currentMode==='recovery';
  if(passwordMode&&password!==$('auth-password-confirm').value){$('auth-password-confirm').setCustomValidity(window.picgiftI18n?.t('Las contraseñas no coinciden.')||'Las contraseñas no coinciden.');$('auth-password-confirm').reportValidity();return}
- if(currentMode==='register'&&!$('terms').checked){msg('Confirma la autorización para utilizar las imágenes.');return}
+ if(currentMode==='register'&&!$('terms').checked){msg('Confirma que eres mayor de edad y aceptas las condiciones de uso.');return}
  const submit=$('auth-submit');submit.disabled=true;msg('Conectando de forma segura…');
  try{
   if(currentMode==='forgot'){
@@ -140,7 +140,7 @@ $('auth-form').addEventListener('submit',async event=>{
    $('auth-password').value='';$('auth-password-confirm').value='';
    const toast=$('toast');toast.textContent='Contraseña guardada. Ya puedes entrar con Google o con tu correo.';toast.classList.add('on');setTimeout(()=>toast.classList.remove('on'),5000);return;
   }
-  const res=currentMode==='register'?await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/',data:{photo_authorization_confirmed:true}}}):await client.auth.signInWithPassword({email,password});
+  const res=currentMode==='register'?await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/',data:{adult_confirmed:true,terms_version:'2026-10-13',terms_accepted_at:new Date().toISOString()}}}):await client.auth.signInWithPassword({email,password});
   if(res.error)throw res.error;
   if(currentMode==='register'&&!res.data.session)msg('Revisa tu correo para confirmar la cuenta. Después podrás iniciar sesión.');else if(res.data?.user)publish(res.data.user);
  }catch{msg(currentMode==='forgot'?'No se pudo enviar el enlace. Comprueba el correo e inténtalo de nuevo dentro de unos minutos.':passwordMode?'No se pudo guardar la contraseña. Usa al menos 8 caracteres y vuelve a intentarlo; si tu sesión ha caducado, solicita un enlace de recuperación.':'No se pudo iniciar sesión. Comprueba tu correo y contraseña, o utiliza la recuperación.');}

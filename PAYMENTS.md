@@ -1,5 +1,19 @@
 # PICGIFT · Payments integration 2026
 
+## Alcance actual: solo Google Play (13 de octubre de 2026)
+
+La decisión vigente es comercializar únicamente mediante Google Play. Las referencias a activar Stripe que aparecen más abajo son históricas y quedan fuera de este lanzamiento. Este cambio no abre ventas ni altera horarios de cron: el catálogo activo de Play y la prueba real en un dispositivo siguen pendientes de validación.
+
+Antes de desplegar `picgift-ai-director`, aplicar `supabase/migrations/20261013193000_play_reconciliation_state.sql`. Crea un único estado de continuación privado, con RLS y acceso de lectura/actualización solo para `service_role`; no contiene claves. Después desplegar el director con `_shared/play-reconciliation.mjs` y `picgift-google-play` con `_shared/play-purchase.mjs`.
+
+El cron privado existente `dispatch` también concilia compras; la acción `reconcile_purchases` permite ejecutar un lote con la misma autorización de cron o administrador. Revisa reembolsos de los últimos 29 días (Google limita la consulta a 30), incluidas compras ya consumidas, y reintenta acreditar/consumir pedidos verificados. Conserva cursores de pedidos, página e índice de reembolso en base de datos con comparación de versión. Los lotes recorren como máximo 30 pedidos y 10 páginas; las ventanas se conservan hasta 20 horas para reanudar y luego se renuevan. Los pedidos fallidos vuelven a revisarse tras completar la vuelta, sin bloquear los siguientes.
+
+El presupuesto cooperativo de 45 segundos limita las llamadas a Google y el inicio de nuevas operaciones; no es un timeout rígido de consultas Supabase. `complete` se refiere al lote actual (`scope: batch`), no demuestra que no existan incidencias anteriores. Revisar `errors`, los cursores y `purchases` en la respuesta del director: el envío de notificaciones mantiene su propio resultado aunque falle la conciliación. Una caída continua superior a la ventana de consulta necesita revisión manual de pedidos antiguos.
+
+Los RPC con bloqueo de fila y ledger único impiden acreditar/revertir dos veces. Un reembolso que llega antes de acreditar marca el pedido sin otorgar saldo; si la acreditación gana la carrera, se revierte mediante el RPC. Restaurar una compra ya consumida vuelve a consultar Google. Un fallo de consumo posterior a la acreditación devuelve éxito con `consumption_pending: true`, conserva el saldo y se reintenta.
+
+Verificación local: `node --test tests/play-receipt.test.cjs tests/play-reconciliation.test.cjs tests/notification-delivery.test.cjs`. Estas pruebas usan proveedores y base de datos simulados; no sustituyen la compra de licencia, reembolso y generación/descarga en el móvil. Los términos ES/EN explican compras únicas, entrega, recuperación y reembolsos de Google Play. Antes de producción sigue pendiente confirmar la información fiscal/domicilio comercial y el recorrido real de compra.
+
 ## Packs comerciales
 | ID | Paquete | Web (EUR) | Créditos | Google Play Product ID |
 | --- | --- | ---: | ---: | --- |
