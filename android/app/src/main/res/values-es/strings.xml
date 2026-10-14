@@ -1,6 +1,8 @@
 <resources>
     <string name="choose_photo">Seleccionar fotografía</string>
     <string name="photo_picker_unavailable">No se han podido abrir tus fotos o la cámara. Vuelve a intentarlo.</string>
+    <string name="photo_picker_retry">La galería no ha podido compartir esta foto. Vuelve a elegirla desde Archivos.</string>
+    <string name="photo_picker_invalid">No se ha podido abrir esta foto. Elige una imagen JPG, PNG o WEBP desde Archivos.</string>
     <string name="connection_error">PICGIFT no ha podido conectar. Revisa tu conexión a internet y vuelve a intentarlo.</string>
     <string name="retry">Volver a intentar</string>
     <string name="photo_saved">Foto guardada en Imágenes / PICGIFT.</string>
