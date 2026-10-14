@@ -213,7 +213,7 @@ class MainActivity : AppCompatActivity() {
         try {
             filePicker.launch(photos)
         } catch (_: android.content.ActivityNotFoundException) {
-            // ACTION_PICK hands control to OEM apps that can return file:// or
+            // ACTION_PICK hands control to OEM apps that can return file-scheme or
             // unreadable URIs. SAF is the reliable fallback on older devices.
             documentPickerActive = true
             launchDocumentPicker(multiple)
