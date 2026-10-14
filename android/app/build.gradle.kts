@@ -36,8 +36,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.8.7-beta"
+        versionCode = 17
+        versionName = "1.8.8-beta"
     }
     buildFeatures { buildConfig = true }
     sourceSets.getByName("main").assets.srcDir(bundledUiRoot)
