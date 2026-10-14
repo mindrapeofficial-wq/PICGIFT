@@ -68,3 +68,10 @@ PICGIFT sigue siendo una arquitectura híbrida con interfaz web alojada en Rende
 El workflow `android-debug.yml` ejecuta pruebas Node, compilación Android, Lint y crea un APK de diagnóstico y AAB sin firma de subida. En un Android real deben probarse: selección Drive y galería, captura con cámara, cancelar el selector, abrir notificación con la app cerrada y abierta, recibir una actualización del token FCM, guardar JPG/PNG en Galería, red lenta y sin conexión, cuenta Google y compras de prueba.
 
 **El código compilado no equivale a una publicación en Google Play.** La actualización requiere `app-release.aab` firmado con la clave de subida registrada de PICGIFT y las credenciales privadas en GitHub Actions. No sustituir con otra clave desconocida. El artefacto de la nueva versión se llama `picgift-v1.8.1-beta-code10-play-signed` solo cuando el workflow de firma termina correctamente.
+
+## Android beta 1.8.8 (versionCode 17) - selección de fotos en galerías OEM
+
+- El selector de fotos del sistema sigue siendo prioritario. En dispositivos sin Photo Picker compatible, se utiliza `ACTION_OPEN_DOCUMENT` con `CATEGORY_OPENABLE` y permisos de lectura temporales, en lugar del selector arbitrario `ACTION_PICK` de algunas galerías.
+- Los resultados se obtienen tanto de `data` como de `clipData` y del resultado de WebChromeClient. Si una galería indica que se ha seleccionado una fotografía pero devuelve un archivo ilegible, se reintenta **una sola vez** con el proveedor documental y se muestra un aviso al usuario. Una cancelación real no provoca reintentos.
+- Comprobar en un móvil afectado: elegir una foto JPG/PNG/WEBP desde Galería, abrir la vista previa y cambiarla; cancelar; seleccionar desde Archivos; y capturar desde la cámara central. No se añaden permisos amplios de fotos ni almacenamiento.
+- Es imprescindible compilar y distribuir el nuevo AAB mediante Google Play beta. El cambio de Kotlin no se entrega con un deploy de Render.
