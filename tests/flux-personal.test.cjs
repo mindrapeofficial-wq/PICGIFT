@@ -8,10 +8,11 @@ const frontend=read('generator.js');
 const index=read('index.html');
 const review=read('flux-review-admin.js');
 
-test('Personal FLUX worker requires verified login and pilot membership',()=>{
+test('Personal FLUX worker requires verified login and a server quota claim',()=>{
  assert.match(backend,/auth\.getUser\(token\)/);
  assert.match(backend,/email_confirmed_at/);
- assert.match(backend,/picgift_ai_pilot_users/);
+ assert.match(backend,/picgift_claim_flux_free_photo/);
+ assert.doesNotMatch(backend,/restricted_to_testers/);
 });
 test('Server kill switch, recipe allowlist and quota guard all precede provider invocation',()=>{
  assert.match(backend,/config\?\.enabled===true/);

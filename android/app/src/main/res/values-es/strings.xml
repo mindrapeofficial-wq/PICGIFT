@@ -5,4 +5,9 @@
     <string name="retry">Volver a intentar</string>
     <string name="photo_saved">Foto guardada en Imágenes / PICGIFT.</string>
     <string name="photo_save_failed">No se pudo guardar el retrato. Vuelve a intentar la descarga.</string>
+    <string name="update_checking">Comprobando si hay una actualización de PICGIFT…</string>
+    <string name="update_required">Hay una versión nueva de PICGIFT. Actualízala para continuar.</string>
+    <string name="update_unavailable">No se pudo comprobar si hay actualizaciones. Revisa la conexión y vuelve a intentarlo.</string>
+    <string name="update_now">Actualizar ahora</string>
+    <string name="update_open_play">Abrir Google Play</string>
 </resources>

@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
     }
     private lateinit var loading: ProgressBar
     private lateinit var failure: LinearLayout
+    private lateinit var requiredUpdate: RequiredUpdateGate
     private val homeUrl get() = "https://picgift.onrender.com/app/index.html?device_lang=" + Uri.encode(resources.configuration.locales[0].toLanguageTag())
     private val bundledAssets by lazy {
         WebViewAssetLoader.Builder().setDomain("picgift.onrender.com")
@@ -247,6 +248,7 @@ class MainActivity : AppCompatActivity() {
             })
         }
         root.addView(failure, FrameLayout.LayoutParams(-1,-1))
+        requiredUpdate = RequiredUpdateGate(this, root)
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             val keyboard = insets.getInsets(WindowInsetsCompat.Type.ime())
@@ -594,6 +596,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (::requiredUpdate.isInitialized) requiredUpdate.check()
         if (::web.isInitialized) web.onResume()
         if (::billing.isInitialized) restorePurchases()
         if (::web.isInitialized && trustedPicgiftPage()) nativePush.status()

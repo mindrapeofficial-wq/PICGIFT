@@ -11,7 +11,7 @@ const cors = {"Access-Control-Allow-Origin":"https://picgift.onrender.com",
  "Access-Control-Allow-Methods":"POST,OPTIONS",
  "Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"};
 const reply = (body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:cors});
-const routeSet = new Set(["crear","inspiracion","cuenta","precios"]);
+const routeSet = new Set(["crear","inspiracion","cuenta","precios","mis-fotos"]);
 const safe = (value:unknown,max=300)=>typeof value==="string"?value.trim().slice(0,max):"";
 const formatDay=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const daysId=()=>formatDay().replace(/-/g,"");
@@ -231,6 +231,9 @@ async function sendOutbox(limit=6){
    if(item.target==="admin"){
     if(!userIds.length)throw Error("no_admin_accounts");
     query=query.in("user_id",userIds);
+   }else if(item.target==="user"){
+    if(!item.user_id)throw Error("notification_user_missing");
+    query=query.eq("user_id",item.user_id);
    }
    const {data:devices,error:deviceError}=await query;
    if(deviceError)throw Error("devices_unavailable");
@@ -422,7 +425,11 @@ Deno.serve(async(request:Request)=>{
    return reply({...result,dispatch});
   }
   if(action==="dispatch"){
-   // This is a manual fallback if a daily cron or Firebase delivery fails.
+   // Retry a failed personal completion notice, without repeating partial deliveries.
+   const {data:personalFailures}=await db.from("picgift_ai_notifications_outbox").select("id")
+    .eq("state","failed").eq("target","user").lt("tries",3).neq("last_error","no_eligible_devices").limit(15);
+   if(personalFailures?.length)await db.from("picgift_ai_notifications_outbox").update({state:"pending"})
+    .in("id",personalFailures.map(x=>x.id));
    const {data}=await db.from("picgift_ai_notifications_outbox").select("id").eq("state","failed").limit(15);
    if(body.retry_failed===true&&data?.length)await db.from("picgift_ai_notifications_outbox").update({state:"pending"})
     .in("id",data.map(x=>x.id));
