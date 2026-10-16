@@ -19,7 +19,7 @@ function render(){
  if(!settings)return;
  const activity=$('filter-activity').value||'all';
  const filtered=users.filter(u=>(!$('filter-enabled').checked||u.enabled)&&
-  (activity==='all'||(activity==='active'&&u.active_today)||(activity==='inactive'&&!u.active_today))&&
+  (activity==='all'||(u.confirmed&&!u.is_admin&&((activity==='active'&&u.active_today)||(activity==='inactive'&&!u.active_today))))&&
   u.email.toLowerCase().includes($('user-search').value.trim().toLowerCase()));
  $('count-users').textContent=users.length;
  $('count-enabled').textContent=users.filter(u=>u.enabled).length;
