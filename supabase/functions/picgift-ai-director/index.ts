@@ -373,6 +373,9 @@ async function runBetaReminder(force=false,adminId:string|null=null){
  const eligible=[];
  for(const user of users){
   if(!user.email_confirmed_at||adminIds.has(user.id)||!deviceIds.has(user.id))continue;
+  // Older installed bundles cannot report app opens. Wait for one observed entry
+  // before treating an account as absent in an automatic AI campaign.
+  if(!force&&!lastSeen.get(user.id))continue;
   if(now-new Date(user.created_at).getTime()<4*3600000)continue;
   if(jobIds.has(user.id)||[lastSeen.get(user.id),user.last_sign_in_at].some(value=>value&&formatDay(new Date(value))===day))continue;
   const id=await reminderId(day,user.id);

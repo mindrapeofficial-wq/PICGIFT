@@ -12,10 +12,11 @@ test('beta reminder targets only absent opted-in testers and never queues twice 
  const users=[
   {id:'absent',email_confirmed_at:earlier,created_at:earlier,last_sign_in_at:earlier,user_metadata:{full_name:'Lucía Test'}},
   {id:'active',email_confirmed_at:earlier,created_at:earlier,last_sign_in_at:now.toISOString(),user_metadata:{}},
+  {id:'old-app',email_confirmed_at:earlier,created_at:earlier,last_sign_in_at:earlier,user_metadata:{}},
   {id:'admin',email_confirmed_at:earlier,created_at:earlier,last_sign_in_at:earlier,user_metadata:{}}
  ];
  const queued=[],decisions=[];
- const rows={picgift_user_presence:[],picgift_notification_devices:[{user_id:'absent'},{user_id:'active'},{user_id:'admin'}],
+ const rows={picgift_user_presence:[{user_id:'absent',last_seen_at:earlier}],picgift_notification_devices:[{user_id:'absent'},{user_id:'active'},{user_id:'old-app'},{user_id:'admin'}],
   picgift_admin_users:[{user_id:'admin'}],picgift_photo_jobs:[]};
  const db={auth:{admin:{listUsers:async()=>({data:{users},error:null})}},from(table){
   return {select(){return this},eq(){return this},gt(){return this},gte(){return this},limit(){return this},
