@@ -119,18 +119,49 @@ class MainActivity : AppCompatActivity() {
     private var pendingCameraUri: Uri? = null
     private var pendingCameraFile: File? = null
     private var pendingPickerLimit = 1
+    private var documentPickerActive = false
     private var pendingNotificationRoute: String? = null
     private val nativeRoutes = setOf("crear", "mis-fotos", "escenarios", "cuenta", "precios")
     private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val picked = if (result.resultCode == Activity.RESULT_OK) {
-            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-                ?.distinct()?.filter { safePickedImage(it) }?.take(pendingPickerLimit)?.toTypedArray()
-        } else null
+        // Some OEM galleries return the selected item only in data or clipData.
+        // Inspect every standard result channel before treating the selection as cancelled.
+        val candidates = linkedSetOf<Uri>()
+        if (result.resultCode == Activity.RESULT_OK) {
+            runCatching { WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data) }
+                .getOrNull()?.forEach { candidates.add(it) }
+            result.data?.data?.let { candidates.add(it) }
+            result.data?.clipData?.let { clip ->
+                for (index in 0 until clip.itemCount) {
+                    clip.getItemAt(index).uri?.let { candidates.add(it) }
+                }
+            }
+        }
+        val picked = candidates.filter { safePickedImage(it) }
+            .take(pendingPickerLimit).toTypedArray()
         val cameraCaptured = result.resultCode == Activity.RESULT_OK &&
-            (picked == null || picked.isEmpty()) &&
-            (pendingCameraFile?.length() ?: 0L) > 100L
+            picked.isEmpty() && (pendingCameraFile?.length() ?: 0L) > 100L
+
+        // A successful but unreadable gallery result must not silently reset onboarding.
+        // Retry once via Android's document provider, which always returns a readable
+        // content URI without requiring broad photo or storage permissions.
+        if (result.resultCode == Activity.RESULT_OK && picked.isEmpty() &&
+            !cameraCaptured && pendingCameraUri == null &&
+            pendingFileUpload != null && !documentPickerActive) {
+            documentPickerActive = true
+            try {
+                launchDocumentPicker(pendingPickerLimit > 1)
+                Toast.makeText(this, R.string.photo_picker_retry, Toast.LENGTH_LONG).show()
+                return@registerForActivityResult
+            } catch (_: Exception) {
+                // Give the WebView a completion instead of leaving its file input pending.
+            }
+        }
+        if (result.resultCode == Activity.RESULT_OK && picked.isEmpty() && !cameraCaptured) {
+            Toast.makeText(this, R.string.photo_picker_invalid, Toast.LENGTH_LONG).show()
+        }
+
         val value = when {
-            !picked.isNullOrEmpty() -> picked
+            picked.isNotEmpty() -> picked
             cameraCaptured -> pendingCameraUri?.let { arrayOf(it) }
             else -> null
         }
@@ -140,6 +171,7 @@ class MainActivity : AppCompatActivity() {
         val callback = pendingFileUpload
         pendingFileUpload = null
         pendingPickerLimit = 1
+        documentPickerActive = false
         callback?.onReceiveValue(value)
     }
 
@@ -158,11 +190,22 @@ class MainActivity : AppCompatActivity() {
         pendingCameraFile = null
         pendingCameraUri = null
         pendingPickerLimit = 1
+        documentPickerActive = false
         callback?.onReceiveValue(null)
     }
 
+    private fun launchDocumentPicker(multiple: Boolean) {
+        val documents = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "image/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        filePicker.launch(documents)
+    }
+
     private fun launchPhotoPicker(multiple: Boolean) {
-        // Try the platform photo gallery, including supported backports. No document explorer.
         val photos = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
             type = "image/*"
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -171,13 +214,10 @@ class MainActivity : AppCompatActivity() {
         try {
             filePicker.launch(photos)
         } catch (_: android.content.ActivityNotFoundException) {
-            val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                type = "image/*"
-                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
-                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            filePicker.launch(gallery)
+            // ACTION_PICK hands control to OEM apps that can return file-scheme or
+            // unreadable URIs. SAF is the reliable fallback on older devices.
+            documentPickerActive = true
+            launchDocumentPicker(multiple)
         }
     }
 
@@ -299,6 +339,7 @@ class MainActivity : AppCompatActivity() {
                 // must never be delivered into another file input.
                 if (pendingFileUpload != null) { filePathCallback.onReceiveValue(null); return true }
                 pendingFileUpload = filePathCallback
+                documentPickerActive = false
                 val multiple = fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                 pendingPickerLimit = if (multiple) 2 else 1
                 return try {
