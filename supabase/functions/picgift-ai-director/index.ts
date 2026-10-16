@@ -13,8 +13,9 @@ const cors = {"Access-Control-Allow-Origin":"https://picgift.onrender.com",
 const reply = (body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:cors});
 const routeSet = new Set(["crear","inspiracion","cuenta","precios","mis-fotos"]);
 const safe = (value:unknown,max=300)=>typeof value==="string"?value.trim().slice(0,max):"";
-const formatDay=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+const formatDay=(date=new Date())=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);
 const daysId=()=>formatDay().replace(/-/g,"");
+const madridHour=()=>Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Madrid",hour:"2-digit",hourCycle:"h23"}).format(new Date()));
 async function requireAdmin(request:Request){
  const bearer=(request.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");
  if(!bearer)return null;
@@ -307,12 +308,110 @@ async function checkProviders(){
  if(!result.choices?.[0]?.message?.content)throw Error("premium_ai_invalid_response");
  return {ok:true,free:"ready",premium:"ready",free_response_length:free.length};
 }
+async function betaReminderDecision(eligible:number,active:number,hour:number){
+ const key=Deno.env.get("OPENAI_API_KEY")||"";
+ if(!key)throw Error("openai_not_configured");
+ const prompt=[
+  "Eres el responsable de comunicación de la beta cerrada de PicGift.",
+  "Decide si enviar AHORA un recordatorio amable a quienes no han abierto la app hoy.",
+  "Usa solo estos datos agregados; no se te facilitan identidades ni correos.",
+  `Hora de Madrid: ${hour}. Cuentas activas hoy: ${active}. Cuentas ausentes con avisos activados y sin recordatorio hoy: ${eligible}.`,
+  "El texto del aviso ya está aprobado: invitación a abrir PicGift y generar una foto gratuita.",
+  "Evita saturación. Si la hora no es apropiada o no hay destinatarios, decide no enviar.",
+  'Responde solo JSON: {"send":true|false,"reason":"explicación breve en español"}.'
+ ].join("\n");
+ const response=await fetch("https://api.openai.com/v1/chat/completions",{
+  method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json"},
+  body:JSON.stringify({model:"gpt-4.1-mini",temperature:0,response_format:{type:"json_object"},
+   messages:[{role:"system",content:"Decide con prudencia y responde JSON válido."},{role:"user",content:prompt}]}),
+  signal:AbortSignal.timeout(30000)
+ });
+ if(!response.ok)throw Error("reminder_ai_api_"+response.status);
+ const result=await response.json();
+ const decision=parseTextJSON(result.choices?.[0]?.message?.content||"");
+ if(typeof decision.send!=="boolean"||typeof decision.reason!=="string")throw Error("reminder_ai_invalid_response");
+ return {send:decision.send,reason:safe(decision.reason,200)};
+}
+async function reminderId(day:string,userId:string){
+ const bytes=new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode("picgift-beta-reminder:"+day+":"+userId)));
+ const hex=Array.from(bytes.slice(0,16),n=>n.toString(16).padStart(2,"0")).join("");
+ return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20,32)].join("-");
+}
+function friendlyName(user:any){
+ const raw=user.user_metadata?.full_name||user.user_metadata?.name||"";
+ if(typeof raw!=="string")return "";
+ const first=raw.trim().split(/\s+/)[0];
+ return /^[\p{L}][\p{L}'-]{0,23}$/u.test(first)?first:"";
+}
+async function runBetaReminder(force=false,adminId:string|null=null){
+ const day=formatDay(),hour=madridHour(),now=Date.now();
+ const users:any[]=[];
+ for(let page=1;page<=50;page++){
+  const {data,error}=await db.auth.admin.listUsers({page,perPage:200});
+  if(error)throw Error("beta_users_unavailable");
+  users.push(...(data?.users||[]));
+  if((data?.users||[]).length<200)break;
+ }
+ const [presence,devices,admins,jobs,outbox]=await Promise.all([
+  db.from("picgift_user_presence").select("user_id,last_seen_at"),
+  db.from("picgift_notification_devices").select("user_id").eq("enabled",true)
+   .gt("updated_at",new Date(now-90*86400000).toISOString()).limit(1001),
+  db.from("picgift_admin_users").select("user_id"),
+  db.from("picgift_photo_jobs").select("user_id,created_at").gt("created_at",new Date(now-36*3600000).toISOString()).limit(1000),
+  db.from("picgift_ai_notifications_outbox").select("id").eq("target","user")
+   .gte("created_at",new Date(now-36*3600000).toISOString()).limit(1000)
+ ]);
+ if(presence.error||devices.error||admins.error||jobs.error||outbox.error)throw Error("beta_activity_unavailable");
+ if((devices.data||[]).length>1000)throw Error("beta_audience_too_large");
+ const lastSeen=new Map((presence.data||[]).map(x=>[x.user_id,x.last_seen_at]));
+ const deviceIds=new Set((devices.data||[]).map(x=>x.user_id));
+ const adminIds=new Set((admins.data||[]).map(x=>x.user_id));
+ const jobIds=new Set((jobs.data||[]).filter(x=>formatDay(new Date(x.created_at))===day).map(x=>x.user_id));
+ const existingIds=new Set((outbox.data||[]).map(x=>x.id));
+ const active=users.filter(u=>u.email_confirmed_at&&!adminIds.has(u.id)&&
+  [lastSeen.get(u.id),u.last_sign_in_at].some(value=>value&&formatDay(new Date(value))===day)).length;
+ const eligible=[];
+ for(const user of users){
+  if(!user.email_confirmed_at||adminIds.has(user.id)||!deviceIds.has(user.id))continue;
+  // Older installed bundles cannot report app opens. Wait for one observed entry
+  // before treating an account as absent in an automatic AI campaign.
+  if(!force&&!lastSeen.get(user.id))continue;
+  if(now-new Date(user.created_at).getTime()<4*3600000)continue;
+  if(jobIds.has(user.id)||[lastSeen.get(user.id),user.last_sign_in_at].some(value=>value&&formatDay(new Date(value))===day))continue;
+  const id=await reminderId(day,user.id);
+  if(!existingIds.has(id))eligible.push({user,id});
+ }
+ let send=false,reason="Sin destinatarios que cumplan las condiciones.";
+ if(eligible.length){
+  if(force){send=true;reason="Envío manual solicitado por administración."}
+  else if(hour>=10&&hour<=20){const decision=await betaReminderDecision(eligible.length,active,hour);send=decision.send;reason=decision.reason}
+  else reason="Fuera del horario de avisos (10:00–20:59 Madrid).";
+ }
+ let queued=0;
+ if(send){
+  for(const {user,id} of eligible){
+   const name=friendlyName(user);
+   const body=(name?`Hola, ${name}. `:"¡Hola! ")+"Hemos empezado la fase de beta cerrada y necesitamos tu colaboración. Por favor, abre PicGift y genera una foto gratuita.";
+   const {error}=await db.from("picgift_ai_notifications_outbox").insert({id,target:"user",user_id:user.id,
+    title:"PicGift · Te esperamos en la beta",body,route:"crear"});
+   if(error&&error.code!=="23505")throw Error("beta_reminder_queue_failed");
+   if(!error)queued++;
+  }
+ }
+ const {error:logError}=await db.from("picgift_beta_reminder_decisions").insert({day_madrid:day,
+  source:force?"admin":"ai",decision:send?"send":"skip",reason,eligible_count:eligible.length,
+  queued_count:queued,admin_id:adminId});
+ if(logError)throw Error("beta_reminder_log_failed");
+ return {day,decision:send?"send":"skip",reason,eligible:eligible.length,queued};
+}
 async function dashboard(){
- const [{data:records,error},{data:outbox}]=await Promise.all([
+ const [{data:records,error},{data:outbox},{data:betaReminders}]=await Promise.all([
   db.from("picgift_ai_proposals").select("id,kind,day_key,title,description,category,image_path,message,route,status,error_message,created_at,reviewed_at,recipe")
    .order("created_at",{ascending:false}).limit(50),
   db.from("picgift_ai_notifications_outbox").select("id,proposal_id,target,title,state,recipient_count,delivered_count,last_error,created_at")
-   .order("created_at",{ascending:false}).limit(30)
+   .order("created_at",{ascending:false}).limit(30),
+  db.from("picgift_beta_reminder_decisions").select("day_madrid,checked_at,source,decision,reason,eligible_count,queued_count")
+   .order("checked_at",{ascending:false}).limit(12)
  ]);
  if(error)throw Error("proposals_unavailable");
  const proposals=[];
@@ -325,7 +424,7 @@ async function dashboard(){
   const {recipe,...visible}=record;
   proposals.push({...visible,review_summary:safe(recipe?.ai_collaboration?.free_brief,700),preview_url});
  }
- return {proposals,outbox:outbox||[],pending:proposals.filter(p=>p.status==="pending").length,
+ return {proposals,outbox:outbox||[],beta_reminders:betaReminders||[],pending:proposals.filter(p=>p.status==="pending").length,
   providers:{premium_configured:!!Deno.env.get("OPENAI_API_KEY"),
    free_configured:!!Deno.env.get("CLOUDFLARE_ACCOUNT_ID")&&!!Deno.env.get("CLOUDFLARE_API_TOKEN")}};
 }
@@ -398,7 +497,7 @@ Deno.serve(async(request:Request)=>{
  let body:Record<string,unknown>;
  try{body=await request.json();if(!body||typeof body!=="object"||Array.isArray(body))throw Error()}catch{return reply({error:"invalid_json"},400)}
  const action=safe(body.action,30);
- const isCron=(["daily","dispatch","check_providers","reconcile_purchases"].includes(action)) && await requireCron(request);
+ const isCron=(["daily","dispatch","check_providers","reconcile_purchases","beta_reminder"].includes(action)) && await requireCron(request);
  let adminId:string|null=null;
  if(!isCron){
   const admin=await requireAdmin(request);
@@ -407,6 +506,7 @@ Deno.serve(async(request:Request)=>{
  }
  try{
   if(action==="dashboard")return reply(await dashboard());
+  if(action==="beta_reminder")return reply(await runBetaReminder(body.force===true&&!isCron,adminId));
   if(action==="check_providers")return reply(await checkProviders());
   if(action==="reconcile_purchases"){
    const reconciliation=await reconcileGooglePlay(body);

@@ -2,7 +2,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#170e0b"><title>PICGIFT · Administración</title>
 <link rel="icon" href="./assets/halloween/picgift-logo-oficial.svg">
-<link rel="stylesheet" href="./admin.css?v=mobile-admin-20261010-v1"><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script></head><body>
+<link rel="stylesheet" href="./admin.css?v=beta-activity-20261016-v1"><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script></head><body>
 <header class="topbar"><a href="./#cuenta" aria-label="Volver a PICGIFT"><img src="./assets/halloween/picgift-logo-oficial.svg" alt="PICGIFT" width="130" height="65"></a><span class="eyebrow">PANEL PRIVADO · ADMINISTRACIÓN</span><a href="./#cuenta">Volver a PICGIFT</a></header>
 <main class="wrapper">
 <div id="blocked" class="card center"><span class="eyebrow">ACCESO PROTEGIDO</span><h1 id="blocked-title">Comprobando permisos…</h1><p id="blocked-message">Este panel requiere una cuenta administradora con sesión iniciada.</p><a class="button" href="./#cuenta">Ir a PICGIFT</a></div>
@@ -22,7 +22,17 @@
 <div class="stat"><span>HABILITADOS</span><strong id="count-enabled">0</strong></div>
 <div class="stat"><span>USADAS HOY</span><strong id="count-used">0</strong></div>
 <div class="stat"><span>RESTANTES GLOBALES</span><strong id="count-remaining">0</strong></div>
+<div class="stat"><span>ENTRARON HOY</span><strong id="count-active-today">0</strong></div>
+<div class="stat"><span>SIN ENTRADA HOY</span><strong id="count-inactive-today">0</strong></div>
 </div>
+<section class="card beta-activity" aria-labelledby="beta-activity-title">
+ <div class="heading"><span class="eyebrow">BETA CERRADA · HORA DE MADRID</span><h2 id="beta-activity-title">Actividad y recordatorios</h2><small id="activity-day-label">Hoy</small></div>
+ <p>PicGift registra la apertura con sesión iniciada. Para versiones anteriores se cuenta el inicio de sesión; las aperturas con sesión persistente empezarán a registrarse cuando el usuario actualice la app.</p>
+ <p>La IA revisa la actividad cada 6 horas y decide si conviene recordar la beta durante el día. El envío automático empieza después de que cada tester haya abierto al menos una vez la versión que registra actividad. Solo llega a cuentas verificadas con avisos activos y, como máximo, una vez por día.</p>
+ <div class="beta-actions"><button class="button" id="beta-ai-review" type="button">Pedir revisión a la IA</button><button class="button primary" id="beta-send-inactive" type="button">Avisar ahora a quienes no entraron</button></div>
+ <div id="beta-status" class="status" role="status" aria-live="polite">Cargando actividad…</div>
+ <div class="heading"><h3>Últimas decisiones</h3></div><div id="beta-decisions" class="user-list"></div>
+</section>
 <div id="status" class="status" role="status">Cargando datos…</div>
 <div class="layout">
 <section class="card"><div class="heading"><span class="eyebrow">CONFIGURACIÓN GENERAL</span><h2>Cuota gratuita</h2></div><p>El máximo global protege la cuota gratuita de Cloudflare. Reinicio de contadores a las 00:00 UTC.</p>
@@ -36,7 +46,7 @@
 <div class="notice"><strong>Estado del motor gratuito</strong><p>Los límites se preparan aquí. La edición gratuita de retratos todavía no está activada.</p></div>
 </section>
 <section class="card" id="users-section"><div class="heading"><span class="eyebrow">CONTROL INDIVIDUAL</span><h2>Usuarios de PICGIFT</h2><small id="day-label">Hoy (UTC)</small></div>
-<div class="search-row"><label>Buscar usuario<input id="user-search" type="search" placeholder="Correo de inicio de sesión"></label><label class="only-enabled"><input id="filter-enabled" type="checkbox"> Solo habilitados</label></div>
+<div class="search-row"><label>Buscar usuario<input id="user-search" type="search" placeholder="Correo de inicio de sesión"></label><label class="only-enabled"><input id="filter-enabled" type="checkbox"> Solo habilitados</label><label class="only-enabled">Actividad<select id="filter-activity"><option value="all">Todos</option><option value="active">Entraron hoy</option><option value="inactive">Sin entrada hoy</option></select></label></div>
 <div id="user-list" class="user-list"></div>
 <p class="footnote">Puedes solicitar un enlace para crear o cambiar la contraseña de PICGIFT aunque una cuenta acceda con Google. Solo se permite para correos confirmados; el administrador nunca ve la contraseña y el usuario mantiene su acceso con Google. Los límites no modifican los packs comprados.</p>
 </section></div>
@@ -49,7 +59,7 @@
 </section>
 <section class="card" id="notification-section" style="margin-top:22px" aria-labelledby="notification-title">
  <div class="heading"><span class="eyebrow">COMUNICACIÓN CON USUARIOS</span><h2 id="notification-title">Notificaciones de la app</h2></div>
- <p>Recordatorio diario: 20:00, hora de Madrid. Se envía automáticamente a los móviles que hayan permitido los avisos. Puedes desactivarlos desde Perfil → Notificaciones.</p><p>Envía avisos a los dispositivos Android que hayan autorizado las notificaciones. El envío se realiza desde un servicio privado y solo con permisos de administrador.</p>
+ <p>El recordatorio de la beta se revisa cada 6 horas desde «Actividad y recordatorios». Solo llega a quienes aún no han entrado hoy y han permitido los avisos.</p><p>Envía avisos a los dispositivos Android que hayan autorizado las notificaciones. El envío se realiza desde un servicio privado y solo con permisos de administrador.</p>
  <div id="notification-health" class="status" role="status">Comprobando Firebase y dispositivos…</div>
  <form id="notification-form">
   <label>Título (máximo 80 caracteres)<input id="notification-title-input" maxlength="80" required placeholder="Novedades de PICGIFT"></label>
@@ -65,5 +75,5 @@
 </section>
 
 </div></main>
-<script type="module" src="./admin.js?v=mobile-admin-20261010-v1"></script>
+<script type="module" src="./admin.js?v=beta-activity-20261016-v1"></script>
 <script type="module" src="./flux-review-admin.js?v=20261008-v1"></script><script type="module" src="./notifications-admin.js?v=20261009"></script><script type="module" src="./ai-director-admin.js?v=20261010-mobile-ai"></script></body></html>
