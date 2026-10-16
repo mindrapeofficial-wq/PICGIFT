@@ -189,7 +189,7 @@ Deno.serve(async request=>{
    user_id:user.id,scene_id:scene,source_path:source,reference_paths:refs,
    requested_format:format,requested_pose:pose,requested_outfit:outfit,
    processing_consent:true,consent_at:new Date().toISOString(),
-   status:"queued",is_test:true,image_model:TAG,email_requested:false,email_status:"not_requested",
+   status:"queued",is_test:true,billing_mode:"free",image_model:TAG,email_requested:false,email_status:"not_requested",
    request_language:body.request_language==="en"?"en":"es"
  }).select("id").single();
  if(insertError||!job)return reply({error:"No se pudo registrar la solicitud."},409);
