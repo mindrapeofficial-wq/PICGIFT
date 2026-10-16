@@ -17,11 +17,17 @@ function block(title,description){
 }
 function render(){
  if(!settings)return;
- const filtered=users.filter(u=>(!$('filter-enabled').checked||u.enabled)&&u.email.toLowerCase().includes($('user-search').value.trim().toLowerCase()));
+ const activity=$('filter-activity').value||'all';
+ const filtered=users.filter(u=>(!$('filter-enabled').checked||u.enabled)&&
+  (activity==='all'||(activity==='active'&&u.active_today)||(activity==='inactive'&&!u.active_today))&&
+  u.email.toLowerCase().includes($('user-search').value.trim().toLowerCase()));
  $('count-users').textContent=users.length;
  $('count-enabled').textContent=users.filter(u=>u.enabled).length;
  $('count-used').textContent=globalUsed;
  $('count-remaining').textContent=Math.max(0,settings.global_daily_limit-globalUsed);
+ const testers=users.filter(u=>u.confirmed&&!u.is_admin);
+ $('count-active-today').textContent=testers.filter(u=>u.active_today).length;
+ $('count-inactive-today').textContent=testers.filter(u=>!u.active_today).length;
  $('global-limit').value=String(settings.global_daily_limit);
  $('default-limit').value=String(settings.default_user_daily_limit);
  $('premium-default-limit').value=String(premiumSettings?.daily_limit??3);
@@ -32,7 +38,7 @@ function render(){
    const card=document.createElement('div');card.className='user-item';
    const info=document.createElement('div');info.className='user-info';
    const title=document.createElement('strong');title.textContent=user.email||'Cuenta sin correo';
-   const meta=document.createElement('span');meta.className='meta';meta.textContent=(user.confirmed?'Correo verificado':'Correo sin confirmar')+' · '+user.used_today+' usadas hoy'+(user.is_pilot?' · Beta tradicional':'');
+   const meta=document.createElement('span');meta.className='meta';meta.textContent=(user.active_today?'Entró hoy':'Sin entrada registrada hoy')+' · '+(user.notification_devices||0)+' móvil(es) con avisos · '+(user.confirmed?'Correo verificado':'Correo sin confirmar')+' · '+user.used_today+' usadas hoy'+(user.is_pilot?' · Beta tradicional':'');
    info.append(title,meta);
    const premiumLabel=document.createElement('label');premiumLabel.textContent='Premium por día ';
    const premiumLimit=document.createElement('input');premiumLimit.type='number';premiumLimit.min='0';premiumLimit.max='100';premiumLimit.step='1';premiumLimit.value=user.premium_daily_limit===null?'':String(user.premium_daily_limit);premiumLimit.placeholder='General: '+(premiumSettings?.daily_limit??3);premiumLimit.setAttribute('aria-label','Límite Premium diario para '+user.email);
@@ -62,7 +68,7 @@ function render(){
    const access=document.createElement('div');access.className='account-access';
    const details=document.createElement('div');details.className='account-details';
    const method=document.createElement('span');method.textContent='Inicio de sesión: '+(methods.length?methods.map(p=>providerNames[p]||p).join(', '):'Método no disponible');
-   const last=document.createElement('span');last.textContent='Último acceso: '+displayDate(user.last_sign_in_at)+' · Registro: '+displayDate(user.created_at);
+   const last=document.createElement('span');last.textContent='Última apertura registrada: '+displayDate(user.last_seen_at)+' · Último inicio de sesión: '+displayDate(user.last_sign_in_at)+' · Registro: '+displayDate(user.created_at);
    const password=document.createElement('span');password.textContent='Contraseña de PICGIFT: protegida; no se puede visualizar ni saber si está configurada';
    details.append(method,last,password);
    const reset=document.createElement('button');reset.type='button';reset.className='button';const actionLabel=methods.includes('email')?'Enviar recuperación de contraseña':'Crear o restablecer contraseña';
@@ -89,8 +95,10 @@ async function load(){
  try{
    const data=await api({action:'list'});if(!data?.admin||!Array.isArray(data.users))throw Error('Respuesta de administración no válida');
    users=data.users;settings=data.settings;premiumSettings=data.premium_settings;globalUsed=data.global_used||0;
-   $('day-label').textContent=data.utc_day+' (UTC)';
+   $('day-label').textContent=data.activity_day_madrid+' (Madrid)';
+   $('activity-day-label').textContent=data.activity_day_madrid+' · Madrid';
    render();msg('Administración lista. Cambios protegidos por Supabase.');
+   await loadBetaDecisions();
  }catch(e){msg('Error al actualizar: '+e.message,true)}
 }
 $('refresh').addEventListener('click',load);
@@ -103,6 +111,36 @@ $('premium-form').addEventListener('submit',async e=>{
 });
 $('user-search').addEventListener('input',render);
 $('filter-enabled').addEventListener('change',render);
+$('filter-activity').addEventListener('change',render);
+async function loadBetaDecisions(){
+ try{
+  const {data,error}=await client.functions.invoke('picgift-ai-director',{body:{action:'dashboard'}});
+  if(error||!Array.isArray(data?.beta_reminders))throw Error('No se pudo consultar la revisión de la IA.');
+  const container=$('beta-decisions');container.replaceChildren();
+  for(const entry of data.beta_reminders.slice(0,6)){
+   const row=document.createElement('div');row.className='beta-decision';
+   const title=document.createElement('strong');title.textContent=(entry.source==='ai'?'IA':'Administrador')+' · '+(entry.decision==='send'?'Aviso elegido':'Sin envío')+' · '+displayDate(entry.checked_at);
+   const detail=document.createElement('span');detail.className='meta';detail.textContent=(entry.reason||'')+' · '+entry.eligible_count+' elegibles · '+entry.queued_count+' avisos en cola';
+   row.append(title,detail);container.append(row);
+  }
+  if(!data.beta_reminders.length)container.textContent='La IA todavía no ha hecho una revisión de actividad.';
+  $('beta-status').textContent='Actividad revisada. La entrega de avisos puede tardar unos minutos.';
+ }catch(e){$('beta-status').textContent=e.message}
+}
+async function runBetaReview(force){
+ const button=$(force?'beta-send-inactive':'beta-ai-review');
+ if(force&&!window.confirm('¿Enviar ahora un recordatorio a quienes no han entrado hoy y han activado los avisos? Cada usuario recibirá como máximo uno hoy.'))return;
+ button.disabled=true;$('beta-status').textContent=force?'Preparando avisos para ausentes…':'La IA está revisando la actividad…';
+ try{
+  const {data,error}=await client.functions.invoke('picgift-ai-director',{body:{action:'beta_reminder',force}});
+  if(error||!data?.decision)throw Error('No se pudo revisar la actividad.');
+  await load();
+  $('beta-status').textContent=data.decision==='send'?`${data.queued} avisos en cola para ${data.eligible} usuarios elegibles.`:'No se envió ningún aviso: '+data.reason;
+ }catch(e){$('beta-status').textContent='No se pudo completar la revisión: '+e.message}
+ finally{button.disabled=false}
+}
+$('beta-ai-review').addEventListener('click',()=>{void runBetaReview(false)});
+$('beta-send-inactive').addEventListener('click',()=>{void runBetaReview(true)});
 $('global-form').addEventListener('submit',async e=>{
  e.preventDefault();const global=Number($('global-limit').value),def=Number($('default-limit').value);
  if(!Number.isInteger(global)||global<0||global>48||!Number.isInteger(def)||def<0||def>20){msg('Introduce valores dentro de los límites permitidos.',true);return}

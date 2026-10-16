@@ -14,6 +14,7 @@ const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status
 const isInt=(value:unknown,min:number,max:number):value is number=>
  typeof value==="number"&&Number.isInteger(value)&&value>=min&&value<=max;
 const today=()=>new Date().toISOString().slice(0,10);
+const madridDay=(value:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(value);
 
 Deno.serve(async request=>{
  if(request.method==="OPTIONS")return new Response(null,{headers:cors});
@@ -63,13 +64,16 @@ Deno.serve(async request=>{
      }
      if((data?.users||[]).length<200)break;
    }
-   const [limits,pilots,settings,usage]=await Promise.all([
+   const [limits,pilots,settings,usage,presence,devices,admins]=await Promise.all([
      db.from("picgift_free_user_limits").select("user_id,daily_limit,enabled,updated_at"),
      db.from("picgift_ai_pilot_users").select("user_id"),
      db.from("picgift_free_settings").select("global_daily_limit,default_user_daily_limit,enabled").eq("singleton",true).single(),
-     db.from("picgift_free_usage").select("user_id,state").eq("day_utc",today())
+     db.from("picgift_free_usage").select("user_id,state").eq("day_utc",today()),
+     db.from("picgift_user_presence").select("user_id,last_seen_at"),
+     db.from("picgift_notification_devices").select("user_id").eq("enabled",true),
+     db.from("picgift_admin_users").select("user_id")
    ]);
-   if(limits.error||pilots.error||settings.error||usage.error)
+   if(limits.error||pilots.error||settings.error||usage.error||presence.error||devices.error||admins.error)
      return reply({error:"settings_unavailable"},503);
    const [premiumSettings,premiumLimits]=await Promise.all([
      db.from("picgift_premium_settings").select("daily_limit").eq("singleton",true).single(),
@@ -79,6 +83,11 @@ Deno.serve(async request=>{
    const premiumMap=new Map((premiumLimits.data||[]).map((r:any)=>[r.user_id,r.daily_limit]));
    const limitsMap=new Map((limits.data||[]).map((r:any)=>[r.user_id,r]));
    const pilotsSet=new Set((pilots.data||[]).map((r:any)=>r.user_id));
+   const presenceMap=new Map((presence.data||[]).map((r:any)=>[r.user_id,r.last_seen_at]));
+   const deviceCounts=new Map<string,number>();
+   for(const device of devices.data||[])deviceCounts.set(device.user_id,(deviceCounts.get(device.user_id)||0)+1);
+   const adminSet=new Set((admins.data||[]).map((r:any)=>r.user_id));
+   const activityDay=madridDay(new Date());
    const todayCounts=new Map<string,number>();
    const total=(usage.data||[]).length;
    for(const r of usage.data||[]){
@@ -86,10 +95,13 @@ Deno.serve(async request=>{
       todayCounts.set(r.user_id,(todayCounts.get(r.user_id)||0)+1);
    }
    return reply({
-     admin:true,utc_day:today(), settings:settings.data,premium_settings:premiumSettings.data,global_used:total,
+     admin:true,utc_day:today(),activity_day_madrid:activityDay,settings:settings.data,premium_settings:premiumSettings.data,global_used:total,
      users:users.map(u=>{
        const record:any=limitsMap.get(u.id);
+       const lastSeen=presenceMap.get(u.id) as string|null||null;
+       const activeToday=[lastSeen,u.last_sign_in_at].some(value=>value&&madridDay(new Date(value))===activityDay);
        return {...u,is_pilot:pilotsSet.has(u.id),has_override:!!record,premium_daily_limit:premiumMap.get(u.id)??null,
+         last_seen_at:lastSeen,active_today:activeToday,notification_devices:deviceCounts.get(u.id)||0,is_admin:adminSet.has(u.id),
          daily_limit:record?.daily_limit??settings.data.default_user_daily_limit,
          enabled:record?.enabled??false,used_today:todayCounts.get(u.id)||0};
      })
