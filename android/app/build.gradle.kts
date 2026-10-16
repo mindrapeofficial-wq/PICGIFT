@@ -36,8 +36,8 @@ android {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.8.7-beta"
+        versionCode = 17
+        versionName = "1.8.8-beta"
     }
     buildFeatures { buildConfig = true }
     sourceSets.getByName("main").assets.srcDir(bundledUiRoot)
@@ -70,6 +70,7 @@ android {
     kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
+    implementation("com.google.android.play:app-update:2.1.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.webkit:webkit:1.13.0")
     implementation("com.android.billingclient:billing:9.1.0")

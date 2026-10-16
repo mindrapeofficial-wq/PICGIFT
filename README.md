@@ -4,7 +4,7 @@ Seasonal storybook portraits for adults creating family memories. Spanish and En
 
 ## Web and private service
 
-Serve this static repository over HTTP for the browser version. Android 1.8.7 includes the public interface, scenes, fonts and client library in its installation. A `WebViewAssetLoader` serves these installed files under the existing trusted HTTPS origin; opening the app does not load its interface from Render or a CDN. A missing local file returns a local 404, never a silent website fallback. Authentication, generation and Play purchases still need internet. The interface remains hybrid (HTML/CSS in Android WebView), with native Google entry, photo picker, notifications, billing and photo saving.
+Serve this static repository over HTTP for the browser version. Android 1.8.8 includes the public interface, scenes, fonts and client library in its installation. A `WebViewAssetLoader` serves these installed files under the existing trusted HTTPS origin; opening the app does not load its interface from Render or a CDN. A missing local file returns a local 404, never a silent website fallback. Authentication, generation and Play purchases still need internet. The interface remains hybrid (HTML/CSS in Android WebView), with native Google entry, photo picker, notifications, billing and photo saving.
 
 Gradle copies only public assets into the app and emits `bundle-manifest.json`. `node scripts/verify-android-bundle.cjs` verifies the generated interface and local references after a build. Native installs do not register the website's service worker. Web publishing and Play releases are independent: changing the website does not update an installed Android interface.
 
@@ -26,7 +26,7 @@ Run `node --test tests/experience.test.cjs` and `node --check` on the applicatio
 
 ## Android
 
-Package `com.picgift.myapp` matches Play Console. Compile/target SDK 36, minimum 26, version 1.8.7-beta/code 16. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0.
+Package `com.picgift.myapp` matches Play Console. Compile/target SDK 36, minimum 26, version 1.8.8-beta/code 17. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0. Google Play checks for a newer release on every foreground entry. When one is available, the immediate update covers the app and the bundled interface remains blocked until it is installed. If Play cannot verify the version, the app offers retry and a link to its store listing. This check applies to release builds; local debug builds remain usable without Play.
 
 Build: `gradle -p android --no-daemon :app:lintRelease :app:assembleDebug :app:bundleRelease`.
 
