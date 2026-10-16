@@ -23,7 +23,7 @@ async function pilotAllowed(user:any):Promise<boolean>{
 // Existing credits remain usable when new Stripe checkouts are paused.
 // Google Play and Stripe share the credit ledger, not a sales activation flag.
 function publicAllowed(){return Deno.env.get("PICGIFT_PUBLIC_GENERATION_ENABLED")==="true"}
-async function engineReady(user:any){return Boolean(Deno.env.get("OPENAI_API_KEY")&&Deno.env.get("PICGIFT_GENERATION_ENABLED")==="true"&&(await pilotAllowed(user)||publicAllowed()))}
+async function engineReady(user:any){return Boolean(user?.email_confirmed_at&&Deno.env.get("OPENAI_API_KEY")&&Deno.env.get("PICGIFT_GENERATION_ENABLED")==="true")}
 
 const allowedPoses:Record<string,string[]>={
 "golden-christmas":["Sentado sobre madera","De pie"],
@@ -102,7 +102,10 @@ async function run(jobId:string,owner:string,email:string){
   if(!j||j.status!=="queued")return;
   isTest=j.is_test===true;
   if(!Deno.env.get("OPENAI_API_KEY")||Deno.env.get("PICGIFT_GENERATION_ENABLED")!=="true")throw new Error("IA no activada");
-  if(j.is_test&&!await pilotAllowed({id:owner,email,email_confirmed_at:new Date().toISOString()}))throw new Error("Piloto no autorizado");
+  if(j.is_test){
+   const {data:freeUsage}=await db.from("picgift_premium_usage").select("job_id").eq("job_id",jobId).eq("user_id",owner).eq("is_free",true).maybeSingle();
+   if(!freeUsage)throw new Error("Cuota Premium gratuita no autorizada");
+  }
   const {data:recipe}=await db.from("picgift_scene_recipes").select("recipe,scene_image_url,enabled").eq("scene_id",j.scene_id).single();
   if(!recipe?.enabled)throw new Error("Escenario no disponible");
   phase="analyzing";
@@ -130,7 +133,10 @@ async function run(jobId:string,owner:string,email:string){
   const uploaded=await db.storage.from("picgift-generated").upload(resultPath,result,{contentType:"image/jpeg",cacheControl:"0",upsert:false});
   if(uploaded.error)throw new Error("No se pudo guardar la imagen");
   const status=check==="passed"?"completed":"needs_review";
-  if(status==="needs_review"&&!j.is_test)await db.rpc("picgift_refund_failed_job",{p_user:owner,p_job:jobId});
+  if(status==="needs_review"){
+   if(j.is_test)await db.from("picgift_premium_usage").delete().eq("job_id",jobId).eq("user_id",owner).eq("is_free",true);
+   else await db.rpc("picgift_refund_failed_job",{p_user:owner,p_job:jobId});
+  }
   await db.from("picgift_photo_jobs").update({status,result_path:resultPath,result_quality:check,email_status:j.email_requested&&status==="completed"?"pending":"not_requested",updated_at:new Date().toISOString()}).eq("id",jobId);
   if(j.email_requested&&status==="completed"){
    const delivery=await mail(email,j.scene_id,resultPath,j.request_language);
@@ -143,7 +149,8 @@ async function run(jobId:string,owner:string,email:string){
   const code=codes.includes(m)?m:/Análisis visual incompleto/.test(m)?"analysis_incomplete":/Archivo inválido/.test(m)?"source_invalid":/Escenario/.test(m)?"scene_unavailable":/guardar la imagen/.test(m)?"storage_error":/AbortError|TimeoutError|timed out/.test(m)?"timeout":"unexpected_error";
   console.error("PICGIFT_JOB_FAILED",jobId,phase,code);
   await db.from("picgift_photo_jobs").update({status:"failed",failure_message:"No se pudo completar la fotografía. Puedes consultar el tipo de error en PICGIFT.",failure_code:code,failure_stage:phase,updated_at:new Date().toISOString()}).eq("id",jobId).eq("user_id",owner);
-  if(!isTest)await db.rpc("picgift_refund_failed_job",{p_user:owner,p_job:jobId});
+  if(isTest)await db.from("picgift_premium_usage").delete().eq("job_id",jobId).eq("user_id",owner).eq("is_free",true);
+  else await db.rpc("picgift_refund_failed_job",{p_user:owner,p_job:jobId});
  }
 }
 Deno.serve(async req=>{
@@ -156,7 +163,19 @@ Deno.serve(async req=>{
  if(authError||!auth.user)return respond({error:"Sesión no válida"},401);
  let body:any;try{body=await req.json()}catch{return respond({error:"Solicitud inválida"},400)}
  const action=String(body?.action||"health");
- if(action==="health"){const pilot=await pilotAllowed(auth.user);const {data:campaign}=await db.from("picgift_campaign_state").select("active_campaign").eq("singleton",true).maybeSingle();const active=campaign?.active_campaign||"halloween";const {count,error:catalogError}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true}).eq("enabled",true).like("scene_id",active==="halloween"?"halloween-%":"%christmas%");return respond({available:!catalogError&&(count||0)>0&&["christmas","halloween"].includes(active)&&await engineReady(auth.user),references_supported:true,pilot,campaign:active,image_model:imageModel(),email_available:!!Deno.env.get("RESEND_API_KEY")&&!!Deno.env.get("PICGIFT_FROM_EMAIL")})}
+ if(action==="health"){
+  const {data:campaign}=await db.from("picgift_campaign_state").select("active_campaign").eq("singleton",true).maybeSingle();
+  const active=campaign?.active_campaign||"halloween";
+  const {count,error:catalogError}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true})
+   .eq("enabled",true).like("scene_id",active==="halloween"?"halloween-%":"%christmas%");
+  const today=new Date().toISOString().slice(0,10);
+  const {count:usedFree,error:freeError}=await db.from("picgift_premium_usage").select("job_id",{count:"exact",head:true})
+   .eq("user_id",auth.user.id).eq("day_utc",today).eq("is_free",true);
+  const remainingFree=auth.user.email_confirmed_at&&!freeError?Math.max(0,1-(usedFree||0)):0;
+  return respond({available:!catalogError&&!freeError&&(count||0)>0&&["christmas","halloween"].includes(active)&&await engineReady(auth.user),
+   references_supported:true,pilot:remainingFree>0,remaining_free_premium_today:remainingFree,campaign:active,image_model:imageModel(),
+   email_available:!!Deno.env.get("RESEND_API_KEY")&&!!Deno.env.get("PICGIFT_FROM_EMAIL")});
+ }
  if(action==="diagnose"){
    if(!(await pilotAllowed(auth.user)))return respond({error:"Diagnóstico reservado a una cuenta de prueba autorizada"},403);
    if(!Deno.env.get("OPENAI_API_KEY"))return respond({ready:false,error:"Falta configurar la clave privada de OpenAI"},503);
@@ -190,7 +209,8 @@ Deno.serve(async req=>{
     .lt("updated_at",cutoff).select("id").maybeSingle();
    if(!updateError&&updated){
      recovered++;
-     if(!j.is_test)await db.rpc("picgift_refund_failed_job",{p_user:auth.user.id,p_job:j.id});
+     if(j.is_test)await db.from("picgift_premium_usage").delete().eq("job_id",j.id).eq("user_id",auth.user.id).eq("is_free",true);
+     else await db.rpc("picgift_refund_failed_job",{p_user:auth.user.id,p_job:j.id});
    }
   }
   return respond({ok:true,stale_recovered:recovered});
@@ -209,11 +229,9 @@ Deno.serve(async req=>{
  const {data:currentCampaign,error:campaignError}=await db.from("picgift_campaign_state").select("active_campaign").eq("singleton",true).maybeSingle();
  if(campaignError||!["christmas","halloween"].includes(currentCampaign?.active_campaign))return respond({error:"Esta colección no está disponible para crear retratos."},503);
 
- if(!await engineReady(auth.user))return respond({error:"El estudio está disponible únicamente para las cuentas autorizadas para la prueba privada. No se ha procesado ninguna fotografía."},503);
- const pilot=await pilotAllowed(auth.user);
+ if(!await engineReady(auth.user))return respond({error:"Confirma tu cuenta para utilizar el estudio. No se ha procesado ninguna fotografía."},503);
  if(body.billing_mode!==undefined&&!["credits","pilot"].includes(body.billing_mode))return respond({error:"Modalidad Premium inválida"},400);
- if(body.billing_mode==="pilot"&&!pilot)return respond({error:"La prueba gratuita no está disponible para esta cuenta. Elige Premium con créditos."},403);
- const testMode=pilot&&body.billing_mode!=="credits";
+ const testMode=body.billing_mode==="pilot";
  if(body.consent!==true)return respond({error:"Debes autorizar expresamente el procesamiento de las fotografías"},400);
  const scene=safe(body.scene_id,60),path=safe(body.source_path,160),format=safe(body.format,25),pose=safe(body.pose,90),outfit=safe(body.outfit,90);
  const prefix=auth.user.id+"/";
@@ -227,7 +245,11 @@ Deno.serve(async req=>{
   const tenMinutesAgo=new Date(Date.now()-10*60*1000).toISOString();
   const {data:stale}=await db.from("picgift_photo_jobs").select("id").eq("user_id",auth.user.id).in("status",["queued","analyzing","generating","reviewing"]).lt("updated_at",tenMinutesAgo);
   if(stale?.length){await db.from("picgift_photo_jobs").update({status:"failed",failure_message:"La generación excedió el tiempo de espera. Contacta con soporte antes de volver a intentarlo.",updated_at:new Date().toISOString()}).in("id",stale.map(x=>x.id)).eq("user_id",auth.user.id);}
-  if(stale?.length){for(const j of stale)await db.rpc("picgift_refund_failed_job",{p_user:auth.user.id,p_job:j.id});}
+  if(stale?.length){for(const j of stale){
+   const {data:job}=await db.from("picgift_photo_jobs").select("is_test").eq("id",j.id).eq("user_id",auth.user.id).single();
+   if(job?.is_test)await db.from("picgift_premium_usage").delete().eq("job_id",j.id).eq("user_id",auth.user.id).eq("is_free",true);
+   else await db.rpc("picgift_refund_failed_job",{p_user:auth.user.id,p_job:j.id});
+  }}
   else return respond({error:"Espera a que termine tu trabajo anterior"},429);
  }
  const parts=path.split("/"),folder=parts.slice(0,2).join("/");
@@ -260,10 +282,10 @@ Deno.serve(async req=>{
  const emailRequested=body.email_requested===true;
  const {data:job,error:createError}=await db.from("picgift_photo_jobs").insert({user_id:auth.user.id,scene_id:scene,source_path:path,reference_paths:referencePaths,requested_format:format,requested_pose:pose,requested_outfit:outfit,email_requested:emailRequested,email_status:emailRequested?"pending":"not_requested",request_language:body.request_language==="en"?"en":"es",processing_consent:true,consent_at:new Date().toISOString(),status:"queued",is_test:testMode,image_model:imageModel()}).select("id").single();
  if(createError||!job)return respond({error:"No se pudo crear la solicitud"},500);
- const {data:quota,error:quotaError}=await db.rpc("picgift_claim_premium_photo",{p_user:auth.user.id,p_job:job.id});
+ const {data:quota,error:quotaError}=await db.rpc(testMode?"picgift_claim_premium_free_photo":"picgift_claim_premium_photo",{p_user:auth.user.id,p_job:job.id});
  if(quotaError||quota?.accepted!==true){
   await db.from("picgift_photo_jobs").delete().eq("id",job.id).eq("user_id",auth.user.id);
-  return respond({error:"Has alcanzado tu límite diario de generaciones Premium. Se renueva a las 00:00 UTC."},429);
+  return respond({error:testMode?"Ya has usado tu foto Premium gratis de hoy. Tendrás otra a partir de las 00:00 UTC.":"Has alcanzado tu límite diario de generaciones Premium. Se renueva a las 00:00 UTC."},429);
  }
  if(!testMode){
   const {data:spent,error:creditError}=await db.rpc("picgift_spend_credit",{p_user:auth.user.id,p_job:job.id});

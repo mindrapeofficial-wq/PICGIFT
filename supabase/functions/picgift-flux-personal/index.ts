@@ -113,8 +113,6 @@ Deno.serve(async request=>{
  const {data:auth,error:authError}=await db.auth.getUser(token);
  if(authError||!auth.user?.id||!auth.user.email_confirmed_at)return reply({error:"invalid_session"},401);
  const user=auth.user;
- const {data:pilot,error:pilotError}=await db.from("picgift_ai_pilot_users").select("user_id").eq("user_id",user.id).maybeSingle();
- if(pilotError)return reply({error:"service_unavailable"},503);
  let body:any={};
  try{body=await request.json();if(!body||typeof body!=="object"||Array.isArray(body))throw Error("invalid")}catch{return reply({error:"invalid_request"},400)}
  const action=safe(body.action,20)||"health";
@@ -143,13 +141,18 @@ Deno.serve(async request=>{
   const {error}=await db.from("picgift_photo_jobs").update({status:approved?"completed":"failed",result_quality:approved?"passed":"needs_review",failure_code:approved?null:"quality_rejected",failure_stage:approved?null:"reviewing",updated_at:new Date().toISOString()}).eq("id",id).eq("status","needs_review").eq("image_model",TAG);
   return error?reply({error:"review_failed"},503):reply({ok:true,approved});
  }
- if(!pilot)return reply({available:false,pilot:false,error:"restricted_to_testers"},403);
  const {data:config,error:configError}=await db.from("picgift_flux_beta_config").select("enabled,per_tester_daily_limit,daily_estimated_neuron_budget").eq("singleton",true).single();
  const {data:campaign}=await db.from("picgift_campaign_state").select("active_campaign").eq("singleton",true).single();
  const {count:scenesCount}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true}).eq("enabled",true).in("scene_id",SCENES);
  const account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")||"";
  const available=!configError&&config?.enabled===true&&campaign?.active_campaign==="halloween"&&scenesCount===SCENES.length&&/^[a-f0-9]{32}$/i.test(account)&&!!Deno.env.get("CLOUDFLARE_API_TOKEN")&&!!Deno.env.get("OPENAI_API_KEY");
- if(action==="health")return reply({available,pilot:true,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,email_available:false,quality_review:false,remaining_daily_limit:config?.per_tester_daily_limit||0});
+ if(action==="health"){
+  const today=new Date().toISOString().slice(0,10);
+  const {count,error:usageError}=await db.from("picgift_flux_free_usage").select("id",{count:"exact",head:true})
+   .eq("user_id",user.id).eq("day_utc",today).neq("status","failed");
+  return reply({available:available&&!usageError,pilot:false,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,
+   email_available:false,quality_review:false,remaining_daily_limit:Math.max(0,(config?.per_tester_daily_limit||0)-(count||0))});
+ }
  if(action!=="start")return reply({error:"unknown_action"},400);
  if(!available)return reply({error:"La prueba de retratos aún no está activada. No se ha procesado ninguna fotografía."},503);
  if(body.consent!==true||body.guardian_consent!==true)return reply({error:"Se requiere autorización expresa del adulto responsable de la fotografía y del menor, si lo hay."},400);
@@ -193,7 +196,7 @@ Deno.serve(async request=>{
  const {data:claimed,error:quotaError}=await db.rpc("picgift_claim_flux_free_photo",{p_user:user.id,p_job:job.id,p_format:format});
  if(quotaError||claimed?.accepted!==true){
   await mark(job.id,user.id,"failed",{failure_code:"flux_quota_exceeded",failure_stage:"queued",failure_message:"Se agotó la cuota gratuita de pruebas."});
-  return reply({error:"Se alcanzó el límite gratuito de intentos de hoy (o el presupuesto compartido). No se ha generado ninguna foto."},429);
+  return reply({error:"Has usado tus 5 fotos Gratis de hoy. Tendrás 5 nuevas a partir de las 00:00 UTC."},429);
  }
  EdgeRuntime.waitUntil(generate(job.id,user.id));
  return reply({id:job.id,status:"queued",review_required:false},202);

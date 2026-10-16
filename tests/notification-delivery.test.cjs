@@ -6,11 +6,11 @@ const {stripTypeScriptTypes}=require('node:module');
 const source=fs.readFileSync('supabase/functions/picgift-ai-director/index.ts','utf8');
 const sendSource=stripTypeScriptTypes(source.slice(source.indexOf('async function sendOutbox('),source.indexOf('async function checkProviders(')));
 
-function fixture(responses){
+function fixture(responses,target='all'){
  const devices=responses.map((_,i)=>({installation_id:'device-'+i,token:'private-test-token-'+i}));
- const changes=[]; const retired=[]; let sends=0;
+ const changes=[]; const retired=[]; const filters=[]; let sends=0;
  const db={from(table){
-  const query={select(){return this},eq(){return this},gt(){return this},order(){return this},limit(){return this},
+  const query={select(){return this},eq(key,value){if(table==='picgift_notification_devices')filters.push([key,value]);return this},gt(){return this},order(){return this},limit(){return this},
    update(value){this.change=value;return this},
    maybeSingle:async()=>({data:{id:'campaign'}}),
    then(resolve){
@@ -19,14 +19,14 @@ function fixture(responses){
      return Promise.resolve({data:devices,error:null}).then(resolve);
     }
     if(this.change){changes.push(this.change);return Promise.resolve({error:null}).then(resolve)}
-    return Promise.resolve({data:[{id:'campaign',target:'all',title:'Test',body:'Test',route:'crear',tries:0}],error:null}).then(resolve);
+    return Promise.resolve({data:[{id:'campaign',target,user_id:'owner-1',title:'Test',body:'Test',route:'crear',tries:0}],error:null}).then(resolve);
    }
   };return query;
  }};
  const context={db,Date,Error,AbortSignal,fcmAuth:async()=>({projectId:'picgift-a7fda',token:'test-access'}),
   fetch:async()=>{const response=responses[sends++];if(response instanceof Error)throw response;return response}};
  vm.createContext(context);vm.runInContext(sendSource,context);
- return {run:()=>context.sendOutbox(),changes,retired,get sends(){return sends}};
+ return {run:()=>context.sendOutbox(),changes,retired,filters,get sends(){return sends}};
 }
 const response=(status,details=[])=>new Response(JSON.stringify({error:{details}}),{status});
 
@@ -52,6 +52,11 @@ test('generic 404 does not disable a device; explicit UNREGISTERED safely disabl
 test('fully accepted sends have no error and preserve the acceptance timestamp',async()=>{
  const f=fixture([response(200),response(200)]);await f.run();assert.equal(f.changes[0].state,'sent');
  assert.equal(f.changes[0].delivered_count,2);assert.equal(f.changes[0].last_error,null);assert.ok(f.changes[0].sent_at);
+});
+test('a ready-photo notification is restricted to the owner devices',async()=>{
+ const f=fixture([response(200)],'user');await f.run();
+ assert.ok(f.filters.some(([key,value])=>key==='user_id'&&value==='owner-1'));
+ assert.equal(f.sends,1);
 });
 test('malformed Firebase configuration never leaks credential fragments in the error',async()=>{
  const code=stripTypeScriptTypes(source.slice(source.indexOf('async function fcmAuth('),source.indexOf('async function sendOutbox(')));

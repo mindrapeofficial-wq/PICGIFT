@@ -4,7 +4,7 @@ const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSe
 const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
 const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','halloween-pumpkin-forest':'Bosque de calabazas','halloween-haunted-castle':'Castillo embrujado','halloween-portrait-hall':'Salón de retratos','halloween-enchanted-city':'Ciudad encantada','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
-let fluxMode=false,freeReady=false,premiumReady=false,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
+let fluxMode=false,freeReady=false,premiumReady=false,freeRemaining=0,premiumFreeRemaining=0,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
 let galleryRevision=0,galleryAuthenticated=false,authRevision=0,healthRevision=0,serviceChoice=null;
 const sceneImages={
  'halloween-potions':'./assets/halloween/backdrops/potions.jpg',
@@ -108,19 +108,21 @@ async function health(){
   ]);
   if(!isCurrent())return;
   const halloween=document.documentElement.dataset.campaign==='halloween';
-  freeReady=halloween&&!beta.error&&beta.data?.available===true;
+  freeRemaining=Math.max(0,Number(beta.data?.remaining_daily_limit)||0);
+  premiumFreeRemaining=Math.max(0,Number(premium.data?.remaining_free_premium_today)||0);
+  freeReady=halloween&&!beta.error&&beta.data?.available===true&&freeRemaining>0;
   premiumReady=!premium.error&&premium.data?.available===true;
   window.picgiftFreeReady=freeReady;window.picgiftPremiumReady=premiumReady;
   window.picgiftPilot=premium.data?.pilot===true;
   window.picgiftReferencesReady=freeReady||premium.data?.references_supported===true;
   controlAi(freeReady||premiumReady);
-  status(freeReady||premiumReady?'Elige Foto Gratis o Foto Premium para crear tu retrato.':'No hay servicios disponibles para tu cuenta en este momento.');
+  status(freeReady||premiumReady?'Tienes hasta 5 fotos Gratis y 1 foto Premium gratis cada día. Elige cómo crear tu retrato.':'No hay servicios disponibles para tu cuenta en este momento.');
   const email=$('photo-email-delivery');email.disabled=!premiumReady||premium.data?.email_available!==true;
   if(email.disabled)email.checked=false;
  }catch(e){if(!isCurrent())return;resetStudioAvailability();status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde.')}
 }
 function resetStudioAvailability(){
- freeReady=false;premiumReady=false;
+ freeReady=false;premiumReady=false;freeRemaining=0;premiumFreeRemaining=0;
  window.picgiftFreeReady=false;window.picgiftPremiumReady=false;
  window.picgiftPilot=false;window.picgiftReferencesReady=false;
  const email=$('photo-email-delivery');email.disabled=true;email.checked=false;
@@ -138,11 +140,11 @@ async function chooseService(){
  const dialog=$('photo-service-choice'),free=$('choose-free-photo'),premium=$('choose-premium-photo');
  const credits=window.picgiftCreditsAvailable;
  const balanceKnown=typeof credits==='number'&&Number.isFinite(credits);
- const billingMode=window.picgiftPilot===true&&balanceKnown&&credits<=0?'pilot':'credits';
+ const billingMode=premiumFreeRemaining>0?'pilot':'credits';
  free.disabled=!freeReady;premium.disabled=!premiumReady;
- if(window.picgiftPilot===true&&!balanceKnown)premium.disabled=true;
- $('free-photo-availability').textContent=freeReady?'Crea un retrato con tu fotografía. Sujeto a la cuota diaria de la beta.':'No disponible para esta cuenta.';
- $('premium-photo-availability').textContent=!premiumReady?'El servicio Premium no está disponible ahora.':!balanceKnown&&window.picgiftPilot===true?'Actualiza tu saldo antes de elegir Foto Premium.':billingMode==='pilot'?'Prueba Premium gratuita para tu cuenta piloto. No consume créditos.':'Foto Premium utiliza 1 crédito. Se descuenta solo si la foto supera la revisión inicial.';
+ if(billingMode==='credits'&&!balanceKnown)premium.disabled=true;
+ $('free-photo-availability').textContent=freeReady?`Te quedan ${freeRemaining} de tus 5 fotos Gratis de hoy.`:'Ya has usado tus 5 fotos Gratis de hoy o el servicio no está disponible.';
+ $('premium-photo-availability').textContent=!premiumReady?'El servicio Premium no está disponible ahora.':billingMode==='pilot'?'Te queda 1 foto Premium gratis hoy. No consume créditos.':!balanceKnown?'Actualiza tu saldo antes de elegir Foto Premium.':'Ya usaste tu foto Premium gratis de hoy. Otra foto Premium utiliza 1 crédito.';
  return new Promise(resolve=>{
   const finish=()=>{dialog.removeEventListener('close',finish);const service=dialog.returnValue;resolve(['free','premium'].includes(service)?{service,billing_mode:service==='premium'?billingMode:null}:null)};
   dialog.returnValue='';dialog.addEventListener('close',finish);dialog.showModal();

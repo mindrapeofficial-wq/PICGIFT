@@ -148,7 +148,7 @@ test('an older failing health request cannot disable a newer available studio',a
  h.client.auth.getSession=async()=>({data:{session:{user:{id:'account'}}}});
  h.client.functions={invoke(){const request=deferred();requests.push(request);return request.promise}};
  const old=h.run('health()');await settle();const latest=h.run('health()');await settle();
- requests[2].resolve({data:{available:true}});requests[3].resolve({data:{available:true,email_available:true,pilot:true,references_supported:true}});await latest;
+ requests[2].resolve({data:{available:true,remaining_daily_limit:5}});requests[3].resolve({data:{available:true,email_available:true,pilot:true,references_supported:true,remaining_free_premium_today:1}});await latest;
  requests[0].resolve({error:true});requests[1].resolve({error:true});await old;
  assert.equal(h.context.window.picgiftAiReady,true);
  assert.equal(h.context.window.picgiftFreeReady,true);

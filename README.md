@@ -20,6 +20,8 @@ Reports are private and restricted to the owner's portraits. Account deletion cu
 
 Sales remain gated by private configuration. Android purchases are verified and consumed on the server. Credit grants are idempotent, consumption is retryable, and pending purchases are recovered for the matching account. Google Play prices come from product details.
 
+Verified accounts receive up to five Gratis portraits and one Premium portrait without a credit each UTC day. The server reserves each daily slot only after the source photo passes preflight; failed or rejected jobs release the slot. Extra Premium portraits use purchased credits and their existing paid limit. When a portrait reaches `completed` with a private result path, a database trigger queues one owner-only FCM notification with a link to Mis fotos. Delivery requires the user's notification opt-in and an active device registration; the private dispatcher checks the outbox each minute.
+
 ## Validation
 
 Run `node --test tests/experience.test.cjs` and `node --check` on the application scripts. Tests cover language detection/override, canonical option values, full-source framing, export boundaries and public asset integrity. Browser checks must cover mobile layouts, sign-in and references. Commercial release additionally needs real completed portrait jobs and Google Play licence-tester transactions: pending, cancellation, retries and recovery after restart.
