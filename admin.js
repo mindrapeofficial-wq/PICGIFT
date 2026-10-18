@@ -95,6 +95,16 @@ async function load(){
  try{
    const data=await api({action:'list'});if(!data?.admin||!Array.isArray(data.users))throw Error('Respuesta de administración no válida');
    users=data.users;settings=data.settings;premiumSettings=data.premium_settings;globalUsed=data.global_used||0;
+   const imageUsage=data.image_usage;
+   if(imageUsage?.free&&imageUsage?.premium){
+     $('image-usage-day').textContent=data.utc_day+' (UTC)';
+     for(const mode of ['free','premium']){
+       $(mode+'-usage-today').textContent=String(imageUsage[mode].today??0);
+       $(mode+'-usage-total').textContent=String(imageUsage[mode].total??0);
+     }
+     $('image-usage-details').textContent=`Imágenes terminadas: Gratis ${imageUsage.free.completed_today} hoy / ${imageUsage.free.completed_total} total · Premium ${imageUsage.premium.completed_today} hoy / ${imageUsage.premium.completed_total} total. Las solicitudes incluyen trabajos pendientes o no aprobados.`;
+     $('premium-cost').textContent=imageUsage.premium_cost_usd==null?'Gasto real Premium: no disponible. PICGIFT aún no recibe los importes de facturación del proveedor.':'Gasto real Premium: '+new Intl.NumberFormat('es-ES',{style:'currency',currency:'USD'}).format(imageUsage.premium_cost_usd);
+   }
    $('day-label').textContent=data.activity_day_madrid+' (Madrid)';
    $('activity-day-label').textContent=data.activity_day_madrid+' · Madrid';
    render();msg('Administración lista. Cambios protegidos por Supabase.');

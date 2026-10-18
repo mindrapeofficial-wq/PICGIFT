@@ -2,7 +2,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#170e0b"><title>PICGIFT · Administración</title>
 <link rel="icon" href="./assets/halloween/picgift-logo-oficial.svg">
-<link rel="stylesheet" href="./admin.css?v=beta-activity-20261016-v1"><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script></head><body>
+<link rel="stylesheet" href="./admin.css?v=image-usage-20261018-v1"><link rel="stylesheet" href="./mobile-scrollbars.css?v=20261010-v1"><link rel="stylesheet" href="./app-icons.css?v=20261010-v1"><script defer src="./app-icons.js?v=20261010-v1"></script></head><body>
 <header class="topbar"><a href="./#cuenta" aria-label="Volver a PICGIFT"><img src="./assets/halloween/picgift-logo-oficial.svg" alt="PICGIFT" width="130" height="65"></a><span class="eyebrow">PANEL PRIVADO · ADMINISTRACIÓN</span><a href="./#cuenta">Volver a PICGIFT</a></header>
 <main class="wrapper">
 <div id="blocked" class="card center"><span class="eyebrow">ACCESO PROTEGIDO</span><h1 id="blocked-title">Comprobando permisos…</h1><p id="blocked-message">Este panel requiere una cuenta administradora con sesión iniciada.</p><a class="button" href="./#cuenta">Ir a PICGIFT</a></div>
@@ -25,6 +25,11 @@
 <div class="stat"><span>ENTRARON HOY</span><strong id="count-active-today">0</strong></div>
 <div class="stat"><span>SIN ENTRADA HOY</span><strong id="count-inactive-today">0</strong></div>
 </div>
+<section class="card" id="image-usage-section" aria-labelledby="image-usage-title">
+ <div class="heading"><span class="eyebrow">GENERACIÓN DE IMÁGENES · UTC</span><h2 id="image-usage-title">Uso de IA</h2><small id="image-usage-day">Hoy</small></div>
+ <div class="stats"><div class="stat"><span>GRATIS · SOLICITUDES HOY</span><strong id="free-usage-today">—</strong></div><div class="stat"><span>GRATIS · TOTAL</span><strong id="free-usage-total">—</strong></div><div class="stat"><span>PREMIUM · SOLICITUDES HOY</span><strong id="premium-usage-today">—</strong></div><div class="stat"><span>PREMIUM · TOTAL</span><strong id="premium-usage-total">—</strong></div></div>
+ <p id="image-usage-details">Imágenes terminadas: —</p><p id="premium-cost">Gasto real Premium: no disponible. PICGIFT aún no recibe los importes de facturación del proveedor.</p>
+</section>
 <section class="card beta-activity" aria-labelledby="beta-activity-title">
  <div class="heading"><span class="eyebrow">BETA CERRADA · HORA DE MADRID</span><h2 id="beta-activity-title">Actividad y recordatorios</h2><small id="activity-day-label">Hoy</small></div>
  <p>PicGift registra la apertura con sesión iniciada. Para versiones anteriores se cuenta el inicio de sesión; las aperturas con sesión persistente empezarán a registrarse cuando el usuario actualice la app.</p>
@@ -75,5 +80,5 @@
 </section>
 
 </div></main>
-<script type="module" src="./admin.js?v=beta-activity-20261016-v1"></script>
+<script type="module" src="./admin.js?v=image-usage-20261018-v1"></script>
 <script type="module" src="./flux-review-admin.js?v=20261008-v1"></script><script type="module" src="./notifications-admin.js?v=20261009"></script><script type="module" src="./ai-director-admin.js?v=20261010-mobile-ai"></script></body></html>
