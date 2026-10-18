@@ -14,6 +14,7 @@ const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status
 const isInt=(value:unknown,min:number,max:number):value is number=>
  typeof value==="number"&&Number.isInteger(value)&&value>=min&&value<=max;
 const today=()=>new Date().toISOString().slice(0,10);
+const freeImageModel="cloudflare-flux-2-klein-4b";
 const madridDay=(value:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(value);
 
 Deno.serve(async request=>{
@@ -75,11 +76,20 @@ Deno.serve(async request=>{
    ]);
    if(limits.error||pilots.error||settings.error||usage.error||presence.error||devices.error||admins.error)
      return reply({error:"settings_unavailable"},503);
-   const [premiumSettings,premiumLimits]=await Promise.all([
+   const imageCount=(premium:boolean,completed:boolean,day:boolean)=>{
+     let query=db.from("picgift_photo_jobs").select("id",{count:"exact",head:true});
+     query=premium?query.neq("image_model",freeImageModel):query.eq("image_model",freeImageModel);
+     if(completed)query=query.eq("status","completed");
+     if(day)query=query.gte("created_at",today()+"T00:00:00Z");
+     return query;
+   };
+   const [premiumSettings,premiumLimits,...imageCounts]=await Promise.all([
      db.from("picgift_premium_settings").select("daily_limit").eq("singleton",true).single(),
-     db.from("picgift_premium_user_limits").select("user_id,daily_limit")
+     db.from("picgift_premium_user_limits").select("user_id,daily_limit"),
+     imageCount(false,false,true),imageCount(false,true,true),imageCount(false,false,false),imageCount(false,true,false),
+     imageCount(true,false,true),imageCount(true,true,true),imageCount(true,false,false),imageCount(true,true,false)
    ]);
-   if(premiumSettings.error||premiumLimits.error)return reply({error:"premium_settings_unavailable"},503);
+   if(premiumSettings.error||premiumLimits.error||imageCounts.some(result=>result.error))return reply({error:"usage_unavailable"},503);
    const premiumMap=new Map((premiumLimits.data||[]).map((r:any)=>[r.user_id,r.daily_limit]));
    const limitsMap=new Map((limits.data||[]).map((r:any)=>[r.user_id,r]));
    const pilotsSet=new Set((pilots.data||[]).map((r:any)=>r.user_id));
@@ -96,6 +106,9 @@ Deno.serve(async request=>{
    }
    return reply({
      admin:true,utc_day:today(),activity_day_madrid:activityDay,settings:settings.data,premium_settings:premiumSettings.data,global_used:total,
+     image_usage:{free:{today:imageCounts[0].count,total:imageCounts[2].count,completed_today:imageCounts[1].count,completed_total:imageCounts[3].count},
+       premium:{today:imageCounts[4].count,total:imageCounts[6].count,completed_today:imageCounts[5].count,completed_total:imageCounts[7].count},
+       premium_cost_usd:null},
      users:users.map(u=>{
        const record:any=limitsMap.get(u.id);
        const lastSeen=presenceMap.get(u.id) as string|null||null;
