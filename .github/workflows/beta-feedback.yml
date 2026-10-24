@@ -1,0 +1,35 @@
+name: PicGift beta feedback regressions
+on:
+  pull_request:
+    paths:
+      - 'experience.js'
+      - 'auth.js'
+      - 'beta-feedback.js'
+      - 'announcements.js'
+      - 'tests/beta-feedback.*'
+      - 'store-listing/beta-copy.json'
+      - '.github/workflows/beta-feedback.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install playwright==1.57.0
+      - run: python -m playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: |
+          for file in experience.js auth.js beta-feedback.js announcements.js; do node --check "$file"; done
+      - name: Test listing lengths
+        run: |
+          node -e "const d=require('./store-listing/beta-copy.json');for(const l of ['es-ES','en-US'])for(const [k,n] of [['title',30],['shortDescription',80],['fullDescription',4000]])if(!d[l][k]||d[l][k].length>n)throw Error(l+' '+k);"
+      - name: Run browser regressions with mocked services
+        run: python tests/beta-feedback.browser.py

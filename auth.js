@@ -45,19 +45,19 @@ function publish(user){activeUser=user||null;const id=user?.id||null;
  if(id!==previous){previous=id;window.dispatchEvent(new CustomEvent('picgift:auth',{detail:{user:activeUser}}));}
  if(user){try{sessionStorage.removeItem(attemptedKey)}catch{}}
 }
-async function startGoogle(automatic=false){
+async function startGoogle(automatic=false,forceBrowser=false){
  if(!client||googleBusy)return;
  if(mode==='register'&&!$('terms').checked){msg('Confirma que eres mayor de edad y aceptas las condiciones de uso.');return}
  googleBusy=true;$('google').disabled=true;
  try{
   try{sessionStorage.setItem(attemptedKey,'yes')}catch{}
   const native=!!window.PicgiftNative;
-  if(native&&window.picgiftNativeGoogleMode==='credential-manager'){
+  if(native&&!forceBrowser&&window.picgiftNativeGoogleMode==='credential-manager'){
    const detail=await requestGoogleCredential(automatic);
    await window.picgiftReceiveGoogleIdToken(detail);
    return;
   }
-  if(native&&window.picgiftNativeCredentialManagerSupported===true){
+  if(native&&!forceBrowser&&window.picgiftNativeCredentialManagerSupported===true){
    window.PicgiftNative.postMessage(JSON.stringify({action:'google-native',mode:automatic?'auto':'manual'}));
    return;
   }
@@ -74,6 +74,8 @@ async function startGoogle(automatic=false){
  }catch{openAuth();msg('No se pudo abrir Google. Puedes reintentarlo o entrar con tu correo y contraseña.');}
  finally{googleBusy=false;$('google').disabled=false;}
 }
+// Explicit alternative when Play's native chooser is unavailable. PKCE/state checks stay intact.
+window.addEventListener('picgift:google-browser-login',()=>void startGoogle(false,true));
 async function offerInstalledSignIn(){
  if(!client||askedToSignIn||recovery||window.picgiftNativeReturn)return;
  // The installed interface remains usable offline; open Google's sheet only
@@ -165,3 +167,11 @@ window.addEventListener('picgift:update-profile',async event=>{
  const {data,error}=await client.auth.updateUser({data:{display_name:name}});
  window.dispatchEvent(new CustomEvent('picgift:profile-updated',{detail:error?{error:'No se pudo guardar el nombre. Inténtalo de nuevo.'}:{user:data.user}}));
 });
+// The database assigns the owner and timestamp; clients cannot supply either.
+window.picgiftSendFeedback=async ({category,message,locale}={})=>{
+ if(!client||!activeUser)return {ok:false,reason:'login'};
+ if(!['bug','suggestion','login','performance'].includes(category)||typeof message!=='string'||
+    message.trim().length<10||message.trim().length>2000||!['es','en'].includes(locale))return {ok:false,reason:'invalid'};
+ const {error}=await client.from('picgift_app_feedback').insert({category,message:message.trim(),locale});
+ return error?{ok:false,reason:error.code==='P0001'?'rate-limit':'unavailable'}:{ok:true};
+};
