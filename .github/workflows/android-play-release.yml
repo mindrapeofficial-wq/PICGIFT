@@ -2,6 +2,11 @@ name: PICGIFT · Google Play signed AAB
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'android/app/build.gradle.kts'
+      - '.github/workflows/android-play-release.yml'
 
 permissions:
   contents: read

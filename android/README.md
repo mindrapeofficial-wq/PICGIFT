@@ -85,7 +85,7 @@ Esta actualización incorpora a la aplicación actual los cambios de navegación
 
 1. Ejecutar las pruebas Node, Android Lint, compilación y verificación de las dependencias de la interfaz instalada.
 2. Configurar en GitHub Actions los secretos existentes `PICGIFT_FIREBASE_ANDROID_JSON_B64`, `PICGIFT_UPLOAD_KEYSTORE_B64`, `PICGIFT_UPLOAD_STORE_PASSWORD`, `PICGIFT_UPLOAD_KEY_ALIAS` y `PICGIFT_UPLOAD_KEY_PASSWORD`, El ID Google público está en `android/google-web-client-id.txt`; `PICGIFT_GOOGLE_WEB_CLIENT_ID` es una sobrescritura opcional. No sustituir la clave de subida ni adivinar contraseñas. Se recomienda conservar `PICGIFT_UPLOAD_CERT_SHA256` para comparar el certificado esperado.
-3. Ejecutar **PICGIFT · Google Play signed AAB** sobre el commit integrado. El trabajo valida las credenciales antes de compilar, verifica la firma y produce el AAB versionado.
+3. Al integrar un cambio de versión Android en `main`, **PICGIFT · Google Play signed AAB** se ejecuta automáticamente. También puede ejecutarse manualmente sobre el commit integrado. El trabajo valida las credenciales antes de compilar, verifica la firma y produce el AAB versionado.
 4. Subir ese AAB al canal de pruebas cerrado existente y completar la publicación en Play Console.
 5. Actualizar un dispositivo desde Play y comprobar acceso Google, selección/cámara/cancelación, encuadre, galería, cambio de cuenta, una compra de prueba y regreso desde segundo plano.
 
