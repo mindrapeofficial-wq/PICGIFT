@@ -4,11 +4,14 @@ import groovy.json.JsonOutput
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 // Include Google Services only when the matching Firebase Android config is supplied.
 val firebaseConfigPresent = file("google-services.json").isFile
 // Public OAuth WEB client ID, never a client secret. It must also be authorized in Supabase.
-val googleWebClientId = System.getenv("PICGIFT_GOOGLE_WEB_CLIENT_ID").orEmpty().trim()
+val googleWebClientId = System.getenv("PICGIFT_GOOGLE_WEB_CLIENT_ID").orEmpty().trim().ifBlank {
+    rootProject.file("google-web-client-id.txt").readText().trim()
+}
 check(googleWebClientId.isEmpty() ||
     Regex("^[A-Za-z0-9_-]+\\.apps\\.googleusercontent\\.com$").matches(googleWebClientId)) {
     "PICGIFT_GOOGLE_WEB_CLIENT_ID must be a valid Google OAuth web client ID"
@@ -31,15 +34,17 @@ val syncBundledUi by tasks.registering(Sync::class) {
 }
 android {
     namespace = "com.picgift.myapp"
+    // In-app ES/EN switching must work without downloading a language split.
+    bundle { language { enableSplit = false } }
     compileSdk = 36
     defaultConfig {
         applicationId = "com.picgift.myapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.8.9-beta"
+        versionCode = 19
+        versionName = "1.8.10-beta"
     }
-    buildFeatures { buildConfig = true }
+    buildFeatures { buildConfig = true; compose = true }
     sourceSets.getByName("main").assets.srcDir(bundledUiRoot)
     defaultConfig {
         buildConfigField("boolean", "PICGIFT_FIREBASE_CONFIGURED", firebaseConfigPresent.toString())
@@ -73,6 +78,13 @@ dependencies {
     implementation("com.google.android.play:app-update:2.1.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.webkit:webkit:1.13.0")
+    implementation(platform("androidx.compose:compose-bom:2025.02.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
     implementation("com.android.billingclient:billing:9.1.0")
     implementation("androidx.credentials:credentials:1.6.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0")

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_nav_create">Create</string>
+    <string name="native_nav_photos">My photos</string>
+    <string name="native_nav_camera">Camera</string>
+    <string name="native_nav_inspiration">Inspiration</string>
+    <string name="native_nav_profile">Profile</string>
+    <string name="native_header_profile">My account</string>
+    <string name="native_header_credits">Photo credits</string>
+    <string name="native_header_result">Your portrait</string>
+    <string name="native_back_studio">Back to create</string>
+    <string name="native_open_profile">Open profile</string>
+    <string name="native_gallery_title">Your portraits</string>
+    <string name="native_gallery_description">Private photos in your account</string>
+    <string name="native_gallery_refresh">Refresh photos</string>
+    <string name="native_gallery_empty">Your first portrait will appear here.</string>
+    <string name="native_gallery_unavailable">Photos could not be loaded.</string>
+    <string name="native_gallery_no_favorites">Mark a heart to save a favorite.</string>
+    <string name="native_gallery_favorite">Toggle favorite</string>
+    <string name="native_gallery_ready">Ready</string>
+    <string name="native_gallery_processing">In progress</string>
+    <string name="native_gallery_failed">Could not complete</string>
+    <string name="native_gallery_review">Review needed</string>
+    <string name="native_gallery_all">All</string>
+    <string name="native_gallery_favorites">Favorites</string>
+    <string name="native_gallery_manage">Manage</string>
+    <string name="native_gallery_download">Save to gallery</string>
+    <string name="native_gallery_error">Could not refresh your photos. Check your connection and retry.</string>
+    <string name="native_crop_title">Adjust your photo</string>
+    <string name="native_crop_help">Drag and zoom. Your photo stays on this device until you authorize creation.</string>
+    <string name="native_crop_original">Original</string>
+    <string name="native_crop_cancel">Cancel</string>
+    <string name="native_crop_apply">Use photo</string>
+    <string name="native_crop_loading">Preparing your photo…</string>
+    <string name="native_crop_error">Could not prepare this photo. Please choose it again.</string>
+</resources>

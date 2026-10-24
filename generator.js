@@ -351,8 +351,14 @@ function plainCard(job,href,download){
  +'<button class="btn quiet" type="button" data-report-job="'+escape(job.id)+'">Informar de un problema con el retrato</button>'
  +'<button class="btn quiet" type="button" data-delete-job="'+escape(job.id)+'">Eliminar fotografía y datos</button></article>';
 }
+function nativeGalleryState(loading,error){
+ window.dispatchEvent?.(new CustomEvent('picgift:gallery-state',{detail:{
+  user_id:window.picgiftCurrentUser?.id||null,loading,error
+ }}));
+}
 async function refreshGallery(){
  const revision=++galleryRevision;
+ nativeGalleryState(true,false);
  try{
   if(currentJob&&['queued','analyzing','generating','reviewing'].includes(currentJob.status)){
    const time=new Date(currentJob.updated_at||currentJob.created_at).getTime();
@@ -366,6 +372,7 @@ async function refreshGallery(){
  if(revision!==galleryRevision)return null;
  lastJobs=jobs;
  galleryConnectionLost=false;lastGalleryCheck=Date.now();$('gallery-connection-warning')?.classList.add('hidden');
+ nativeGalleryState(false,false);
  window.picgiftGallery=withLinks.map(o=>({...o,name:labels[o.job.scene_id]||'PICGIFT',statusLabel:statuses[o.job.status]||o.job.status}));
   window.dispatchEvent?.(new CustomEvent('picgift:gallery',{detail:{jobs:jobs.map(({id,status})=>({id,status}))}}));
  if(window.picgiftRenderGallery)window.picgiftRenderGallery(window.picgiftGallery);
@@ -408,11 +415,13 @@ async function refreshGallery(){
   if(revision!==galleryRevision)return null;
   console.warn('PICGIFT private gallery unavailable');
   galleryConnectionLost=true;$('gallery-connection-warning')?.classList.remove('hidden');renderConnection();
+  nativeGalleryState(false,true);
   return null;
  }
 }
 function resumeGallery(){if(galleryAuthenticated&&!document.hidden)void refreshGallery()}
 function clearPrivateGallery(){
+ window.dispatchEvent?.(new CustomEvent('picgift:gallery-clear',{detail:null}));
  galleryRevision++;stopPolling();activeId=null;currentJob=null;lastJobs=[];window.picgiftGallery=[];
  clearRequestProgress();galleryConnectionLost=false;lastGalleryCheck=null;$('gallery-connection-warning')?.classList.add('hidden');
  $('photo-library').replaceChildren();$('result-sample').removeAttribute('src');$('download-result').removeAttribute('href');
@@ -462,6 +471,7 @@ async function downloadPortrait(id,button){
 }
 function init(){
  window.addEventListener('picgift:generate',create);
+ window.addEventListener('picgift:gallery-refresh',()=>{if(galleryAuthenticated)void refreshGallery()});
  window.addEventListener('picgift:navigated',event=>{if(event.detail?.name==='resultado'&&currentJob)$('result-name').textContent=labels[currentJob.scene_id]||'PICGIFT'});
   document.addEventListener('click',event=>{const button=event.target.closest('[data-download-job]');if(button){event.preventDefault();void downloadPortrait(button.dataset.downloadJob,button)}});
 

@@ -2,6 +2,11 @@ name: PICGIFT · Google Play signed AAB
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'android/app/build.gradle.kts'
+      - '.github/workflows/android-play-release.yml'
 
 permissions:
   contents: read
@@ -27,6 +32,9 @@ jobs:
           KEY_PASSWORD: ${{ secrets.PICGIFT_UPLOAD_KEY_PASSWORD }}
           GOOGLE_WEB_CLIENT_ID: ${{ vars.PICGIFT_GOOGLE_WEB_CLIENT_ID }}
         run: |
+          if [ -z "$GOOGLE_WEB_CLIENT_ID" ]; then
+            GOOGLE_WEB_CLIENT_ID="$(cat android/google-web-client-id.txt)"
+          fi
           missing=0
           for key in FIREBASE KEYSTORE STORE_PASSWORD KEY_ALIAS KEY_PASSWORD GOOGLE_WEB_CLIENT_ID; do
             if [ -z "${!key}" ]; then
@@ -36,7 +44,7 @@ jobs:
                 STORE_PASSWORD) echo "::error::Missing PICGIFT_UPLOAD_STORE_PASSWORD" ;;
                 KEY_ALIAS) echo "::error::Missing PICGIFT_UPLOAD_KEY_ALIAS" ;;
                 KEY_PASSWORD) echo "::error::Missing PICGIFT_UPLOAD_KEY_PASSWORD" ;;
-                GOOGLE_WEB_CLIENT_ID) echo "::error::Missing repository variable PICGIFT_GOOGLE_WEB_CLIENT_ID (Supabase-authorized Google OAuth web client ID)" ;;
+                GOOGLE_WEB_CLIENT_ID) echo "::error::Missing verified Google OAuth web client ID (android/google-web-client-id.txt or PICGIFT_GOOGLE_WEB_CLIENT_ID)" ;;
               esac
               missing=1
             fi
@@ -127,10 +135,22 @@ jobs:
             echo "::warning::Upload certificate matches a signing key, but has not been compared against Google Play. Set repository variable PICGIFT_UPLOAD_CERT_SHA256 for automatic comparison."
           fi
 
+      - name: Read Android release version
+        id: android-version
+        run: |
+          python3 - <<'PYVERSION'
+          import os, pathlib, re
+          source = pathlib.Path('android/app/build.gradle.kts').read_text()
+          version = re.search(r'versionName\s*=\s*"([0-9.]+-beta)"', source).group(1)
+          code = re.search(r'versionCode\s*=\s*(\d+)', source).group(1)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'name={version}\ncode={code}\n')
+          PYVERSION
+
       - name: Upload signed Google Play AAB
         uses: actions/upload-artifact@v4
         with:
-          name: picgift-v1.8.9-beta-code18-play-signed
+          name: picgift-v${{ steps.android-version.outputs.name }}-code${{ steps.android-version.outputs.code }}-play-signed
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
