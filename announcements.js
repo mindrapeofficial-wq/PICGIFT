@@ -12,8 +12,10 @@ if(top){
  button.setAttribute('aria-label',t('Novedades y avisos de PICGIFT','PICGIFT news and updates'));
  button.setAttribute('aria-expanded','false');button.textContent=t('Novedades','News');
  const counter=document.createElement('span');counter.className='picgift-news-count';counter.hidden=true;
- button.append(counter);top.append(button);
+ const buttonText=document.createTextNode(t('Novedades','News'));
+ button.replaceChildren(buttonText,counter);button.setAttribute('data-no-translate','');top.append(button);
  const panel=document.createElement('section');panel.className='picgift-news-panel';panel.hidden=true;
+ panel.setAttribute('data-no-translate','');
  panel.setAttribute('aria-label',t('Novedades de PICGIFT','PICGIFT news'));panel.setAttribute('role','region');
  const header=document.createElement('div');header.className='picgift-news-heading';
  const heading=document.createElement('strong');heading.textContent=t('Novedades de PICGIFT','PICGIFT news');
@@ -34,9 +36,22 @@ if(top){
  function clear(){currentId=null;records=[];lastCheck=0;failed=false;button.classList.add('hidden');counter.hidden=true;list.replaceChildren();closePanel();}
  function render(){
   list.replaceChildren();
+  if(failed){
+   const warning=document.createElement('p');warning.setAttribute('role','status');
+   warning.textContent=t('No se pudieron actualizar las novedades. Puedes reintentarlo.','Unable to refresh news. You can try again.');
+   const retry=document.createElement('button');retry.type='button';retry.className='btn outline';
+   retry.textContent=t('Reintentar','Try again');
+   retry.addEventListener('click',async()=>{
+    if(retry.disabled)return;
+    retry.disabled=true;
+    try{await update(true)}finally{if(retry.isConnected)retry.disabled=false;}
+   });
+   list.append(warning,retry);
+  }
   if(!records.length){
+   if(failed)return;
    const empty=document.createElement('p');
-   empty.textContent=failed?t('No se pudieron cargar las novedades. Comprueba la conexión y vuelve a abrir este panel.','Unable to load news. Check your connection and reopen this panel.'):t('Todavía no hay novedades. Las publicaciones aprobadas aparecerán aquí.','No news yet. Approved updates will appear here.');
+   empty.textContent=t('Todavía no hay novedades. Las publicaciones aprobadas aparecerán aquí.','No news yet. Approved updates will appear here.');
    list.append(empty);return;
   }
   for(const item of records){
@@ -54,14 +69,14 @@ if(top){
    article.append(title,message,stamp,open);list.append(article);
   }
  }
- async function load(version){
+ async function load(version,force=false){
   const {data,error:sessionError}=await client.auth.getSession();
   if(version!==generation)return;
   const id=data?.session?.user?.id;
   if(sessionError||!id){clear();return;}
   if(id!==currentId){clear();currentId=id;}
   button.classList.remove('hidden');
-  if(Date.now()-lastCheck<45000)return;
+  if(!force&&Date.now()-lastCheck<45000)return;
   lastCheck=Date.now();
   const {data:items,error}=await client.from('picgift_announcements')
    .select('id,title,body,route,published_at').order('published_at',{ascending:false}).limit(30);
@@ -75,16 +90,26 @@ if(top){
   if(unseen)counter.setAttribute('aria-label',unseen+t(' avisos nuevos',' new updates'));else counter.removeAttribute('aria-label');
   if(!panel.hidden)markRead();
  }
- function update(){
+ function localize(){
+  buttonText.textContent=t('Novedades','News');
+  button.setAttribute('aria-label',t('Novedades y avisos de PICGIFT','PICGIFT news and updates'));
+  panel.setAttribute('aria-label',t('Novedades de PICGIFT','PICGIFT news'));
+  heading.textContent=t('Novedades de PICGIFT','PICGIFT news');
+  close.setAttribute('aria-label',t('Cerrar notificaciones','Close notifications'));
+  if(!counter.hidden)counter.setAttribute('aria-label',counter.textContent+t(' avisos nuevos',' new updates'));
+  render();
+ }
+ new MutationObserver(localize).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+ function update(force=false){
   if(document.hidden||navigator.onLine===false)return Promise.resolve();
   if(inFlight?.version===generation)return inFlight.promise;
   const ticket={version:generation,promise:null};inFlight=ticket;
-  ticket.promise=load(ticket.version).catch(()=>{if(ticket.version===generation){failed=true;render();}})
+  ticket.promise=load(ticket.version,force).catch(()=>{if(ticket.version===generation){failed=true;render();}})
    .finally(()=>{if(inFlight===ticket)inFlight=null;});
   return ticket.promise;
  }
  async function show(){
-  await update();
+  await update(failed);
   if(!currentId){window.picgiftOpenAuth?.();return;}
   focusBefore=document.activeElement;panel.hidden=false;button.setAttribute('aria-expanded','true');render();markRead();close.focus();
  }

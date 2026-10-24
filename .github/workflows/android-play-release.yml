@@ -18,10 +18,13 @@ concurrency:
 jobs:
   signed-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - name: Obtain PICGIFT source
         uses: actions/checkout@v4
+
+      - name: Validate beta corrections before handling signing material
+        uses: ./.github/actions/beta-quality
 
       - name: Verify private release credentials exist
         env:

@@ -27,14 +27,16 @@ export function createClient(){return {
  signInWithIdToken:async()=>({data:{user:window.__user}}),
  signOut:async()=>({error:null}),updateUser:async()=>({data:{user:window.__user}}),
  resetPasswordForEmail:async()=>({error:null}),signInWithPassword:async()=>({data:{user:window.__user}})},
- from:table=>({insert:async row=>{window.__calls.feedback.push({table,row});return {error:window.__feedbackError}},
- select:()=>({order:()=>({limit:async()=>{const id=window.__user?.id;window.__calls.news++;await new Promise(r=>setTimeout(r,window.__newsDelay));return {data:[{title:'News for '+id,body:'Fixture',route:'crear',published_at:'2026-10-24T10:00:00Z'}]}}})})})
+ from:table=>({insert:async row=>{window.__calls.feedback.push({table,row});if(window.__feedbackDelay)await new Promise(r=>setTimeout(r,window.__feedbackDelay));return {error:window.__feedbackError}},
+ select:()=>({order:()=>({limit:async()=>{const id=window.__user?.id;window.__calls.news++;await new Promise(r=>setTimeout(r,window.__newsDelay));if(window.__newsError)return {data:null,error:{message:'fixture error'}};return {data:[{title:'News for '+id,body:'Fixture',route:'crear',published_at:'2026-10-24T10:00:00Z'}]}}})})})
 };}
 """
 CONFIG = "export const SUPABASE_URL='https://uimrvgrpenccijumyiek.supabase.co'; export const SUPABASE_PUBLISHABLE_KEY='sb_publishable_fixture_not_a_real_key';"
 NATIVE = "export async function requestGoogleCredential(){throw new Error('cancelled');}"
 PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j1ioAAAAASUVORK5CYII=')
 results=[]
+skipped=[]
+in_memory=os.environ.get('PICGIFT_TEST_IN_MEMORY')=='1'
 server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
 Thread(target=server.serve_forever,daemon=True).start()
 base=f'http://127.0.0.1:{server.server_port}'
@@ -57,21 +59,26 @@ try:
     page=context.new_page();page.set_default_timeout(3000);errors=[]
     page.on('pageerror',lambda e:(errors.append(str(e)),print('BROWSER ERROR',str(e),flush=True)))
     def load(native=False):
-        page.goto('about:blank')
-        fixture=(ROOT/'tests/beta-feedback.fixture.html').read_text()
-        fixture=re.sub(r'<script[^>]*src="[^"]+"[^>]*></script>','',fixture)
-        page.set_content(fixture)
-        if native:
-            page.evaluate("window.PicgiftNative={postMessage:s=>window.__calls.native.push(JSON.parse(s))}")
-        page.add_script_tag(content=MOCK.replace('export function createClient()', 'window.__createClient=function()'))
-        prefix="const createClient=window.__createClient;"+CONFIG.replace('export ','')+NATIVE.replace('export ','')
-        for filename in ['auth.js','announcements.js']:
-            source=(ROOT/filename).read_text()
-            source=re.sub(r'^import .*?;\n','',source,flags=re.M)
-            page.add_script_tag(type='module',content=prefix+source)
-        experience=(ROOT/'experience.js').read_text().replace("import('./beta-feedback.js')",'Promise.resolve()')
-        page.add_script_tag(content=experience)
-        page.add_script_tag(type='module',content=(ROOT/'beta-feedback.js').read_text())
+        if in_memory:
+            # Restricted local browsers can run the logic fixture without HTTP navigation.
+            # CI must leave this unset so that real module loading is checked too.
+            page.goto('about:blank')
+            fixture=(ROOT/'tests/beta-feedback.fixture.html').read_text()
+            fixture=re.sub(r'<script[^>]*src="[^\"]+"[^>]*></script>','',fixture)
+            page.set_content(fixture)
+            if native:
+                page.evaluate("window.PicgiftNative={postMessage:s=>window.__calls.native.push(JSON.parse(s))}")
+            page.add_script_tag(content=MOCK.replace('export function createClient()', 'window.__createClient=function()'))
+            prefix="const createClient=window.__createClient;"+CONFIG.replace('export ','')+NATIVE.replace('export ','')
+            for filename in ['auth.js','announcements.js']:
+                source=(ROOT/filename).read_text()
+                source=re.sub(r'^import .*?;\n','',source,flags=re.M)
+                page.add_script_tag(type='module',content=prefix+source)
+            source=(ROOT/'experience.js').read_text().replace("import('./beta-feedback.js')",'Promise.resolve()')
+            page.add_script_tag(content=source)
+            page.add_script_tag(type='module',content=(ROOT/'beta-feedback.js').read_text())
+        else:
+            page.goto(base+'/tests/beta-feedback.fixture.html'+('?native' if native else ''))
         page.evaluate("""bytes => {const raw=atob(bytes);const data=Uint8Array.from(raw,c=>c.charCodeAt(0));window.fetch=async()=>new Response(data,{status:200,headers:{'content-type':'image/png'}})}""",base64.b64encode(PNG).decode())
         page.wait_for_selector('[data-beta-feedback]')
         page.wait_for_function('typeof window.picgiftSendFeedback === "function" && window.__calls.news === 1')
@@ -175,6 +182,58 @@ try:
     page.locator('[data-share-job]').click()
     assert page.locator('.beta-dialog').count()==0
     passed('Untrusted and cross-owner portrait URLs are rejected before fetching')
+    load();open_feedback()
+    page.evaluate('window.__feedbackDelay=150')
+    page.locator('textarea[name="message"]').fill('Comentario de prueba para doble envío.')
+    page.evaluate("const form=document.querySelector('.beta-dialog form');form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));")
+    page.wait_for_timeout(220)
+    assert page.evaluate('window.__calls.feedback.length')==1
+    passed('Concurrent form submissions cannot send duplicate feedback')
+    load();open_feedback()
+    page.evaluate("window.__feedbackDelay=150")
+    page.locator('textarea[name="message"]').fill('Este comentario pertenece a la primera cuenta.')
+    page.locator('.beta-dialog button[type="submit"]').click()
+    page.evaluate("window.__setUser({id:'22222222-2222-4222-8222-222222222222',email:'other@example.invalid'})")
+    open_feedback();page.locator('textarea[name="message"]').fill('Borrador nuevo que no debe borrarse.')
+    page.wait_for_timeout(220)
+    assert page.locator('textarea[name="message"]').input_value()=='Borrador nuevo que no debe borrarse.'
+    assert 'Comentario recibido' not in page.locator('.beta-dialog').inner_text()
+    passed('A late response from the previous account cannot clear or confirm a new draft')
+    load()
+    page.evaluate("window.__newsError=true;window.__setUser({id:'33333333-3333-4333-8333-333333333333',email:'fixture3@example.invalid'})")
+    page.wait_for_function('window.__calls.news === 2')
+    page.wait_for_timeout(70)
+    page.locator('.picgift-news-button').click()
+    page.get_by_role('button',name='Reintentar',exact=True).wait_for()
+    before=page.evaluate('window.__calls.news')
+    page.evaluate('window.__newsError=false;window.__newsDelay=120')
+    page.evaluate("const retry=[...document.querySelectorAll('.picgift-news-panel button')].find(b=>b.textContent==='Reintentar');retry.click();retry.click();")
+    page.wait_for_timeout(200)
+    assert page.evaluate('window.__calls.news')==before+1
+    assert '33333333' in page.locator('.picgift-news-list').inner_text()
+    assert page.get_by_role('button',name='Reintentar',exact=True).count()==0
+    passed('Explicit news retry bypasses throttling once and deduplicates double clicks')
+    page.evaluate("document.documentElement.lang='en'")
+    page.wait_for_function("document.querySelector('.picgift-news-heading strong').textContent === 'PICGIFT news'")
+    assert page.locator('.picgift-news-close').get_attribute('aria-label')=='Close notifications'
+    assert 'Open in PICGIFT' in page.locator('.picgift-news-list').inner_text()
+    passed('News controls switch language without changing the published announcement text')
+    load()
+    page.evaluate("window.__newsDelay=180;window.__setUser({id:'44444444-4444-4444-8444-444444444444',email:'fixture4@example.invalid'})")
+    page.wait_for_function('window.__calls.news === 2')
+    page.evaluate("window.__newsDelay=0;window.__setUser({id:'55555555-5555-4555-8555-555555555555',email:'fixture5@example.invalid'})")
+    page.wait_for_function('window.__calls.news === 3')
+    page.wait_for_timeout(250)
+    assert '55555555' in page.locator('.picgift-news-list').inner_text()
+    assert '44444444' not in page.locator('.picgift-news-list').inner_text()
+    passed('Out-of-order news responses cannot show content from an earlier account')
+    load()
+    if in_memory:
+        skipped.append('Real HTTP module loading and dynamic import (in-memory mode explicitly enabled)')
+    else:
+        loaded=page.evaluate("performance.getEntriesByType('resource').map(r=>new URL(r.name).pathname)")
+        assert '/experience.js' in loaded and '/beta-feedback.js' in loaded and '/auth.js' in loaded
+        passed('The browser loads real script URLs and the production dynamic import')
     for width in [320,390,768]:
         load();page.set_viewport_size({'width':width,'height':844});open_feedback()
         bounds=page.locator('.beta-dialog').bounding_box()
@@ -185,4 +244,4 @@ try:
     browser.close()
 finally:
  server.shutdown()
-print(json.dumps({'passed':len(results),'tests':results},ensure_ascii=False,indent=2))
+print(json.dumps({'passed':len(results),'tests':results,'skipped':skipped,'mode':'in-memory' if in_memory else 'http-modules'},ensure_ascii=False,indent=2))

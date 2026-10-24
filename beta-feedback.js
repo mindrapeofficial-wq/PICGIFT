@@ -62,6 +62,7 @@ function showFeedback() {
   contact.textContent = text('No puedo entrar: contactar por correo','Cannot sign in: contact by email'); d.append(contact);
   form.addEventListener('submit', async event => {
     event.preventDefault();
+    if (submit.disabled) return;
     if (!validFeedback(category.value,message.value)) { status.textContent = text('Escribe entre 10 y 2000 caracteres.','Write between 10 and 2000 characters.'); return; }
     if (typeof window.picgiftSendFeedback !== 'function') { status.textContent = text('El soporte no está disponible. Usa el enlace de correo.','Support is unavailable. Use the email link.'); return; }
     const ownerRevision = revision; submit.disabled = true;
