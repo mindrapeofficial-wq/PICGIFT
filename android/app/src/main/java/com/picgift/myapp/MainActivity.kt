@@ -46,9 +46,11 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.QueryProductDetailsParams
 import org.json.JSONObject
 import java.security.MessageDigest
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
+    private lateinit var nativeExperience: PicgiftNativeExperience
     private lateinit var billing: BillingClient
     private var currentAccount: String? = null
     private var billingFlowAccount: String? = null
@@ -119,27 +121,99 @@ class MainActivity : AppCompatActivity() {
     private var pendingCameraUri: Uri? = null
     private var pendingCameraFile: File? = null
     private var pendingPickerLimit = 1
+    private var documentPickerActive = false
+    private var pickerInFlight = false
+    private var pickerValidating = false
+    private var pickerAccount: String? = null
+    private var pickerRequestId = 0L
+    private val pickerWorker = Executors.newSingleThreadExecutor()
     private var pendingNotificationRoute: String? = null
     private val nativeRoutes = setOf("crear", "mis-fotos", "escenarios", "cuenta", "precios")
     private val filePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val picked = if (result.resultCode == Activity.RESULT_OK) {
-            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-                ?.distinct()?.filter { safePickedImage(it) }?.take(pendingPickerLimit)?.toTypedArray()
-        } else null
-        val cameraCaptured = result.resultCode == Activity.RESULT_OK &&
-            (picked == null || picked.isEmpty()) &&
-            (pendingCameraFile?.length() ?: 0L) > 100L
-        val value = when {
-            !picked.isNullOrEmpty() -> picked
-            cameraCaptured -> pendingCameraUri?.let { arrayOf(it) }
-            else -> null
+        pickerInFlight = false
+        // Read every standard result channel; OEM galleries often return only clipData.
+        val candidates = linkedSetOf<Uri>()
+        if (result.resultCode == Activity.RESULT_OK) {
+            runCatching { WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data) }
+                .getOrNull()?.take(32)?.forEach { candidates.add(it) }
+            result.data?.data?.let { candidates.add(it) }
+            result.data?.clipData?.let { clip ->
+                for (index in 0 until minOf(clip.itemCount, 32)) {
+                    clip.getItemAt(index).uri?.let { candidates.add(it) }
+                }
+            }
         }
-        if (!cameraCaptured) pendingCameraFile?.delete()
+        val callback = pendingFileUpload
+        if (callback == null) {
+            clearPickedSource(null)
+            return@registerForActivityResult
+        }
+        val requestId = pickerRequestId
+        val owner = pickerAccount
+        val limit = pendingPickerLimit
+        val camera = pendingCameraFile
+        pickerValidating = true
+        // Drive/cloud document providers may download on openFileDescriptor. Never block UI.
+        pickerWorker.execute {
+            val picked = candidates.filter { safePickedImage(it) }.take(limit).toTypedArray()
+            val cameraCaptured = result.resultCode == Activity.RESULT_OK &&
+                picked.isEmpty() && (camera?.length() ?: 0L) > 100L
+            runOnUiThread {
+                pickerValidating = false
+                if (isFinishing || isDestroyed || requestId != pickerRequestId ||
+                    callback !== pendingFileUpload || owner != currentAccount || !trustedPicgiftPage()) {
+                    finishFileSelection()
+                    return@runOnUiThread
+                }
+                // Retry an unreadable successful gallery result once, never a cancellation.
+                if (result.resultCode == Activity.RESULT_OK && picked.isEmpty() &&
+                    !cameraCaptured && pendingCameraUri == null &&
+                    pendingFileUpload != null && !documentPickerActive) {
+                    documentPickerActive = true
+                    try {
+                        pickerInFlight = true
+                        launchDocumentPicker(pendingPickerLimit > 1)
+                        Toast.makeText(this, R.string.photo_picker_retry, Toast.LENGTH_LONG).show()
+                        return@runOnUiThread
+                    } catch (_: Exception) {
+                        pickerInFlight = false
+                    }
+                }
+                if (result.resultCode == Activity.RESULT_OK && picked.isEmpty() && !cameraCaptured) {
+                    Toast.makeText(this, R.string.photo_picker_invalid, Toast.LENGTH_LONG).show()
+                }
+                val value = when {
+                    picked.isNotEmpty() -> picked
+                    cameraCaptured -> pendingCameraUri?.let { arrayOf(it) }
+                    else -> null
+                }
+                // Multiple reference files keep the existing web path. A single photo gets
+                // a local native crop; the original callback is retained until completion.
+                if (value?.size == 1 && pendingPickerLimit == 1 &&
+                    nativeExperience.preparePhoto(value[0]) { prepared ->
+                        if (requestId == pickerRequestId && callback === pendingFileUpload &&
+                            owner == currentAccount && trustedPicgiftPage()) {
+                            completeFileSelection(prepared?.let { arrayOf(it) })
+                        }
+                    }) return@runOnUiThread
+                completeFileSelection(value)
+            }
+        }
+    }
+
+    private fun clearPickedSource(value: Array<Uri>?) {
+        if (value?.contains(pendingCameraUri) != true) pendingCameraFile?.delete()
         pendingCameraFile = null
         pendingCameraUri = null
+        pendingPickerLimit = 1
+        documentPickerActive = false
+        pickerAccount = null
+    }
+
+    private fun completeFileSelection(value: Array<Uri>?) {
         val callback = pendingFileUpload
         pendingFileUpload = null
-        pendingPickerLimit = 1
+        clearPickedSource(value)
         callback?.onReceiveValue(value)
     }
 
@@ -152,17 +226,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun finishFileSelection() {
+        pickerRequestId++
+        if (::nativeExperience.isInitialized) nativeExperience.cancelPhotoPreparation()
         val callback = pendingFileUpload
         pendingFileUpload = null
-        pendingCameraFile?.delete()
-        pendingCameraFile = null
-        pendingCameraUri = null
-        pendingPickerLimit = 1
+        // Keep the external picker/validation slot reserved until its late result returns.
+        // A stale result must never be delivered to a subsequent file input or account.
+        if (!pickerInFlight && !pickerValidating) clearPickedSource(null)
         callback?.onReceiveValue(null)
     }
 
+    private fun launchDocumentPicker(multiple: Boolean) {
+        val documents = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "image/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        filePicker.launch(documents)
+    }
+
     private fun launchPhotoPicker(multiple: Boolean) {
-        // Try the platform photo gallery, including supported backports. No document explorer.
         val photos = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
             type = "image/*"
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -171,13 +256,10 @@ class MainActivity : AppCompatActivity() {
         try {
             filePicker.launch(photos)
         } catch (_: android.content.ActivityNotFoundException) {
-            val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                type = "image/*"
-                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
-                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            filePicker.launch(gallery)
+            // ACTION_PICK hands control to OEM apps that can return file-scheme or
+            // unreadable URIs. SAF is the reliable fallback on older devices.
+            documentPickerActive = true
+            launchDocumentPicker(multiple)
         }
     }
 
@@ -228,6 +310,7 @@ class MainActivity : AppCompatActivity() {
         }
         val root = FrameLayout(this).apply { setBackgroundColor(Color.rgb(22,17,16)) }
         root.addView(web, FrameLayout.LayoutParams(-1,-1))
+        nativeExperience = PicgiftNativeExperience(this, root, web, ::trustedPicgiftPage) { currentAccount }
         loading = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
         root.addView(loading, FrameLayout.LayoutParams(-1, 6, Gravity.TOP))
         failure = LinearLayout(this).apply {
@@ -256,6 +339,7 @@ class MainActivity : AppCompatActivity() {
             view.setPadding(bars.left,bars.top,bars.right,keyboard.bottom)
             nativeBottomInsetDp = if (insets.isVisible(WindowInsetsCompat.Type.ime())) 0f
                 else bars.bottom / resources.displayMetrics.density
+            nativeExperience.setInsets(bars.bottom, insets.isVisible(WindowInsetsCompat.Type.ime()))
             updateNativeInsets()
             WindowInsetsCompat.CONSUMED
         }
@@ -287,7 +371,8 @@ class MainActivity : AppCompatActivity() {
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, progress: Int) {
                 loading.progress = progress
-                loading.visibility = if (progress < 100) android.view.View.VISIBLE else android.view.View.GONE
+                loading.visibility = if (progress < 100 && failure.visibility != android.view.View.VISIBLE)
+                    android.view.View.VISIBLE else android.view.View.GONE
             }
             override fun onShowFileChooser(
                 webView: WebView?,
@@ -297,15 +382,20 @@ class MainActivity : AppCompatActivity() {
                 if (!trustedPicgiftPage() || filePathCallback == null) return false
                 // Do not replace an outstanding request with a second picker: its late result
                 // must never be delivered into another file input.
-                if (pendingFileUpload != null) { filePathCallback.onReceiveValue(null); return true }
+                if (pendingFileUpload != null || pickerInFlight || pickerValidating) { filePathCallback.onReceiveValue(null); return true }
                 pendingFileUpload = filePathCallback
+                pickerRequestId++
+                pickerAccount = currentAccount
+                documentPickerActive = false
                 val multiple = fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                 pendingPickerLimit = if (multiple) 2 else 1
                 return try {
+                    pickerInFlight = true
                     if (fileChooserParams?.isCaptureEnabled == true) launchCamera()
                     else launchPhotoPicker(multiple)
                     true
                 } catch (_: Exception) {
+                    pickerInFlight = false
                     finishFileSelection()
                     Toast.makeText(this@MainActivity, R.string.photo_picker_unavailable, Toast.LENGTH_LONG).show()
                     true
@@ -315,7 +405,9 @@ class MainActivity : AppCompatActivity() {
         // The app must handle Android's Back button instead of quitting on every inner route.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (web.canGoBack()) web.goBack() else finish()
+                nativeExperience.onBackPressed {
+                    if (web.canGoBack()) web.goBack() else finish()
+                }
             }
         })
         // Save private portraits to the phone's Pictures/PICGIFT album without storage permissions.
@@ -327,12 +419,18 @@ class MainActivity : AppCompatActivity() {
             WebViewCompat.addWebMessageListener(web, "PicgiftNative", setOf("https://picgift.onrender.com")) { _, message, sourceOrigin, isMainFrame, _ ->
                 if (!isMainFrame || sourceOrigin.toString().trimEnd('/') != "https://picgift.onrender.com") return@addWebMessageListener
                 try {
-                    val req = JSONObject(message.data ?: return@addWebMessageListener)
+                    val data = message.data ?: return@addWebMessageListener
+                    if (data.length > 128 * 1024) return@addWebMessageListener
+                    val req = JSONObject(data)
+                    if (nativeExperience.handleMessage(req)) return@addWebMessageListener
                     when (req.optString("action")) {
                         "account" -> {
                             val user = req.optString("user_id")
                             runOnUiThread {
-                                currentAccount = user.takeIf { Regex("^[0-9a-f-]{36}$").matches(it) }
+                                val nextAccount = user.takeIf { Regex("^[0-9a-f-]{36}$").matches(it) }
+                                if (nextAccount != currentAccount) finishFileSelection()
+                                currentAccount = nextAccount
+                                nativeExperience.onAccountChanged(currentAccount)
                                 pageReady = true
                                 restorePurchases()
                                 queryPrices()
@@ -373,20 +471,28 @@ class MainActivity : AppCompatActivity() {
                 googleSignIn.cancel()
                 pageReady = false
                 currentAccount = null
+                finishFileSelection()
+                nativeExperience.onPageStarted()
+                failure.visibility = android.view.View.GONE
             }
             override fun onPageFinished(view: WebView?, url: String?) {
-                if (!trustedPicgiftPage()) return
+                // A failed main document must not initialize the account/Google bridge.
+                if (failure.visibility == android.view.View.VISIBLE || !trustedPicgiftPage()) return
                 updateNativeInsets()
                 val supported = googleSignIn.isConfigured
                 web.evaluateJavascript("window.picgiftBundledApp=true;window.picgiftNativeGoogleSupported=true;window.picgiftNativeCredentialManagerSupported=$supported;window.dispatchEvent(new Event('picgift:native-ready'));", null)
+                nativeExperience.onPageFinished()
                 dispatchNativeRoute()
             }
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                if (request?.isForMainFrame == true) {
-                    pageReady = false
-                    failure.visibility = android.view.View.VISIBLE
-                    loading.visibility = android.view.View.GONE
-                }
+                if (request?.isForMainFrame == true) showPageFailure()
+            }
+            override fun onReceivedHttpError(
+                view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?
+            ) {
+                // Image and API failures retain their own in-app recovery. A missing
+                // bundled main document needs the native retry screen instead.
+                if (request?.isForMainFrame == true) showPageFailure()
             }
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val target = request?.url ?: return false
@@ -406,6 +512,16 @@ class MainActivity : AppCompatActivity() {
         else if (web.restoreState(savedInstanceState) == null) web.loadUrl(homeUrl)
         handleGoogleReturn(intent)
         receiveNotificationRoute(intent)
+    }
+
+    private fun showPageFailure() {
+        googleSignIn.cancel()
+        pageReady = false
+        currentAccount = null
+        finishFileSelection()
+        nativeExperience.onPageFailed()
+        failure.visibility = android.view.View.VISIBLE
+        loading.visibility = android.view.View.GONE
     }
 
     private fun updateNativeInsets() {
@@ -658,6 +774,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         googleSignIn.cancel()
         finishFileSelection()
+        pickerWorker.shutdownNow()
+        if (::nativeExperience.isInitialized) nativeExperience.destroy()
         if (::billing.isInitialized) billing.endConnection()
         if (::web.isInitialized) web.destroy()
         super.onDestroy()

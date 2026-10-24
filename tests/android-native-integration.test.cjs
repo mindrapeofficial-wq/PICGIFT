@@ -8,16 +8,18 @@ const manifest=read('android/app/src/main/AndroidManifest.xml');
 const picker=read('android/app/src/main/res/xml/camera_paths.xml');
 const page=read('app.js');
 
-test('photo selection opens the photo picker with a gallery fallback, while capture opens only the camera',()=>{
+test('photo selection prefers Android Photo Picker and falls back to readable system documents',()=>{
  assert.match(android,/Intent\(MediaStore\.ACTION_IMAGE_CAPTURE\)/);
  assert.match(android,/Intent\(MediaStore\.ACTION_PICK_IMAGES\)/);
  assert.match(android,/catch \(_: android\.content\.ActivityNotFoundException\)/);
- assert.match(android,/Intent\(Intent\.ACTION_PICK, MediaStore\.Images\.Media\.EXTERNAL_CONTENT_URI\)/);
+ assert.match(android,/Intent\(Intent\.ACTION_OPEN_DOCUMENT\)/);
+ assert.match(android,/Intent\.CATEGORY_OPENABLE/);
+ assert.match(android,/putExtra\(Intent\.EXTRA_MIME_TYPES, arrayOf\("image\/jpeg", "image\/png", "image\/webp"\)\)/);
  assert.match(android,/if \(fileChooserParams\?\.isCaptureEnabled == true\) launchCamera\(\)\s*else launchPhotoPicker\(multiple\)/);
- assert.doesNotMatch(android,/ACTION_OPEN_DOCUMENT|ACTION_GET_CONTENT|EXTRA_INITIAL_INTENTS|Intent\.createChooser/);
+ assert.doesNotMatch(android,/Intent\.ACTION_PICK\b|ACTION_GET_CONTENT|EXTRA_INITIAL_INTENTS|Intent\.createChooser/);
  assert.match(android,/FileProvider\.getUriForFile/);
  assert.match(android,/filePicker\.launch\(photos\)/);
- assert.match(android,/filePicker\.launch\(gallery\)/);
+ assert.match(android,/filePicker\.launch\(documents\)/);
  assert.match(android,/FLAG_GRANT_WRITE_URI_PERMISSION/);
  assert.match(android,/safePickedImage\(it\)/);
  assert.match(manifest,/android:exported="false"/);
@@ -25,17 +27,26 @@ test('photo selection opens the photo picker with a gallery fallback, while capt
  assert.doesNotMatch(manifest,/android\.permission\.CAMERA|READ_MEDIA_IMAGES|MANAGE_EXTERNAL_STORAGE/);
 });
 
-test('selected photo URIs are image-only readable content, with bounded multiple references and cancellation',()=>{
+test('OEM gallery results are recovered once and unsupported picks provide feedback',()=>{
  assert.match(android,/fileChooserParams\?\.mode == FileChooserParams\.MODE_OPEN_MULTIPLE/);
  assert.match(android,/pendingPickerLimit = if \(multiple\) 2 else 1/);
  assert.match(android,/putExtra\(MediaStore\.EXTRA_PICK_IMAGES_MAX, pendingPickerLimit\)/);
  assert.match(android,/putExtra\(Intent\.EXTRA_ALLOW_MULTIPLE, multiple\)/);
- assert.match(android,/distinct\(\)\?\.filter \{ safePickedImage\(it\) \}\?\.take\(pendingPickerLimit\)/);
+ assert.match(android,/val candidates = linkedSetOf<Uri>\(\)/);
+ assert.match(android,/result\.data\?\.data\?\.let/);
+ assert.match(android,/result\.data\?\.clipData\?\.let/);
+ assert.match(android,/candidates\.filter \{ safePickedImage\(it\) \}/);
+ assert.match(android,/!cameraCaptured && pendingCameraUri == null/);
+ assert.match(android,/pendingFileUpload != null && !documentPickerActive/);
+ assert.match(android,/documentPickerActive = true/);
+ assert.match(android,/return@registerForActivityResult/);
+ assert.match(android,/R\.string\.photo_picker_retry/);
+ assert.match(android,/R\.string\.photo_picker_invalid/);
  assert.match(android,/uri\.scheme != "content"/);
  assert.match(android,/contentResolver\.openFileDescriptor\(uri, "r"\)\?\.use \{ true \} == true/);
- assert.match(android,/if \(pendingFileUpload != null\) \{ filePathCallback\.onReceiveValue\(null\); return true \}/);
+ assert.match(android,/if \(pendingFileUpload != null \|\| pickerInFlight \|\| pickerValidating\) \{ filePathCallback\.onReceiveValue\(null\); return true \}/);
  assert.match(android,/override fun onDestroy\(\) \{[\s\S]*?finishFileSelection\(\)/);
- assert.match(android,/if \(!cameraCaptured\) pendingCameraFile\?\.delete\(\)/);
+ assert.match(android,/if \(value\?\.contains\(pendingCameraUri\) != true\) pendingCameraFile\?\.delete\(\)/);
  assert.doesNotMatch(manifest,/READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE/);
 });
 
@@ -92,7 +103,7 @@ test('push notifications open allowed Android routes and deliver them into the w
 test('Android integration increments version while preserving existing package and secure auth',()=>{
  const gradle=read('android/app/build.gradle.kts');
  assert.match(gradle,/applicationId = "com.picgift.myapp"/);
- assert.ok(Number(gradle.match(/versionCode\s*=\s*(\d+)/)?.[1])>=16,'photo picker fixes need an unused code after beta 15');
+ assert.ok(Number(gradle.match(/versionCode\s*=\s*(\d+)/)?.[1])>=19,'native photo fixes require an unused Play version code after beta 18');
  assert.match(gradle,/versionName = "\d+\.\d+\.\d+-beta"/);
  assert.match(android,/trustedPicgiftPage\(\)/);
  assert.match(android,/GoogleCredentialSignIn/);

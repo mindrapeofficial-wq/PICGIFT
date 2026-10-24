@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_nav_create">Crear</string>
+    <string name="native_nav_photos">Mis fotos</string>
+    <string name="native_nav_camera">Cámara</string>
+    <string name="native_nav_inspiration">Inspiración</string>
+    <string name="native_nav_profile">Perfil</string>
+    <string name="native_header_profile">Mi cuenta</string>
+    <string name="native_header_credits">Créditos de fotos</string>
+    <string name="native_header_result">Tu retrato</string>
+    <string name="native_back_studio">Volver a crear</string>
+    <string name="native_open_profile">Abrir perfil</string>
+    <string name="native_gallery_title">Tus retratos</string>
+    <string name="native_gallery_description">Fotos privadas de tu cuenta</string>
+    <string name="native_gallery_refresh">Actualizar fotos</string>
+    <string name="native_gallery_empty">Tu primer retrato aparecerá aquí.</string>
+    <string name="native_gallery_unavailable">No se han podido cargar las fotos.</string>
+    <string name="native_gallery_no_favorites">Marca un corazón para guardar una favorita.</string>
+    <string name="native_gallery_favorite">Marcar o quitar favorita</string>
+    <string name="native_gallery_ready">Lista</string>
+    <string name="native_gallery_processing">En proceso</string>
+    <string name="native_gallery_failed">No se pudo completar</string>
+    <string name="native_gallery_review">Pendiente de revisión</string>
+    <string name="native_gallery_all">Todas</string>
+    <string name="native_gallery_favorites">Favoritas</string>
+    <string name="native_gallery_manage">Gestionar</string>
+    <string name="native_gallery_download">Guardar en galería</string>
+    <string name="native_gallery_error">No se han podido actualizar tus fotos. Revisa tu conexión y vuelve a intentarlo.</string>
+    <string name="native_crop_title">Ajusta tu fotografía</string>
+    <string name="native_crop_help">Arrastra y amplía. La foto permanece en este dispositivo hasta que autorices la creación.</string>
+    <string name="native_crop_original">Original</string>
+    <string name="native_crop_cancel">Cancelar</string>
+    <string name="native_crop_apply">Usar foto</string>
+    <string name="native_crop_loading">Preparando tu fotografía…</string>
+    <string name="native_crop_error">No se ha podido preparar esta foto. Vuelve a seleccionarla.</string>
+</resources>

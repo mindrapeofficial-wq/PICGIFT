@@ -1,6 +1,6 @@
 # PICGIFT Android · Google Play Billing
 
-Proyecto Android Studio Kotlin de una app que carga https://picgift.onrender.com en un WebView y conecta las compras integradas de Google Play Billing 9.1.0.
+Proyecto Android Studio Kotlin de PICGIFT 1.8.10-beta (código 19). La instalación incluye la interfaz, los escenarios y las dependencias públicas. La navegación, la galería y el editor de encuadre usan Jetpack Compose; el estudio conserva su WebView local y las compras integradas de Google Play Billing 9.1.0.
 
 Antes de compilar:
 1. Abrir carpeta android en Android Studio y sincronizar Gradle.
@@ -38,8 +38,8 @@ NOTA: La carpeta es código fuente para el proyecto de Android Studio; no contie
 - Android usa **Credential Manager 1.6.0** y **Google ID 1.1.1** para mostrar el selector nativo de cuentas del teléfono. Con sesión válida no vuelve a pedir acceso; sin sesión, abre el selector al iniciar la app. El botón «Elegir mi cuenta Google» permite iniciar el flujo explícito.
 - El token ID emitido por Google se intercambia con `supabase.auth.signInWithIdToken({provider:'google',token,nonce})`. El nonce aleatorio se genera en Android y se entrega a Google como SHA-256; Supabase recibe el valor original y valida la firma, audiencia y nonce. Nunca se envía un service-role ni secreto de OAuth al cliente.
 - **Configurar Google Cloud Console / Firebase y Supabase antes de publicar:** crear o reutilizar un **cliente OAuth tipo web** del mismo proyecto Google configurado en Supabase Auth → Providers → Google. Comprobar que el ID del cliente web esté autorizado como audiencia del proveedor en Supabase (si hay varios, usar su configuración de IDs admitidos). Configurar también el cliente Android para `com.picgift.myapp` con SHA-1 de **Google Play App Signing** (y SHA-1 de depuración/subida para las pruebas que corresponda).
-- En GitHub: Settings → Secrets and variables → Actions → **Variables** → `PICGIFT_GOOGLE_WEB_CLIENT_ID` = ID OAuth web terminado en `.apps.googleusercontent.com`. Es un identificador público, nunca un client secret. En Android Studio se puede establecer como variable de entorno antes de compilar; si falta, la app intenta `default_web_client_id` generado por el plugin `google-services` a partir de `google-services.json`. Verificar que **coincida** con el cliente de Supabase; nunca asumir que el cliente de Firebase y el de Supabase son intercambiables.
-- El workflow de Play exige explícitamente la variable `PICGIFT_GOOGLE_WEB_CLIENT_ID` y las credenciales privadas existentes de firma `PICGIFT_UPLOAD_*`; así no se distribuye otra versión sin selector configurado. Con instalaciones antiguas o ausencia de Credential Manager se conserva el OAuth mediante navegador externo y el acceso por contraseña.
+- El archivo `android/google-web-client-id.txt` contiene el ID OAuth **público** comprobado contra la redirección de Google de Supabase el 24/10/2026. Gradle lo incorpora a `BuildConfig` para Credential Manager. La variable `PICGIFT_GOOGLE_WEB_CLIENT_ID` permite sobrescribirlo en GitHub Actions o Android Studio. Nunca es un client secret. Si se cambia, verificar que **coincida** con el cliente de Supabase; no asumir que el cliente de Firebase y el de Supabase son intercambiables.
+- El workflow de Play exige un ID Google verificado (el archivo público o su variable de sobrescritura) y las credenciales privadas existentes de firma `PICGIFT_UPLOAD_*`; así no se distribuye otra versión sin selector configurado. Con instalaciones antiguas o ausencia de Credential Manager se conserva el OAuth mediante navegador externo y el acceso por contraseña.
 - Tras generar el AAB **v1.7.0 / código 8**, subirlo al canal cerrado de Google Play y **actualizar desde Play**. Modificar solo la web de Render no actualiza la versión nativa ya instalada.
 - Verificar en móvil físico con Google Play Services: primera instalación con varias cuentas, cuenta previamente autorizada, cancelar selector, login/registro con el botón, app reiniciada con sesión y sesión cerrada, volver a abrir, fallo de red y cuenta sin permisos.
 
@@ -49,7 +49,7 @@ NOTA: La carpeta es código fuente para el proyecto de Android Studio; no contie
 - No requiere habilitar Drive API, solicitar el permiso global de Google Drive, manejar refresh tokens ni guardar credenciales de Google. Android entrega permiso temporal de lectura del archivo elegido. La imagen continúa por el flujo existente: previsualización y recorte local, consentimiento y carga privada solo cuando se genera.
 - No confundir este selector con el acceso de PICGIFT mediante Google ni con una sincronización del Drive completo. El navegador web de escritorio no recibe un botón Drive ficticio: un Google Picker web real necesita habilitar Picker API, crear cliente OAuth 2.0 web y clave API restringida por dominio; es una integración separada.
 - Verificar en Android físico con Drive instalado y sesión iniciada: foto JPG/PNG/WEBP, cargar archivo en la nube no descargado, cancelar, archivo corrupto, archivo superior a 15 MB, referencias opcionales, reiniciar la app y cambiar la foto. No hace falta permiso de almacenamiento ni pedir autorización a todas las carpetas de Drive.
-- Los cambios en el WebView nativo requieren una **nueva actualización de Google Play**. Los archivos web y CSS se sirven directamente desde Render, pero Android instalado conserva su versión del selector hasta actualizar.
+- Los cambios en el WebView nativo requieren una **nueva actualización de Google Play**. La web pública se publica en Render. Desde la beta 1.8.7, Android instala también sus propios archivos web y CSS; tanto estos archivos como el selector cambian mediante una actualización del AAB.
 
 
 ## Android beta v1.8.1 (versionCode 10)
@@ -67,4 +67,26 @@ PICGIFT sigue siendo una arquitectura híbrida con interfaz web alojada en Rende
 
 El workflow `android-debug.yml` ejecuta pruebas Node, compilación Android, Lint y crea un APK de diagnóstico y AAB sin firma de subida. En un Android real deben probarse: selección Drive y galería, captura con cámara, cancelar el selector, abrir notificación con la app cerrada y abierta, recibir una actualización del token FCM, guardar JPG/PNG en Galería, red lenta y sin conexión, cuenta Google y compras de prueba.
 
-**El código compilado no equivale a una publicación en Google Play.** La actualización requiere `app-release.aab` firmado con la clave de subida registrada de PICGIFT y las credenciales privadas en GitHub Actions. No sustituir con otra clave desconocida. El artefacto de la nueva versión se llama `picgift-v1.8.1-beta-code10-play-signed` solo cuando el workflow de firma termina correctamente.
+**El código compilado no equivale a una publicación en Google Play.** La actualización requiere `app-release.aab` firmado con la clave de subida registrada de PICGIFT y las credenciales privadas en GitHub Actions. No sustituir con otra clave desconocida. El workflow obtiene la versión de `build.gradle.kts` y publica `picgift-v1.8.10-beta-code19-play-signed` para esta actualización, solo cuando la firma termina correctamente.
+
+
+## Android beta 1.8.10 (versionCode 19)
+
+Esta actualización incorpora a la aplicación actual los cambios de navegación y galería nativas, encuadre local, recuperación HTTP y selección fiable de fotografías que estaban en propuestas separadas.
+
+- La barra inferior conserva **Crear – Mis Fotos – cámara – Inspiración – Perfil**. Credential Manager, Play Billing, notificaciones y el control de actualizaciones conservan su integración actual.
+- La galería nativa muestra los retratos de la sesión activa con sus estados y acciones; las imágenes privadas usan enlaces temporales y deben pertenecer al usuario actual.
+- El encuadre se realiza en el dispositivo antes de devolver la selección al estudio. No autoriza ni inicia una subida. El consentimiento existente sigue siendo necesario.
+- El Photo Picker sigue siendo prioritario. El respaldo utiliza `ACTION_OPEN_DOCUMENT`, `CATEGORY_OPENABLE`, permisos temporales y JPG/PNG/WEBP. Se recuperan resultados de `parseResult`, `data` y `clipData`; una selección ilegible permite un único reintento, mientras que cancelar no abre otro selector.
+- Los errores HTTP del documento principal muestran la pantalla de reintento y cancelan operaciones asociadas a esa página. Los fallos de imágenes y API se gestionan en sus flujos existentes.
+- La versión 1.8.10 continúa incluyendo sus archivos de interfaz en la instalación. Publicar Render no actualiza la aplicación instalada.
+
+### Publicar esta actualización
+
+1. Ejecutar las pruebas Node, Android Lint, compilación y verificación de las dependencias de la interfaz instalada.
+2. Configurar en GitHub Actions los secretos existentes `PICGIFT_FIREBASE_ANDROID_JSON_B64`, `PICGIFT_UPLOAD_KEYSTORE_B64`, `PICGIFT_UPLOAD_STORE_PASSWORD`, `PICGIFT_UPLOAD_KEY_ALIAS` y `PICGIFT_UPLOAD_KEY_PASSWORD`, El ID Google público está en `android/google-web-client-id.txt`; `PICGIFT_GOOGLE_WEB_CLIENT_ID` es una sobrescritura opcional. No sustituir la clave de subida ni adivinar contraseñas. Se recomienda conservar `PICGIFT_UPLOAD_CERT_SHA256` para comparar el certificado esperado.
+3. Ejecutar **PICGIFT · Google Play signed AAB** sobre el commit integrado. El trabajo valida las credenciales antes de compilar, verifica la firma y produce el AAB versionado.
+4. Subir ese AAB al canal de pruebas cerrado existente y completar la publicación en Play Console.
+5. Actualizar un dispositivo desde Play y comprobar acceso Google, selección/cámara/cancelación, encuadre, galería, cambio de cuenta, una compra de prueba y regreso desde segundo plano.
+
+Los paquetes sin firma y las compilaciones de diagnóstico sirven para validación; la distribución de Play requiere completar los pasos de firma y publicación.

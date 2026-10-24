@@ -1,0 +1,26 @@
+/* Only the acknowledged native host owns these controls. Browser and older APKs keep HTML navigation. */
+html.picgift-native.picgift-compose-shell .mobile-nav,
+html.picgift-native.picgift-compose-shell .topbar,
+html.picgift-native.picgift-compose-shell .app-page-hero__bar {
+  display: none !important;
+}
+html.picgift-native.picgift-compose-shell {
+  --picgift-native-bottom: 0px !important;
+  overscroll-behavior-y: contain;
+}
+html.picgift-native.picgift-compose-shell .page:not([data-page="crear"]) {
+  padding-bottom: 24px !important;
+}
+html.picgift-native.picgift-compose-shell .page[data-page="crear"] {
+  padding-bottom: 26px !important;
+}
+html.picgift-native.picgift-compose-shell body:not(.studio-has-photo) .page[data-page="crear"]:not([hidden]) {
+  min-height: 100dvh !important;
+  padding-bottom: 0 !important;
+}
+html.picgift-native.picgift-compose-shell .studio-actionbar { bottom: 0; }
+html.picgift-native.picgift-compose-shell #install-picgift { display: none !important; }
+html.picgift-native.picgift-compose-shell :where(button, a, select):focus-visible {
+  outline: 2px solid #ffd49a;
+  outline-offset: 3px;
+}

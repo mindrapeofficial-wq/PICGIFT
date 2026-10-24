@@ -5,9 +5,11 @@ const vm=require('node:vm');
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}};
 function harness(){
  const elements=new Map(),events={},renders=[],queries=[],links=[];
+ class Event{constructor(type){this.type=type}}
+ class CustomEvent extends Event{constructor(type,options={}){super(type);this.detail=options.detail}}
  const element=id=>{if(!elements.has(id))elements.set(id,{style:{},dataset:{},listeners:{},classList:{add(){},remove(){},toggle(){}},addEventListener(name,fn){this.listeners[name]=fn},setAttribute(){},removeAttribute(name){delete this[name]},replaceChildren(){}});return elements.get(id)};
  const client={from(){return {select(){return this},order(){return this},limit(){const request=deferred();queries.push(request);return request.promise}}},storage:{from(){return {createSignedUrl(){const request=deferred();links.push(request);return request.promise}}}},auth:{getUser:()=>new Promise(()=>{})}};
- const context=vm.createContext({createClient:()=>client,SUPABASE_URL:'test',SUPABASE_PUBLISHABLE_KEY:'test',document:{readyState:'loading',hidden:false,getElementById:element,querySelectorAll:()=>[],addEventListener:(name,fn)=>events[name]=fn},window:{addEventListener:(name,fn)=>events[name]=fn,picgiftRenderGallery:items=>renders.push(items)},console:{warn(){}},setInterval(){},clearInterval(){},Date});
+ const context=vm.createContext({createClient:()=>client,SUPABASE_URL:'test',SUPABASE_PUBLISHABLE_KEY:'test',document:{readyState:'loading',hidden:false,getElementById:element,querySelectorAll:()=>[],addEventListener:(name,fn)=>events[name]=fn},window:{addEventListener:(name,fn)=>events[name]=fn,dispatchEvent:event=>{events[event.type]?.(event);return true},picgiftRenderGallery:items=>renders.push(items)},console:{warn(){}},setInterval(){},clearInterval(){},Date,Event,CustomEvent});
  vm.runInContext(fs.readFileSync('generator.js','utf8').replace(/^import .*;\r?\n/gm,''),context);
  const run=source=>vm.runInContext(source,context);
  return {context,run,events,renders,queries,links,element,client};
