@@ -273,6 +273,7 @@ Object.assign(english,{
  "La foto no superó la revisión.":"The photo did not pass the check.",
  "No se han consumido créditos ni intentos.":"No credits or attempts have been used."
 });
+Object.assign(english,{"Si envías un comentario desde Ayuda y comentarios, guardamos su tipo, texto, idioma, fecha y cuenta para atenderlo. No se adjuntan fotografías, contraseñas ni diagnósticos del dispositivo automáticamente. Solo el titular y el personal autorizado de soporte pueden consultarlo. El comentario se elimina al borrar la cuenta, salvo los datos que deban conservarse por una obligación legal o una reclamación.":"If you send feedback from Help and feedback, we store its type, text, language, date and account to handle it. Photos, passwords and device diagnostics are not attached automatically. Only you and authorized support staff can access it. Feedback is deleted with your account, except for data that must be retained for a legal obligation or claim.","Comentarios de la beta":"Beta feedback","Última actualización: 25 de octubre de 2026.":"Last updated: 25 October 2026."});
 const saved=()=>{try{return localStorage.getItem('picgift.language')||'auto'}catch{return 'auto'}};
 const device=()=>new URLSearchParams(location.search).get('device_lang')||navigator.languages?.[0]||navigator.language||'en';
 const supported=code=>String(code).toLowerCase().startsWith('es')?'es':'en';
