@@ -99,7 +99,8 @@ if(top){
   if(!counter.hidden)counter.setAttribute('aria-label',counter.textContent+t(' avisos nuevos',' new updates'));
   render();
  }
- new MutationObserver(localize).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+ let lastLanguage=document.documentElement.lang;
+ new MutationObserver(()=>{const next=document.documentElement.lang;if(next===lastLanguage)return;lastLanguage=next;localize();}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
  function update(force=false){
   if(document.hidden||navigator.onLine===false)return Promise.resolve();
   if(inFlight?.version===generation)return inFlight.promise;

@@ -45,7 +45,13 @@
     wasOpen = opened; lastMode = auth.dataset.authMode;
   }
   new MutationObserver(syncAuth).observe(auth, {attributes:true, attributeFilter:['class','data-auth-mode']});
-  new MutationObserver(() => controls.forEach(c => c.render())).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
+  let lastLanguage = document.documentElement.lang;
+  new MutationObserver(() => {
+    const next = document.documentElement.lang;
+    if (next === lastLanguage) return;
+    lastLanguage = next;
+    controls.forEach(c => c.render());
+  }).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
   document.addEventListener('visibilitychange', () => { if (document.hidden) hidePasswords(); });
   auth.addEventListener('keydown', event => {
     if (event.key !== 'Tab') return;

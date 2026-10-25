@@ -154,7 +154,11 @@ window.addEventListener('picgift:native-ready',syncBrowser); syncBrowser();
 
 // This component owns its ES/EN copy; do not let the legacy text translator rewrite it.
 for (const element of [help,report,browser]) element.setAttribute('data-no-translate','');
+let lastLanguage = document.documentElement.lang;
 new MutationObserver(() => {
+ const next = document.documentElement.lang;
+ if (next === lastLanguage) return;
+ lastLanguage = next;
  help.textContent = text('Ayuda y comentarios','Help and feedback');
  report.textContent = text('Informar de un problema','Report a problem');
  browser.textContent = text('Usar Google en el navegador','Use Google in the browser');
