@@ -1,6 +1,6 @@
 # PICGIFT Android · Google Play Billing
 
-Proyecto Android Studio Kotlin de PICGIFT 1.8.10-beta (código 19). La instalación incluye la interfaz, los escenarios y las dependencias públicas. La navegación, la galería y el editor de encuadre usan Jetpack Compose; el estudio conserva su WebView local y las compras integradas de Google Play Billing 9.1.0.
+Proyecto Android Studio Kotlin de PICGIFT 1.8.11-beta (código 20). La instalación incluye la interfaz, los escenarios y las dependencias públicas. La navegación, la galería y el editor de encuadre usan Jetpack Compose; el estudio conserva su WebView local y las compras integradas de Google Play Billing 9.1.0.
 
 Antes de compilar:
 1. Abrir carpeta android en Android Studio y sincronizar Gradle.

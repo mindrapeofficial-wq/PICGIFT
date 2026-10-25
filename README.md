@@ -4,7 +4,7 @@ Seasonal storybook portraits for adults creating family memories. Spanish and En
 
 ## Web and private service
 
-Serve this static repository over HTTP for the browser version. Android 1.8.10 includes the public interface, scenes, fonts and client library in its installation. A `WebViewAssetLoader` serves these installed files under the existing trusted HTTPS origin; opening the app does not load its interface from Render or a CDN. A missing local file returns a local 404, never a silent website fallback. Authentication, generation and Play purchases still need internet. Android combines a native Compose header, five-action navigation, private gallery and local crop editor with the installed HTML/CSS studio. Native Google entry, photo picker, notifications, billing and photo saving keep their existing account boundaries. The studio remains available as a fallback.
+Serve this static repository over HTTP for the browser version. Android 1.8.11 includes the public interface, scenes, fonts and client library in its installation. A `WebViewAssetLoader` serves these installed files under the existing trusted HTTPS origin; opening the app does not load its interface from Render or a CDN. A missing local file returns a local 404, never a silent website fallback. Authentication, generation and Play purchases still need internet. Android combines a native Compose header, five-action navigation, private gallery and local crop editor with the installed HTML/CSS studio. Native Google entry, photo picker, notifications, billing and photo saving keep their existing account boundaries. The studio remains available as a fallback.
 
 Gradle copies only public assets into the app and emits `bundle-manifest.json`. `node scripts/verify-android-bundle.cjs` verifies the generated interface and local references after a build. Native installs do not register the website's service worker. Web publishing and Play releases are independent: changing the website does not update an installed Android interface.
 
@@ -30,7 +30,7 @@ Run `node --test tests/experience.test.cjs` and `node --check` on the applicatio
 
 ## Android
 
-Package `com.picgift.myapp` matches Play Console. Compile/target SDK 36, minimum 26, version 1.8.10-beta/code 19. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0. Google Play checks for a newer release on every foreground entry. When one is available, the immediate update covers the app and the bundled interface remains blocked until it is installed. If Play cannot verify the version, the app offers retry and a link to its store listing. This check applies to release builds; local debug builds remain usable without Play.
+Package `com.picgift.myapp` matches Play Console. Compile/target SDK 36, minimum 26, version 1.8.11-beta/code 20. Gradle 8.11.1, JDK 17, AGP 8.10.1 and Billing 9.1.0. Google Play checks for a newer release on every foreground entry. When one is available, the immediate update covers the app and the bundled interface remains blocked until it is installed. If Play cannot verify the version, the app offers retry and a link to its store listing. This check applies to release builds; local debug builds remain usable without Play.
 
 Build: `gradle -p android --no-daemon :app:lintRelease :app:assembleDebug :app:bundleRelease`.
 
@@ -41,6 +41,10 @@ Without signing variables, the release AAB is unsigned. Supply `PICGIFT_UPLOAD_S
 The current Android update reconciles the earlier native-interface proposals with the bundled application. It preserves the five actions Crear, Mis Fotos, central camera, Inspiración and Perfil. The private gallery and crop editor use the current account and existing permission-to-upload flow. Photo selection prefers the system Photo Picker and falls back to openable system documents; successful but unreadable gallery results receive one recovery attempt. Main-page HTTP errors show the retry screen without treating API or image errors as a failed page.
 
 The original Google Play upload key must be retained. The signed-release workflow requires the existing Firebase configuration, original keystore, key alias, both signing passwords and a Google web client ID authorized in Supabase. `android/google-web-client-id.txt` contains the public client ID verified against the active Supabase Google redirect on 2026-10-24; `PICGIFT_GOOGLE_WEB_CLIENT_ID` can override it. Missing credentials stop publication; a validation APK or unsigned AAB is not a Play release. The workflow derives its artifact version from the Android project and starts when its version configuration changes on main; manual runs remain available.
+
+## Beta candidate 1.8.11
+
+This version adds accessible password controls, a browser fallback for Google sign-in, private beta feedback, help access and safer portrait sharing. The feedback form stores only its category, message, language, account and date. The privacy notice now describes that data. The matching signed AAB and Google Play installation must be validated separately; the source version alone does not establish availability to testers.
 
 ## Commercial release gates
 
