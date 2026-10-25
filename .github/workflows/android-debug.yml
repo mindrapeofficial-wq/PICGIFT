@@ -33,6 +33,8 @@ on:
       - 'app-shell.css'
       - 'mobile-scrollbars.css'
       - '.github/workflows/android-debug.yml'
+      - '.github/actions/beta-quality/**'
+      - 'store-listing/beta-copy.json'
   push:
     branches: [main]
     paths:
@@ -64,6 +66,8 @@ on:
       - 'app-shell.css'
       - 'mobile-scrollbars.css'
       - '.github/workflows/android-debug.yml'
+      - '.github/actions/beta-quality/**'
+      - 'store-listing/beta-copy.json'
 
 permissions:
   contents: read
@@ -74,11 +78,13 @@ concurrency:
 
 jobs:
   build-debug-apk:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
     steps:
       - name: Obtener PICGIFT
         uses: actions/checkout@v4
+      - name: Validar correcciones de la beta antes de compilar
+        uses: ./.github/actions/beta-quality
       - name: Verificar experiencia web
         run: node --test tests/*.test.cjs
       - name: Verificar tutorial visual y scroll móvil

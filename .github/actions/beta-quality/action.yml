@@ -1,0 +1,37 @@
+name: PicGift beta quality gate
+description: Check beta scripts, private-cache boundaries, store copy and browser regressions before packaging.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Check script syntax and release invariants
+      shell: bash
+      run: |
+        mkdir -p artifacts/beta-quality
+        for file in experience.js auth.js beta-feedback.js announcements.js sw.js; do
+          node --check "$file"
+        done
+        node --test tests/beta-release.test.cjs | tee artifacts/beta-quality/release-tests.txt
+    - name: Install regression browser
+      shell: bash
+      run: |
+        python -m pip install playwright==1.57.0
+        python -m playwright install --with-deps chromium
+    - name: Check browser behaviour and actual module loading
+      shell: bash
+      env:
+        PICGIFT_TEST_IN_MEMORY: '0'
+      run: python tests/beta-feedback.browser.py | tee artifacts/beta-quality/browser-tests.txt
+    - name: Keep beta validation evidence
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: picgift-beta-quality-${{ github.job }}-${{ github.run_attempt }}
+        path: artifacts/beta-quality
+        if-no-files-found: error
+        retention-days: 7

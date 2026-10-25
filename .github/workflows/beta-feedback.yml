@@ -1,0 +1,46 @@
+name: PicGift beta feedback regressions
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'experience.js'
+      - 'auth.js'
+      - 'beta-feedback.js'
+      - 'announcements.js'
+      - 'sw.js'
+      - 'android/app/build.gradle.kts'
+      - 'tests/beta-feedback.*'
+      - 'tests/beta-release.test.cjs'
+      - 'store-listing/beta-copy.json'
+      - '.github/actions/beta-quality/**'
+      - '.github/workflows/beta-feedback.yml'
+      - '.github/workflows/android-debug.yml'
+      - '.github/workflows/android-play-release.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experience.js'
+      - 'auth.js'
+      - 'beta-feedback.js'
+      - 'announcements.js'
+      - 'sw.js'
+      - 'android/app/build.gradle.kts'
+      - 'tests/beta-feedback.*'
+      - 'tests/beta-release.test.cjs'
+      - 'store-listing/beta-copy.json'
+      - '.github/actions/beta-quality/**'
+      - '.github/workflows/beta-feedback.yml'
+      - '.github/workflows/android-debug.yml'
+      - '.github/workflows/android-play-release.yml'
+permissions:
+  contents: read
+concurrency:
+  group: picgift-beta-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/beta-quality
