@@ -236,7 +236,7 @@ $('generate').addEventListener('click',async()=>{
   window.dispatchEvent(new CustomEvent('picgift:generate',{detail:{service:selectedService,billing_mode,file:prepared,references:window.picgiftPhotoEditor.references(),scene_id:selected.id,format:['vertical','horizontal'][$('format').selectedIndex]||'vertical',pose:$('pose').value,outfit:$('outfit').value,consent:true,email_requested:$('photo-email-delivery').checked}}));
  }catch(e){window.picgiftGenerating=false;updateStudio();if(sessionRevision===photoSessionRevision)toast(e.message||'No se pudo preparar el encuadre.')}
 });
-// Premium controls are hidden during the private AI test; no payments are offered.
+// Premium availability and purchases are controlled by the live account and Play status.
 window.addEventListener('picgift:route',e=>navigate(e.detail.name));
 window.addEventListener('picgift:notice',e=>{if(e.detail?.message)toast(e.detail.message)});
 window.addEventListener('picgift:native-route',e=>{
