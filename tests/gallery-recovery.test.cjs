@@ -138,7 +138,7 @@ test('health replies from the previous session cannot enable the studio after lo
  h.client.functions={invoke(){const request=deferred();requests.push(request);return request.promise}};
  h.run('init(); galleryAuthenticated=true');const pending=h.run('health()');await settle();
  await h.events['picgift:auth']({detail:{user:null}});
- requests[0].resolve({data:{available:true}});requests[1].resolve({data:{available:true,email_available:true,pilot:true,references_supported:true}});await pending;
+ requests[0].resolve({data:{available:true,email_available:true,remaining_free_premium_trial:1,references_supported:true}});await pending;
  assert.equal(h.element('generate').disabled,true);
  assert.equal(h.context.window.picgiftAiReady,false);
  assert.equal(h.context.window.picgiftFreeReady,false);
@@ -150,15 +150,15 @@ test('an older failing health request cannot disable a newer available studio',a
  h.client.auth.getSession=async()=>({data:{session:{user:{id:'account'}}}});
  h.client.functions={invoke(){const request=deferred();requests.push(request);return request.promise}};
  const old=h.run('health()');await settle();const latest=h.run('health()');await settle();
- requests[2].resolve({data:{available:true,remaining_daily_limit:5}});requests[3].resolve({data:{available:true,email_available:true,pilot:true,references_supported:true,remaining_free_premium_today:1}});await latest;
- requests[0].resolve({error:true});requests[1].resolve({error:true});await old;
+ requests[1].resolve({data:{available:true,email_available:true,references_supported:true,remaining_free_premium_trial:1}});await latest;
+ requests[0].resolve({error:true});await old;
  assert.equal(h.context.window.picgiftAiReady,true);
- assert.equal(h.context.window.picgiftFreeReady,true);
+ assert.equal(h.context.window.picgiftFreeReady,false);
  assert.equal(h.context.window.picgiftPremiumReady,true);
  assert.equal(h.element('photo-email-delivery').disabled,false);
 });
 test('logout clears all capabilities and email delivery from an available studio',async()=>{
- const h=harness();h.run('init(); freeReady=true; premiumReady=true; window.picgiftFreeReady=true; window.picgiftPremiumReady=true; window.picgiftPilot=true; window.picgiftReferencesReady=true; controlAi(true)');
+ const h=harness();h.run('init(); premiumReady=true; window.picgiftFreeReady=false; window.picgiftPremiumReady=true; window.picgiftPilot=true; window.picgiftReferencesReady=true; controlAi(true)');
  h.element('photo-email-delivery').checked=true;
  await h.events['picgift:auth']({detail:{user:null}});
  for(const name of ['picgiftAiReady','picgiftFreeReady','picgiftPremiumReady','picgiftPilot','picgiftReferencesReady'])assert.equal(h.context.window[name],false,name);

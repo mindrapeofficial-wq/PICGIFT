@@ -20,7 +20,7 @@
   if(!studio.hasPhoto)return {number:1,title:'Elige tu fotografía',copy:'Usa una foto nítida, con buena luz y la cara visible. Permanece en tu dispositivo hasta que autorices la creación.',action:'Elegir mi foto',target:'photo'};
   if(!studio.hasScene||!sceneChosen)return {number:2,title:'Elige un escenario',copy:'Toca uno de los decorados disponibles. Puedes ajustar el encuadre, la postura y el vestuario antes de crear.',action:'Elegir escenario',target:'mobile-scenes'};
   if(!studio.hasConsent)return {number:3,title:'Revisa y autoriza tu retrato',copy:'Comprueba la foto y el decorado, revisa la información sobre el tratamiento de imágenes y marca la autorización si estás de acuerdo.',action:'Revisar autorización',target:'photo-ai-consent'};
-  return {number:4,title:'Crea tu primera foto',copy:studio.available?'Pulsa Crear mi foto y elige Foto Gratis o Foto Premium. Premium utiliza créditos; revisa el servicio elegido antes de continuar.':'El estudio todavía no está disponible para esta cuenta. Puedes conservar la guía y volver cuando se habilite.',action:'Ir a Crear mi foto',target:'generate'};
+  return {number:4,title:'Crea tu primera foto',copy:studio.available?'Pulsa Crear mi foto para usar tu única foto Premium de prueba. Después podrás crear más con créditos.':'El estudio todavía no está disponible para esta cuenta. Puedes conservar la guía y volver cuando se habilite.',action:'Ir a Crear mi foto',target:'generate'};
  };
  function render(){
   if(!user||!started||paused||completed){card.hidden=true;return}

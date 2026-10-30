@@ -104,7 +104,7 @@ test('Android integration increments version while preserving existing package a
  const gradle=read('android/app/build.gradle.kts');
  assert.match(gradle,/applicationId = "com.picgift.myapp"/);
  assert.ok(Number(gradle.match(/versionCode\s*=\s*(\d+)/)?.[1])>=19,'native photo fixes require an unused Play version code after beta 18');
- assert.match(gradle,/versionName = "\d+\.\d+\.\d+-beta"/);
+ assert.match(gradle,/versionName = "\d+\.\d+\.\d+(?:-beta)?"/);
  assert.match(android,/trustedPicgiftPage\(\)/);
  assert.match(android,/GoogleCredentialSignIn/);
  assert.match(android,/connectBilling\(\)/);

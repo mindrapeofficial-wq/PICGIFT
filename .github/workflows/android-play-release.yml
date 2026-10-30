@@ -144,7 +144,7 @@ jobs:
           python3 - <<'PYVERSION'
           import os, pathlib, re
           source = pathlib.Path('android/app/build.gradle.kts').read_text()
-          version = re.search(r'versionName\s*=\s*"([0-9.]+-beta)"', source).group(1)
+          version = re.search(r'versionName\s*=\s*"([0-9.]+(?:-beta)?)"', source).group(1)
           code = re.search(r'versionCode\s*=\s*(\d+)', source).group(1)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write(f'name={version}\ncode={code}\n')

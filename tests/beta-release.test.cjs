@@ -84,7 +84,7 @@ test('candidate Android version advances while retaining original package and si
  const gradle=read('android/app/build.gradle.kts');
  assert.match(gradle,/applicationId = "com\.picgift\.myapp"/);
  assert.ok(Number(gradle.match(/versionCode\s*=\s*(\d+)/)[1])>=20);
- assert.match(gradle,/versionName = "\d+\.\d+\.\d+-beta"/);
+ assert.match(gradle,/versionName = "\d+\.\d+\.\d+(?:-beta)?"/);
  for(const key of ['PICGIFT_UPLOAD_STORE','PICGIFT_UPLOAD_STORE_PASSWORD','PICGIFT_UPLOAD_KEY_ALIAS','PICGIFT_UPLOAD_KEY_PASSWORD'])assert.ok(gradle.includes(key));
  assert.doesNotMatch(gradle,/storePassword\s*=\s*"|keyPassword\s*=\s*"/);
 });

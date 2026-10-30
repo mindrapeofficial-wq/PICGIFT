@@ -38,19 +38,16 @@ test('Free beta portraits remain private to their owner and manual review stays 
  assert.match(review,/action:'review'/);
  assert.match(review,/decision:'preview'/);
 });
-test('Browser scales each personal and scene reference without leaving the private bucket',()=>{
- assert.match(frontend,/480\/Math\.max\(bitmap\.width,bitmap\.height\)/);
+test('The former free worker stays private while the browser no longer invokes it',()=>{
+ assert.doesNotMatch(frontend,/picgift-flux-personal|fluxMode|smallFluxImage/);
  assert.match(frontend,/picgift-uploads/);
- assert.match(frontend,/flux-scene\.jpg/);
- assert.match(frontend,/flux-subject\.jpg/);
  assert.match(frontend,/guardian_consent:consent===true/);
 });
-test('Free and Premium require an explicit service selection; no automatic paid fallback',()=>{
- assert.match(frontend,/const halloween=document\.documentElement\.dataset\.campaign==='halloween'/);
- assert.match(frontend,/fluxMode=service==='free'/);
- assert.match(frontend,/\['free','premium'\]\.includes\(service\)/);
+test('Only Premium remains selectable and billing mode is explicit',()=>{
+ assert.match(frontend,/service!=='premium'/);
+ assert.match(frontend,/premiumTrialRemaining>0\?'pilot':'credits'/);
  assert.doesNotMatch(frontend,/confirm_fictional_samples/);
- assert.match(index,/id="choose-free-photo"/);
+ assert.doesNotMatch(index,/id="choose-free-photo"/);
  assert.match(index,/id="choose-premium-photo"/);
  assert.match(index,/para menores o personas que requieran representaci.n, soy su representante legal facultado o cuento con su autorizaci.n expresa/i);
 });

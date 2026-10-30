@@ -54,7 +54,7 @@ test('pilot explicitly choosing credits uses the real debit and refund path',asy
 test('pilot explicitly choosing credits cannot silently fall back to free',async()=>{
  const r=await fixture({pilot:true,credits:0}).request('credits');assert.equal(r.status,402);assert.equal(r.preflights,0);
 });
-test('a verified non-pilot can claim the daily free Premium photo without spending a credit',async()=>{
+test('a verified account can claim its one Premium trial without spending a credit',async()=>{
  const r=await fixture({credits:0}).request('pilot');assert.equal(r.status,202);assert.equal(r.preflights,1);assert.equal(r.spent,0);
  assert.equal(r.inserted.is_test,true);assert.equal(r.quotaClaim,'picgift_claim_premium_free_photo');
 });
@@ -66,9 +66,9 @@ test('service choice captures the advertised billing mode until confirmation',as
   const nodes={};
   const element=id=>nodes[id]||(nodes[id]={addEventListener:(_event,fn)=>{close=fn},removeEventListener:()=>{},showModal:()=>{}});
   const window={picgiftCreditsAvailable:credits};
-  const ctx={window,$:element,authRevision:0,health:async()=>{},freeReady:true,premiumReady:true,freeRemaining:5,premiumFreeRemaining:remaining};vm.createContext(ctx);vm.runInContext(choice,ctx);
+  const ctx={window,$:element,translated:text=>text,authRevision:0,health:async()=>{},premiumReady:true,premiumTrialRemaining:remaining};vm.createContext(ctx);vm.runInContext(choice,ctx);
   const pending=ctx.chooseService();await new Promise(setImmediate);
-  assert.match(nodes['premium-photo-availability'].textContent,expected==='credits'?/1 crédito/:/gratis/);
+  assert.match(nodes['premium-photo-availability'].textContent,expected==='credits'?/1 crédito/:/no consume créditos/);
   window.picgiftCreditsAvailable=credits?0:2;
   nodes['photo-service-choice'].returnValue='premium';close();
   const result=await pending;assert.equal(result.billing_mode,expected);assert.equal(result.service,'premium');

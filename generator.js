@@ -4,8 +4,10 @@ const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSe
 const $=id=>document.getElementById(id);
 const statuses={queued:'En cola',analyzing:'Analizando la fotografía',generating:'Creando la escena',reviewing:'Revisando calidad',completed:'Lista para descargar',needs_review:'Requiere revisión',failed:'No se pudo completar'};
 const labels={'halloween-potions':'La escuela de magia','halloween-autumn-arch':'El bosque encantado','halloween-pumpkin-bench':'El rincón de las calabazas','halloween-lantern-street':'La calle de los farolillos','halloween-pumpkin-forest':'Bosque de calabazas','halloween-haunted-castle':'Castillo embrujado','halloween-portrait-hall':'Salón de retratos','halloween-enchanted-city':'Ciudad encantada','golden-christmas':'Navidad dorada','reading-corner':'Rincón de cuentos de Navidad','santa-workshop':'Taller de Papá Noel','christmas-armchair':'Sillón de Navidad','white-door':'La puerta de Navidad','winter-window':'Ventana de invierno','cozy-cabinet':'El rincón de los ositos'};
-let fluxMode=false,freeReady=false,premiumReady=false,freeRemaining=0,premiumFreeRemaining=0,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
+let premiumReady=false,premiumTrialRemaining=0,working=false,aiReady=false,activeId=null,poller=null,lastJobs=[],currentJob=null,elapsedTimer=null,pollBusy=false;
 let galleryRevision=0,galleryAuthenticated=false,authRevision=0,healthRevision=0,serviceChoice=null;
+
+// These are observed steps, never a percentage or a prediction of time remaining.
 const sceneImages={
  'halloween-potions':'./assets/halloween/backdrops/potions.jpg',
  'halloween-autumn-arch':'./assets/halloween/backdrops/autumn-arch.jpg',
@@ -24,7 +26,6 @@ const sceneImages={
  'cozy-cabinet':'./assets/scenes/cabinet-teddies.jpg'
 };
 
-// These are observed steps, never a percentage or a prediction of time remaining.
 const progressSteps=['Subida','Comprobación','Cola','Creación','Revisión','Lista'];
 const progressStates={
  queued:{step:2,title:'Tu foto está en cola',description:'La comprobación inicial ha terminado y tu solicitud está registrada. Esperamos a que empiece la creación.'},
@@ -88,10 +89,9 @@ function controlAi(available){
  window.picgiftStudioUpdate?.();
 }
 const escape=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-const status=s=>{$('generator-status').textContent=s};
+const status=s=>{$('generator-status').textContent=translated(s)};
 async function invoke(body){
- const functionName=fluxMode&&['start','health'].includes(body.action)?'picgift-flux-personal':'picgift-generate';
- const {data,error}=await client.functions.invoke(functionName,{body});
+ const {data,error}=await client.functions.invoke('picgift-generate',{body});
  if(error){let message='El estudio no está disponible.',code='';try{const j=await error.context.json();message=j.error||message;code=j.code||''}catch{}const failure=Error(message);failure.code=code;throw failure}
  return data;
 }
@@ -102,27 +102,21 @@ async function health(){
   const {data:{session}}=await client.auth.getSession();
   if(!isCurrent())return;
   if(!session){resetStudioAvailability();status('Inicia sesión para crear tu fotografía.');return}
-  const [beta,premium]=await Promise.all([
-   client.functions.invoke('picgift-flux-personal',{body:{action:'health'}}),
-   client.functions.invoke('picgift-generate',{body:{action:'health'}})
-  ]);
+  const premium=await client.functions.invoke('picgift-generate',{body:{action:'health'}});
   if(!isCurrent())return;
-  const halloween=document.documentElement.dataset.campaign==='halloween';
-  freeRemaining=Math.max(0,Number(beta.data?.remaining_daily_limit)||0);
-  premiumFreeRemaining=Math.max(0,Number(premium.data?.remaining_free_premium_today)||0);
-  freeReady=halloween&&!beta.error&&beta.data?.available===true&&freeRemaining>0;
+  premiumTrialRemaining=Math.max(0,Number(premium.data?.remaining_free_premium_trial)||0);
   premiumReady=!premium.error&&premium.data?.available===true;
-  window.picgiftFreeReady=freeReady;window.picgiftPremiumReady=premiumReady;
-  window.picgiftPilot=premium.data?.pilot===true;
-  window.picgiftReferencesReady=freeReady||premium.data?.references_supported===true;
-  controlAi(freeReady||premiumReady);
-  status(freeReady||premiumReady?'Tienes hasta 5 fotos Gratis y 1 foto Premium gratis cada día. Elige cómo crear tu retrato.':'No hay servicios disponibles para tu cuenta en este momento.');
+  window.picgiftFreeReady=false;window.picgiftPremiumReady=premiumReady;
+  window.picgiftPilot=premiumTrialRemaining>0;
+  window.picgiftReferencesReady=premium.data?.references_supported===true;
+  controlAi(premiumReady);
+  status(premiumReady?(premiumTrialRemaining>0?'Tienes una foto Premium de prueba sin coste. Después podrás crear más con créditos.':'Crea fotos Premium con tus créditos.'): 'No hay servicios disponibles para tu cuenta en este momento.');
   const email=$('photo-email-delivery');email.disabled=!premiumReady||premium.data?.email_available!==true;
   if(email.disabled)email.checked=false;
  }catch(e){if(!isCurrent())return;resetStudioAvailability();status('No hemos podido conectar con el estudio. Revisa tu sesión e inténtalo más tarde.')}
 }
 function resetStudioAvailability(){
- freeReady=false;premiumReady=false;freeRemaining=0;premiumFreeRemaining=0;
+ premiumReady=false;premiumTrialRemaining=0;
  window.picgiftFreeReady=false;window.picgiftPremiumReady=false;
  window.picgiftPilot=false;window.picgiftReferencesReady=false;
  const email=$('photo-email-delivery');email.disabled=true;email.checked=false;
@@ -137,16 +131,15 @@ async function chooseService(){
  const revision=authRevision;
  await health();
  if(revision!==authRevision)return null;
- const dialog=$('photo-service-choice'),free=$('choose-free-photo'),premium=$('choose-premium-photo');
+ const dialog=$('photo-service-choice'),premium=$('choose-premium-photo');
  const credits=window.picgiftCreditsAvailable;
  const balanceKnown=typeof credits==='number'&&Number.isFinite(credits);
- const billingMode=premiumFreeRemaining>0?'pilot':'credits';
- free.disabled=!freeReady;premium.disabled=!premiumReady;
+ const billingMode=premiumTrialRemaining>0?'pilot':'credits';
+ premium.disabled=!premiumReady;
  if(billingMode==='credits'&&!balanceKnown)premium.disabled=true;
- $('free-photo-availability').textContent=freeReady?`Te quedan ${freeRemaining} de tus 5 fotos Gratis de hoy.`:'Ya has usado tus 5 fotos Gratis de hoy o el servicio no está disponible.';
- $('premium-photo-availability').textContent=!premiumReady?'El servicio Premium no está disponible ahora.':billingMode==='pilot'?'Te queda 1 foto Premium gratis hoy. No consume créditos.':!balanceKnown?'Actualiza tu saldo antes de elegir Foto Premium.':'Ya usaste tu foto Premium gratis de hoy. Otra foto Premium utiliza 1 crédito.';
+ $('premium-photo-availability').textContent=translated(!premiumReady?'El servicio Premium no está disponible ahora.':billingMode==='pilot'?'Tu única foto Premium de prueba no consume créditos.':!balanceKnown?'Actualiza tu saldo antes de elegir Foto Premium.':'Tu prueba ya se ha utilizado. Esta foto Premium consume 1 crédito.');
  return new Promise(resolve=>{
-  const finish=()=>{dialog.removeEventListener('close',finish);const service=dialog.returnValue;resolve(['free','premium'].includes(service)?{service,billing_mode:service==='premium'?billingMode:null}:null)};
+  const finish=()=>{dialog.removeEventListener('close',finish);resolve(dialog.returnValue==='premium'?{service:'premium',billing_mode:billingMode}:null)};
   dialog.returnValue='';dialog.addEventListener('close',finish);dialog.showModal();
  });
 }
@@ -161,37 +154,14 @@ async function preparedFile(file){
  }catch(e){console.warn('PICGIFT resize fallback')}
  return file;
 }
-async function smallFluxImage(blob,name){
- if(!blob||!['image/jpeg','image/png','image/webp'].includes(blob.type)||blob.size>15*1024*1024)throw Error('Imagen de referencia no válida.');
- const bitmap=await createImageBitmap(blob);
- try{
-  const ratio=Math.min(1,480/Math.max(bitmap.width,bitmap.height));
-  const canvas=document.createElement('canvas');
-  canvas.width=Math.max(64,Math.round(bitmap.width*ratio));
-  canvas.height=Math.max(64,Math.round(bitmap.height*ratio));
-  if(Math.max(canvas.width,canvas.height)>480)throw Error('Tamaño de referencia no válido.');
-  canvas.getContext('2d',{alpha:false}).drawImage(bitmap,0,0,canvas.width,canvas.height);
-  const compressed=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.86));
-  if(!compressed||compressed.size<1000||compressed.size>550000)throw Error('No se pudo preparar la referencia.');
-  return new File([compressed],name,{type:'image/jpeg'});
- }finally{bitmap.close()}
-}
-async function sceneFluxImage(sceneId){
- const url=sceneImages[sceneId];
- if(!url||!url.startsWith('./assets/'))throw Error('Este decorado todavía no está disponible para el servicio elegido.');
- const response=await fetch(url,{cache:'force-cache'});
- if(!response.ok)throw Error('No se pudo cargar el fondo autorizado.');
- const blob=await response.blob();
- return smallFluxImage(blob,'flux-scene.jpg');
-}
 function finishButton(){working=false;controlAi(aiReady)}
 async function create(ev){
  if(working)return;
- const {service='free',billing_mode}=ev.detail||{};if(!['free','premium'].includes(service))return;fluxMode=service==='free';
+ const {service,billing_mode}=ev.detail||{};if(service!=='premium')return;
  // Cached callers may omit the mode; the server preserves their existing pilot/paid behavior.
- if(!fluxMode&&billing_mode!==undefined&&!['credits','pilot'].includes(billing_mode)){status('Elige de nuevo Foto Premium para confirmar el uso de créditos.');return;}
- if(!(fluxMode?freeReady:premiumReady)){status('El servicio elegido no está disponible.');return;}const {file,references={},scene_id,format,pose,outfit,consent,email_requested:requestedEmail}=ev.detail||{};
- const email_requested=!fluxMode&&requestedEmail===true;
+ if(billing_mode!==undefined&&!['credits','pilot'].includes(billing_mode)){status('Elige de nuevo Foto Premium para confirmar el uso de créditos.');return;}
+ if(!premiumReady){status('El servicio elegido no está disponible.');return;}const {file,references={},scene_id,format,pose,outfit,consent,email_requested:requestedEmail}=ev.detail||{};
+ const email_requested=requestedEmail===true;
  if(!file||consent!==true){status('Selecciona una foto y autoriza su tratamiento antes de generar.');return}
  if(!Object.prototype.hasOwnProperty.call(labels,scene_id)){status('Este escenario está en preparación.');return}
  working=true;controlAi(aiReady);$('generate').disabled=true;$('generate').textContent='Preparando solicitud…';
@@ -218,27 +188,7 @@ async function create(ev){
   uploadedPaths.push(path);
   requireSameSession();
   const reference_paths={};
-  if(fluxMode){
-   const folder=path.slice(0,path.lastIndexOf('/'));
-   const subject=await smallFluxImage(prepared,'flux-subject.jpg');requireSameSession();
-   const scene=await sceneFluxImage(scene_id);requireSameSession();
-   const inputs=[['flux_subject',subject],['flux_scene',scene]];
-   for(const kind of ['face','body']){
-    if(references[kind]){
-     if(inputs.length>=4)throw Error('Demasiadas referencias.');
-     inputs.push(['flux_'+kind,await smallFluxImage(references[kind],'flux-'+kind+'.jpg')]);
-     requireSameSession();
-    }
-   }
-   for(const [key,small] of inputs){
-    const privatePath=folder+'/'+key.replace('_','-')+'.jpg';
-    const upload=await client.storage.from('picgift-uploads').upload(privatePath,small,{contentType:'image/jpeg',cacheControl:'0',upsert:false});
-    if(upload.error)throw Error('No se pudo subir la referencia. Comprueba la conexión y vuelve a intentarlo.');
-    reference_paths[key]=privatePath;uploadedPaths.push(privatePath);
-    requireSameSession();
-   }
-  }else{
-   for(const kind of ['face','body']){
+  for(const kind of ['face','body']){
     const reference=references[kind];if(!reference)continue;
     if(!['image/jpeg','image/png','image/webp'].includes(reference.type)||reference.size>15*1024*1024)throw Error('La referencia supera el tamaño o tipo permitido.');
     if(ready.references_supported!==true)throw Error('El estudio aún no admite referencias adicionales.');
@@ -249,7 +199,6 @@ async function create(ev){
     if(upload.error)throw Error('No se pudo subir la referencia.');
     uploadedPaths.push(extraPath);reference_paths[kind]=extraPath;
     requireSameSession();
-   }
   }
   requireSameSession();
   status('Revisando si tu fotografía es apta antes de consumir créditos o intentos…');

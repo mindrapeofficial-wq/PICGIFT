@@ -168,12 +168,12 @@ Deno.serve(async req=>{
   const active=campaign?.active_campaign||"halloween";
   const {count,error:catalogError}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true})
    .eq("enabled",true).like("scene_id",active==="halloween"?"halloween-%":"%christmas%");
-  const today=new Date().toISOString().slice(0,10);
+  const {data:trialSettings,error:trialSettingsError}=await db.from("picgift_premium_settings").select("trial_started_at").eq("singleton",true).single();
   const {count:usedFree,error:freeError}=await db.from("picgift_premium_usage").select("job_id",{count:"exact",head:true})
-   .eq("user_id",auth.user.id).eq("day_utc",today).eq("is_free",true);
-  const remainingFree=auth.user.email_confirmed_at&&!freeError?Math.max(0,1-(usedFree||0)):0;
-  return respond({available:!catalogError&&!freeError&&(count||0)>0&&["christmas","halloween"].includes(active)&&await engineReady(auth.user),
-   references_supported:true,pilot:remainingFree>0,remaining_free_premium_today:remainingFree,campaign:active,image_model:imageModel(),
+   .eq("user_id",auth.user.id).gte("created_at",trialSettings?.trial_started_at||"9999-12-31T00:00:00Z").eq("is_free",true);
+  const remainingFree=auth.user.email_confirmed_at&&!trialSettingsError&&!freeError?Math.max(0,1-(usedFree||0)):0;
+  return respond({available:!catalogError&&!trialSettingsError&&!freeError&&(count||0)>0&&["christmas","halloween"].includes(active)&&await engineReady(auth.user),
+   references_supported:true,pilot:remainingFree>0,remaining_free_premium_trial:remainingFree,campaign:active,image_model:imageModel(),
    email_available:!!Deno.env.get("RESEND_API_KEY")&&!!Deno.env.get("PICGIFT_FROM_EMAIL")});
  }
  if(action==="diagnose"){
@@ -285,7 +285,7 @@ Deno.serve(async req=>{
  const {data:quota,error:quotaError}=await db.rpc(testMode?"picgift_claim_premium_free_photo":"picgift_claim_premium_photo",{p_user:auth.user.id,p_job:job.id});
  if(quotaError||quota?.accepted!==true){
   await db.from("picgift_photo_jobs").delete().eq("id",job.id).eq("user_id",auth.user.id);
-  return respond({error:testMode?"Ya has usado tu foto Premium gratis de hoy. Tendrás otra a partir de las 00:00 UTC.":"Has alcanzado tu límite diario de generaciones Premium. Se renueva a las 00:00 UTC."},429);
+  return respond({error:testMode?"Ya has usado tu única foto Premium de prueba. Las siguientes requieren un crédito.":"Has alcanzado tu límite diario de generaciones Premium. Se renueva a las 00:00 UTC."},429);
  }
  if(!testMode){
   const {data:spent,error:creditError}=await db.rpc("picgift_spend_credit",{p_user:auth.user.id,p_job:job.id});
