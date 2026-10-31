@@ -1,0 +1,20 @@
+{
+  "status": "DRAFT — not uploaded to Google Play. Validate native Android experience, active scenes, generation/trial, terms and Data safety before use.",
+  "plannedFor": "November 2026",
+  "targetAppId": "com.picgift.myapp",
+  "notes": [
+    "Replace seasonal Halloween copy only when public listing images/screenshots reflect the real current version.",
+    "Do not claim Christmas scenes, paid purchases, unlimited photos, or a specific free quota without live validation.",
+    "All claims must be reconciled with Play Console and actual production flags. This is not a publication instruction."
+  ],
+  "es-ES": {
+    "title": "PicGift: retratos con IA",
+    "shortDescription": "Transforma tus fotos en retratos personalizados y conserva tus recuerdos.",
+    "fullDescription": "PICGIFT: TUS FOTOS, NUEVAS HISTORIAS\n\nExplora retratos personalizados creados con inteligencia artificial a partir de tus fotografías. Elige un escenario disponible, prepara tu imagen y convierte una idea visual en un recuerdo digital.\n\nPREPARA TU RETRATO\n• Selecciona una fotografía nítida.\n• Ajusta el encuadre y el zoom antes de enviarla.\n• Explora los escenarios disponibles y sus opciones de pose y vestuario.\n• Elige la orientación adecuada para tu retrato.\n\nTUS RETRATOS EN UN SOLO LUGAR\nConsulta en Mis fotos el estado de tus solicitudes y accede a los resultados terminados. Puedes guardar tus imágenes y utilizar las opciones de compartir disponibles en tu dispositivo.\n\nAYUDA Y OPCIONES DE USO\nLa aplicación incluye un tutorial y un espacio para enviar comentarios o comunicar problemas. La disponibilidad de la prueba Premium, sus límites y cualquier compra de créditos se muestran en la propia aplicación. Cuando haya compras habilitadas en Android, se gestionarán mediante Google Play y podrás consultar su precio antes de confirmar.\n\nINFORMACIÓN IMPORTANTE\nPara crear retratos necesitas una cuenta y conexión a internet. PICGIFT está dirigida a personas adultas: utiliza únicamente fotografías con los permisos correspondientes. Las fotos de menores requieren autorización de sus representantes legales. Las imágenes se envían para su procesamiento cuando das tu consentimiento y comienzas la creación. Los resultados generados con IA pueden variar y no garantizan una reproducción exacta de los rasgos.\n\nDescubre PICGIFT y explora las posibilidades de tus fotografías."
+  },
+  "en-US": {
+    "title": "PicGift: AI Photo Portraits",
+    "shortDescription": "Turn your photos into custom AI portraits and keep memorable moments.",
+    "fullDescription": "PICGIFT: YOUR PHOTOS, NEW STORIES\n\nExplore personalized portraits created with artificial intelligence from your photos. Choose an available scene, prepare your picture, and turn a visual idea into a digital keepsake.\n\nPREPARE YOUR PORTRAIT\n• Choose a clear photograph.\n• Adjust framing and zoom before uploading.\n• Browse available scenes and their pose and outfit options.\n• Pick the orientation that suits your portrait.\n\nYOUR PORTRAITS IN ONE PLACE\nCheck the status of your requests in My Photos and access completed results. Save your images and use the sharing options supported by your device.\n\nHELP AND USAGE OPTIONS\nThe app includes a tutorial and a way to send suggestions or report issues. The availability and limits of the Premium trial and any photo credit purchases are shown inside the app. When Android purchases are available, they use Google Play and you can review the price before confirming.\n\nIMPORTANT INFORMATION\nCreating portraits requires an account and an internet connection. PICGIFT is intended for adults: only use photos for which you have the necessary permissions. Photos of children require permission from their legal representatives. Images are uploaded for processing when you consent and start creating. AI-generated results may vary and do not guarantee an exact reproduction of facial features.\n\nDiscover PICGIFT and explore what your photographs can become."
+  }
+}
