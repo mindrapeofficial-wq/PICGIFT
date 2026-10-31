@@ -1,46 +1,56 @@
 # PICGIFT · Acceso de Google Play para revisión
 
-Esta guía sirve para preparar una cuenta **real** en Supabase Auth que los revisores de Google Play puedan utilizar en la APK Android de PICGIFT.
+Guía operativa para preparar una cuenta **real y verificada** que pueda usar el equipo de revisión de Google Play. El contenido de este archivo es preparatorio: **no refleja ni modifica** la declaración actualmente guardada en Play Console.
 
-> Las cuentas no se almacenan en GitHub: viven en Supabase Auth. Nunca publiques una contraseña de revisión ni claves privadas en el repositorio.
+> No guardar contraseñas de revisión, claves, recibos, datos de clientes ni capturas privadas en GitHub. La cuenta debe existir en Supabase Auth y permitir una comprobación real desde la versión instalada por Google Play.
 
-## Crear la cuenta de revisión
+## Estado del producto y alcance de la revisión (31 de octubre de 2026)
 
-1. Abre el [panel Authentication → Users de PICGIFT](https://supabase.com/dashboard/project/uimrvgrpenccijumyiek/auth/users).
-2. Selecciona **Add user → Create new user**.
-3. Usa un correo exclusivo de revisión que controles; puede ser un alias de Gmail asociado al correo del administrador, por ejemplo `mindrapeofficial+playreview@gmail.com`.
-4. Genera una contraseña única y robusta, distinta de las contraseñas personales. Guárdala en tu gestor de contraseñas y **no** en el repositorio.
-5. Marca **Auto confirm user**, si el panel ofrece esa opción; en caso contrario, confirma el correo recibido.
-6. Comprueba que el usuario figura como verificado. No le añadas permisos administrativos ni lo incluyas en `picgift_ai_pilot_users`.
-7. Instala la compilación 1.5.0 o posterior. Comprueba correo y contraseña, y Google mediante navegador externo → «Volver a PICGIFT» → sesión activa en la app. Prueba también cancelar y reiniciar durante el acceso. Google nunca se abre dentro del WebView; el código vuelve por un enlace con estado pendiente y se intercambia mediante PKCE.
-8. Comprueba que el usuario puede abrir **Mi cuenta**, **Mis fotografías** y el estudio. El estado sin fotografías es correcto. Compras y generación Halloween están todavía desactivadas para todos los usuarios públicos.
+- El correo de Google Play del 30 de octubre confirma **acceso a producción para PicGift: AI Photo Portraits (`com.picgift.myapp`)**. No certifica que exista una publicación general ni que la versión del repositorio esté distribuida.
+- `android/app/build.gradle.kts` declara la versión fuente 1.9.0 (código 22). Comprobar la versión **efectivamente instalada desde Play**, no asumir que coincide con GitHub.
+- El flujo documentado vigente es **una foto Premium de prueba sin coste por cuenta verificada**, sujeta a la disponibilidad del estudio; las siguientes fotos Premium consumen créditos. La antigua modalidad `Foto Gratis` está descontinuada.
+- Los packs Android son consumibles de compra única (1, 5 y 10 créditos) mediante Google Play Billing. No es obligatorio pagar para consultar el catálogo, y una compra simulada de licencia no valida un cobro real.
 
-## Rellenar Play Console → Acceso a la aplicación
+## Preparar una cuenta de revisión
 
-- Selecciona **Sí, algunas funciones de la aplicación están restringidas**.
-- Método: **correo electrónico y contraseña**.
-- Usuario: el correo real de la cuenta de revisión.
-- Contraseña: la contraseña exclusiva guardada en el gestor.
-- Instrucciones para los revisores (puedes copiar):
+1. En [Supabase Auth](https://supabase.com/dashboard/project/uimrvgrpenccijumyiek/auth/users), crea o revisa una cuenta exclusiva para Google Play.
+2. Utiliza un correo controlado y una contraseña única, almacenada **fuera del repositorio**.
+3. Verifica el correo y comprueba que no tiene permisos administrativos ni fotografías de usuarios reales.
+4. Desde una instalación real de Play, comprueba acceso con email y contraseña, recuperación de sesión, **Mi cuenta**, **Mis fotos**, **Inspiración** y estudio. Si Google OAuth está habilitado, comprueba por separado su retorno a la aplicación.
+5. Consulta en el dispositivo si el estudio está habilitado y si la cuenta dispone de su única prueba Premium. **No indiques a Google que la generación funciona o está deshabilitada sin comprobarlo.**
+6. Confirma que Ayuda y comentarios, política de privacidad, condiciones, solicitud de eliminación de cuenta y cualquier flujo de compra se abren y funcionan. Nunca suministres un método de pago personal para la revisión.
+7. Mantén la cuenta disponible para revisiones futuras.
+
+## Play Console → Acceso a la aplicación
+
+- Indica que algunas funciones requieren autenticación y proporciona las credenciales reales de la cuenta de revisión en el campo seguro de Console.
+- Comprueba que el revisor pueda entrar sin SMS, MFA temporal ni intervención manual del propietario.
+- Si la creación Premium está disponible y ha pasado una prueba real, explica cómo utilizar la prueba gratuita y cómo consultar el resultado en Mis fotos.
+- Si la creación todavía **no** está habilitada, descríbela expresamente como no disponible, explica el recorrido accesible y **no solicites revisión de una función inexistente o bloqueada como si estuviera lista**.
+- No copies instrucciones antiguas que declaren que Halloween, la generación y las compras están desactivados para todos: pueden ser incorrectas después de las actualizaciones.
+
+### Plantilla de instrucciones segura para personalizar
 
 ```text
-Para revisar PICGIFT, abre la aplicación y selecciona «Entrar».
-Inicia sesión con el correo electrónico y la contraseña de prueba facilitados.
-Una vez dentro, puedes acceder a «Mi cuenta», «Mis fotografías» y al estudio de creación.
-No se requiere un código SMS, inicio de sesión con Google ni un pago.
-La campaña de Halloween está en preparación; la generación de imágenes y los cobros todavía están desactivados.
-El catálogo de escenarios puede explorarse sin iniciar sesión.
+Abre PICGIFT desde la versión proporcionada por Google Play. Pulsa «Entrar»
+e inicia sesión con el correo y la contraseña de revisión incluidos en los
+campos confidenciales de Play Console. No requiere SMS ni inicio con Google.
+Puedes acceder a Perfil, Mis fotos, Inspiración y al estudio. Consulta las
+opciones disponibles para esa cuenta.
+[ANTES DE ENVIAR: añadir únicamente los pasos de generación/compra que se hayan
+probado de extremo a extremo en esta versión, o explicar las restricciones.]
 ```
 
-## Buenas prácticas
+## Verificaciones independientes
 
-- Mantén la cuenta disponible durante la revisión.
-- No uses una cuenta de administrador ni una cuenta que contenga fotografías privadas de clientes.
-- Evita autenticación con códigos que requieran intervención del propietario durante la revisión.
-- Si necesitas desactivar la cuenta tras la publicación, espera a que Google haya terminado de revisar y considera mantenerla para futuras actualizaciones.
-- Revisa que la URL pública de la [política de privacidad](https://picgift.onrender.com/privacy.html) funciona sin iniciar sesión.
-- No habilites pagos ni generación para esta cuenta para esquivar las restricciones del piloto.
+- [ ] Credenciales de revisor operativas en dispositivo real y versión de Play.
+- [ ] Declaración de acceso a la aplicación en Console coincide con las funciones accesibles.
+- [ ] Clasificación IARC y **categoría de edad por territorio** confirmadas en Console; no inferirlas del email IARC.
+- [ ] Ficha ES/EN y capturas verificadas contra el Android instalado; los materiales gráficos antiguos de Drive se capturaron en navegador.
+- [ ] Política [privacy.html](https://picgift.onrender.com/privacy.html) y solicitud [delete-account.html](https://picgift.onrender.com/delete-account.html) accesibles desde fuera de la app y desde la app.
+- [ ] Prueba real de eliminación completa y respuesta a solicitud documentada; abrir un borrador de correo no elimina datos.
+- [ ] Prueba Premium única y créditos: primer retrato, segundo con crédito, fallo/reintegro.
+- [ ] Pruebas Google Play Billing: pendiente, cancelada, compra de licencia, reinicio, consumo, recuperación, reembolso.
+- [ ] Seguridad de los datos y declaración de IA generativa conciliadas con el comportamiento real.
 
-## Comprobar que existe
-
-En Supabase → Authentication → Users, busca el correo. La fila debe aparecer registrada y con el correo confirmado antes de enviarla a Google.
+**Sin autorización para publicar una versión, cambiar declaraciones regulatorias, activar ventas o modificar precios desde esta guía.**
