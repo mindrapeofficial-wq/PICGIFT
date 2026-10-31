@@ -146,15 +146,18 @@ Deno.serve(async request=>{
  const {count:scenesCount}=await db.from("picgift_scene_recipes").select("scene_id",{count:"exact",head:true}).eq("enabled",true).in("scene_id",SCENES);
  const account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")||"";
  const available=!configError&&config?.enabled===true&&campaign?.active_campaign==="halloween"&&scenesCount===SCENES.length&&/^[a-f0-9]{32}$/i.test(account)&&!!Deno.env.get("CLOUDFLARE_API_TOKEN")&&!!Deno.env.get("OPENAI_API_KEY");
+ const today=new Date().toISOString().slice(0,10);
+ const {count:globalUsed,error:globalError}=await db.from("picgift_flux_free_usage").select("id",{count:"exact",head:true})
+  .eq("day_utc",today).neq("status","failed");
+ const globallyAvailable=!globalError&&(globalUsed||0)<20;
  if(action==="health"){
-  const today=new Date().toISOString().slice(0,10);
   const {count,error:usageError}=await db.from("picgift_flux_free_usage").select("id",{count:"exact",head:true})
    .eq("user_id",user.id).eq("day_utc",today).neq("status","failed");
-  return reply({available:available&&!usageError,pilot:false,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,
+  return reply({available:available&&globallyAvailable&&!usageError,pilot:false,free_beta:true,engine:"FLUX.2 Klein 4B",references_supported:true,
    email_available:false,quality_review:false,remaining_daily_limit:Math.max(0,(config?.per_tester_daily_limit||0)-(count||0))});
  }
  if(action!=="start")return reply({error:"unknown_action"},400);
- if(!available)return reply({error:"La prueba de retratos aún no está activada. No se ha procesado ninguna fotografía."},503);
+ if(!available||!globallyAvailable)return reply({error:"El cupo gratuito de Halloween no está disponible ahora. No se ha procesado ninguna fotografía."},503);
  if(body.consent!==true||body.guardian_consent!==true)return reply({error:"Se requiere autorización expresa del adulto responsable de la fotografía y del menor, si lo hay."},400);
  if(body.email_requested===true)return reply({error:"La entrega por correo no está disponible en esta beta."},400);
  const scene=safe(body.scene_id,60),format=safe(body.format,15),pose=safe(body.pose,90),outfit=safe(body.outfit,90),source=safe(body.source_path,180);
